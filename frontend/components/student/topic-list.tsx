@@ -15,7 +15,7 @@ interface TopicListProps {
   topics: Topic[];
 }
 
-export function TopicList({ topics, marhalahId }: TopicListProps) {
+export function TopicList({ topics }: TopicListProps) {
   return (
     <div className="space-y-2">
       {topics.map((topic) => {
