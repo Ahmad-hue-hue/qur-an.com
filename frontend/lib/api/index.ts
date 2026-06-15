@@ -34,21 +34,28 @@ export const authApi = {
       localStorage.setItem("refresh_token", "mock-refresh");
       return { access: "mock-token", refresh: "mock-refresh" };
     }
-    return apiClient<AuthTokens>("/auth/login/", {
+    const tokens = await apiClient<AuthTokens>("/auth/login/", {
       method: "POST",
       body: JSON.stringify(credentials),
     });
+    localStorage.setItem("access_token", tokens.access);
+    localStorage.setItem("refresh_token", tokens.refresh);
+    return tokens;
   },
 
   register: async (data: RegisterData): Promise<AuthTokens> => {
     if (USE_MOCK) {
       localStorage.setItem("access_token", "mock-token");
+      localStorage.setItem("refresh_token", "mock-refresh");
       return { access: "mock-token", refresh: "mock-refresh" };
     }
-    return apiClient<AuthTokens>("/auth/register/", {
+    const tokens = await apiClient<AuthTokens>("/auth/register/", {
       method: "POST",
       body: JSON.stringify(data),
     });
+    localStorage.setItem("access_token", tokens.access);
+    localStorage.setItem("refresh_token", tokens.refresh);
+    return tokens;
   },
 
   logout: () => {

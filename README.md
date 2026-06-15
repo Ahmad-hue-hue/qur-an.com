@@ -4,37 +4,60 @@ Islamic Tajweed Learning & Assessment Platform.
 
 ## Stack
 
-- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS v4, Shadcn UI, Hugeicons, TanStack Query
-- **Backend:** Django + DRF (planned), PostgreSQL, JWT
+| Layer | Tech |
+|---|---|
+| Frontend | Next.js, TypeScript, Tailwind v4, Shadcn UI, Hugeicons, TanStack Query |
+| Backend | Django 6, DRF, JWT, PostgreSQL (SQLite for local dev) |
+| Runtime | Bun (frontend), uv (backend) |
 
-## Getting Started
+## Quick Start
 
-### Frontend (Bun)
+### Backend
+
+```bash
+cd backend
+cp .env.example .env
+uv sync
+uv run python manage.py migrate
+uv run python manage.py seed_data
+uv run python manage.py runserver
+```
+
+### Frontend
 
 ```bash
 cd frontend
 bun install
-cp .env.example .env.local   # optional — mock mode works out of the box
+cp .env.example .env.local
+# Set NEXT_PUBLIC_USE_MOCK=false to use real API
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000)
 
-### Environment
+## Default Accounts
 
-| Variable | Default | Description |
+| Role | Email | Password |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000/api` | Backend API base URL |
-| `NEXT_PUBLIC_USE_MOCK` | `true` | Use mock data when backend is unavailable |
+| Admin | admin@tajweed.academy | admin12345 |
+| Student | ahmad@example.com | student123 |
 
-## Routes
+## Features
 
-| Path | Description |
-|---|---|
-| `/dashboard` | Student dashboard |
-| `/marhalah/[id]` | Marḥalah topics |
-| `/topics/[id]` | Topic detail |
-| `/assessments` | Exercises & exams |
-| `/exercises/[id]` | Exercise attempt |
-| `/profile` | Student profile |
-| `/admin` | Admin dashboard |
+- 4 Marḥalah stages with unlock thresholds
+- Topic lessons with Arabic text, audio, PDF
+- Exercises (MCQ + written) with date windows
+- Exams with duration and scheduling
+- Manual Halaqah & Tadreeb scores
+- Weighted final score calculation
+- Registration number assigned on first exercise attempt
+- Student dashboard, assessments, profile
+- Admin panel for students, topics, lessons
+
+## Project Structure
+
+```
+tajweed-platform/
+├── frontend/     # Next.js app
+└── backend/      # Django REST API
+```

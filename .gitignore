@@ -27,4 +27,6 @@ build/
 *.egg-info/
 .pytest_cache/
 db.sqlite3
-media/
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
