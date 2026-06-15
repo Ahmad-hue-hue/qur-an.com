@@ -3,7 +3,11 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.utils import normalize_phone, student_email_from_phone
+from accounts.utils import (
+    full_name_matches,
+    normalize_phone,
+    student_email_from_phone,
+)
 
 User = get_user_model()
 
@@ -45,11 +49,9 @@ class StudentProfileSerializer(UserSerializer):
 
 
 class AdminCreateStudentSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
-
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "phone", "password"]
+        fields = ["first_name", "last_name", "phone"]
 
     def validate_phone(self, value):
         digits = normalize_phone(value)
@@ -61,12 +63,11 @@ class AdminCreateStudentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         phone = validated_data["phone"]
-        password = validated_data.pop("password")
         email = student_email_from_phone(phone)
         return User.objects.create_user(
             username=email,
             email=email,
-            password=password,
+            password=User.objects.make_random_password(),
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
             phone=phone,
@@ -75,16 +76,19 @@ class AdminCreateStudentSerializer(serializers.ModelSerializer):
 
 
 class StudentLoginSerializer(serializers.Serializer):
+    name = serializers.CharField()
     phone = serializers.CharField()
-    password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
         phone = normalize_phone(attrs["phone"])
-        password = attrs["password"]
+        name = attrs["name"]
+
+        if len(phone) < 8:
+            raise serializers.ValidationError("Invalid name or phone number.")
 
         user = User.objects.filter(phone=phone, role=User.Role.STUDENT).first()
-        if not user or not user.check_password(password):
-            raise serializers.ValidationError("Invalid phone number or password.")
+        if not user or not full_name_matches(user, name):
+            raise serializers.ValidationError("Invalid name or phone number.")
         if user.is_suspended:
             raise serializers.ValidationError("This account has been suspended.")
 

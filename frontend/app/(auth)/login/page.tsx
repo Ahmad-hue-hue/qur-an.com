@@ -17,8 +17,8 @@ export default function StudentLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshAuth, logout, isLoggedIn, role, isReady } = useAuth();
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function StudentLoginPage() {
   }, [searchParams, logout, refreshAuth, router, isLoggedIn]);
 
   const loginMutation = useMutation({
-    mutationFn: () => authApi.loginStudent({ phone, password }),
+    mutationFn: () => authApi.loginStudent({ name, phone }),
     onSuccess: () => {
       refreshAuth();
       toast.success("Welcome back!");
@@ -97,6 +97,16 @@ export default function StudentLoginPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="Ahmad Hassan"
+                    autoComplete="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
                     id="phone"
@@ -107,25 +117,18 @@ export default function StudentLoginPage() {
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
                 <Button
                   className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
-                  disabled={loginMutation.isPending || !phone.trim() || !password}
+                  disabled={loginMutation.isPending || !name.trim() || !phone.trim()}
                   onClick={() => loginMutation.mutate()}
                 >
                   {loginMutation.isPending ? "Signing in..." : "Sign In"}
                 </Button>
                 <p className="text-center text-xs text-muted-foreground">
                   Accounts are created by your administrator.
+                </p>
+                <p className="text-center text-xs text-muted-foreground">
+                  Demo: Ahmad Hassan / 966501234567
                 </p>
               </CardContent>
             </>

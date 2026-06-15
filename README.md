@@ -39,15 +39,15 @@ Open [http://localhost:3000](http://localhost:3000)
 
 | Role | Portal | Login |
 |---|---|---|
-| Student | `/login` | Phone + password (admin-created account) |
+| Student | `/login` | Full name + phone |
 | Admin | `/admin/login` | Email + password |
 
 **Demo credentials**
 
-| Role | Phone / Email | Password |
+| Role | Login | |
 |---|---|---|
-| Student | 966501234567 | Student@123 |
-| Admin | admin@tajweed.academy | admin12345 |
+| Student | Ahmad Hassan / 966501234567 | |
+| Admin | admin@tajweed.academy / admin12345 | |
 
 Students cannot self-register. Admins create accounts from **Admin → Students → Register New Student**.
 

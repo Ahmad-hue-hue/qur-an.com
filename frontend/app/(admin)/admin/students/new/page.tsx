@@ -22,7 +22,6 @@ export default function AdminCreateStudentPage() {
     first_name: "",
     last_name: "",
     phone: "",
-    password: "",
   });
 
   const createMutation = useMutation({
@@ -39,10 +38,7 @@ export default function AdminCreateStudentPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const canSubmit =
-    form.first_name.trim() &&
-    form.last_name.trim() &&
-    form.phone.trim() &&
-    form.password.length >= 8;
+    form.first_name.trim() && form.last_name.trim() && form.phone.trim();
 
   return (
     <AppShell variant="admin">
@@ -60,8 +56,8 @@ export default function AdminCreateStudentPage() {
         <Card className="card-shadow">
           <CardContent className="p-5 space-y-4">
             <p className="text-sm text-muted-foreground">
-              Create a student account. Share the phone number and password securely
-              with the student.
+              Create a student account. The student signs in using their full name
+              and phone number.
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -87,18 +83,6 @@ export default function AdminCreateStudentPage() {
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                Used as the student login username.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label>Temporary Password</Label>
-              <Input
-                type="password"
-                value={form.password}
-                onChange={(e) => update("password", e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">Minimum 8 characters.</p>
             </div>
             <Button
               className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
