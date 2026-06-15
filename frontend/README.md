@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tajweed Academy Frontend
 
-## Getting Started
+Next.js app for the Tajweed Learning & Assessment Platform.
 
-First, run the development server:
+## Stack
+
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS v4
+- Shadcn UI + Hugeicons
+- TanStack Query
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+cd frontend
+bun install
+cp .env.example .env.local
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Make sure the Django backend is running on port 8000.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment
 
-## Learn More
+`.env.local`:
 
-To learn more about Next.js, take a look at the following resources:
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_USE_MOCK=false
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Student
 
-## Deploy on Vercel
+| Route | Description |
+|---|---|
+| `/login` | Student login (name + phone) |
+| `/register` | Student self-registration |
+| `/dashboard` | Student home |
+| `/marhalah/[id]` | Marḥalah topics |
+| `/topics/[id]` | Lesson detail |
+| `/assessments` | Exercises and exams |
+| `/exercises/[id]` | Take an exercise |
+| `/profile` | Student profile |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Admin
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Route | Description |
+|---|---|
+| `/admin` | Admin dashboard (open in local dev) |
+| `/admin/students` | Student management |
+| `/admin/students/new` | Register a student |
+| `/admin/students/[id]` | Edit, suspend, promote, delete student |
+| `/admin/topics` | Manage lessons by Marḥalah |
+| `/admin/lessons/new` | Add a new lesson |
+| `/admin/lessons/[id]` | Edit a lesson |
+| `/admin/exercises` | Exercise management |
+| `/admin/exams` | Exam management |
+
+## Scripts
+
+```bash
+bun dev      # Development server
+bun run build   # Production build
+bun run lint    # ESLint
+bun start    # Start production server
+```
+
+## Project Layout
+
+```
+frontend/
+├── app/
+│   ├── (student)/     # Authenticated student pages
+│   ├── (admin)/       # Admin panel
+│   └── (auth)/        # Login and register
+├── components/
+│   ├── auth/          # Login UI, guards
+│   ├── layout/        # App shell, nav
+│   └── shared/        # Shared dialogs, etc.
+├── hooks/             # Auth hooks
+└── lib/
+    ├── api/           # API client and endpoints
+    └── auth/          # JWT token helpers
+```
+
+## Demo Login
+
+After backend seed data:
+
+- **Student:** Ahmad Hassan / 966501234567 at `/login`
+- **Admin panel:** go directly to `/admin` (no login needed in local dev)
