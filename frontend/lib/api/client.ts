@@ -101,13 +101,14 @@ export async function apiClient<T>(
 
 export async function apiUpload<T>(
   endpoint: string,
-  formData: FormData
+  formData: FormData,
+  method: "POST" | "PATCH" = "POST"
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   const headers: HeadersInit = { ...getAuthHeaders() };
 
   const response = await fetch(url, {
-    method: "POST",
+    method,
     headers,
     body: formData,
   });

@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from accounts.views import (
     AdminLoginView,
     AdminStatsView,
+    AdminStudentAssignRegistrationView,
     AdminStudentDetailView,
     AdminStudentListCreateView,
     AdminTopicDetailView,
@@ -16,6 +17,14 @@ from accounts.views import (
     StudentTopicCompleteView,
     StudentTopicDetailView,
     StudentTopicListView,
+)
+from assessments.admin_views import (
+    AdminExamDetailView,
+    AdminExamListCreateView,
+    AdminExamQuestionListCreateView,
+    AdminExerciseDetailView,
+    AdminExerciseListCreateView,
+    AdminExerciseQuestionListCreateView,
 )
 from assessments.views import (
     StudentExamListView,
@@ -68,10 +77,37 @@ urlpatterns = [
         AdminStudentDetailView.as_view(),
         name="admin-student-detail",
     ),
+    path(
+        "admin/students/<int:pk>/assign-registration/",
+        AdminStudentAssignRegistrationView.as_view(),
+        name="admin-student-assign-registration",
+    ),
     path("admin/topics/", AdminTopicListCreateView.as_view(), name="admin-topics"),
     path(
         "admin/topics/<int:pk>/",
         AdminTopicDetailView.as_view(),
         name="admin-topic-detail",
+    ),
+    path("admin/exercises/", AdminExerciseListCreateView.as_view(), name="admin-exercises"),
+    path(
+        "admin/exercises/<int:pk>/",
+        AdminExerciseDetailView.as_view(),
+        name="admin-exercise-detail",
+    ),
+    path(
+        "admin/exercises/<int:exercise_id>/questions/",
+        AdminExerciseQuestionListCreateView.as_view(),
+        name="admin-exercise-questions",
+    ),
+    path("admin/exams/", AdminExamListCreateView.as_view(), name="admin-exams"),
+    path(
+        "admin/exams/<int:pk>/",
+        AdminExamDetailView.as_view(),
+        name="admin-exam-detail",
+    ),
+    path(
+        "admin/exams/<int:exam_id>/questions/",
+        AdminExamQuestionListCreateView.as_view(),
+        name="admin-exam-questions",
     ),
 ]

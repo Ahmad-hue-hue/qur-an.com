@@ -99,9 +99,11 @@ export default function AdminTopicsPage() {
                   </p>
                 )}
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <HugeiconsIcon icon={Edit02Icon} size={16} />
-              </Button>
+              <Link href={`/admin/lessons/${topic.id}`}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <HugeiconsIcon icon={Edit02Icon} size={16} />
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"

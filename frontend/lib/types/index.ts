@@ -17,6 +17,7 @@ export interface User {
   role: UserRole;
   registration_number?: string | null;
   is_suspended: boolean;
+  current_marhalah?: number;
   date_joined: string;
 }
 
@@ -161,4 +162,33 @@ export interface CreateStudentData {
   first_name: string;
   last_name: string;
   phone: string;
+}
+
+export interface UpdateStudentData {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  is_suspended?: boolean;
+  current_marhalah?: number;
+  registration_number?: string | null;
+}
+
+export interface CreateExerciseData {
+  marhalah: number;
+  title: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  question_text?: string;
+  question_options?: string[];
+  correct_answer?: string;
+}
+
+export interface CreateExamData {
+  marhalah: number;
+  title: string;
+  description?: string;
+  duration_minutes?: number;
+  start_date: string;
+  end_date: string;
 }

@@ -5,6 +5,9 @@ import type {
   AdminStats,
   AuthTokens,
   CreateStudentData,
+  CreateExerciseData,
+  CreateExamData,
+  UpdateStudentData,
   DashboardData,
   Exam,
   Exercise,
@@ -119,6 +122,20 @@ export const adminApi = {
   getStudent: (id: number): Promise<StudentProfile> =>
     apiClient<StudentProfile>(`/admin/students/${id}/`),
 
+  updateStudent: (id: number, data: UpdateStudentData): Promise<StudentProfile> =>
+    apiClient<StudentProfile>(`/admin/students/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteStudent: (id: number): Promise<void> =>
+    apiClient(`/admin/students/${id}/`, { method: "DELETE" }),
+
+  assignRegistrationNumber: (id: number): Promise<StudentProfile> =>
+    apiClient<StudentProfile>(`/admin/students/${id}/assign-registration/`, {
+      method: "POST",
+    }),
+
   getTopics: async (marhalahId?: number): Promise<Topic[]> => {
     const query = marhalahId ? `?marhalah=${marhalahId}` : "";
     const data = await apiClient<Topic[] | { results: Topic[] }>(
@@ -141,6 +158,65 @@ export const adminApi = {
     return apiUpload<Topic>("/admin/topics/", formData);
   },
 
+  getTopic: (id: number): Promise<Topic> => apiClient<Topic>(`/admin/topics/${id}/`),
+
+  updateTopic: async (data: CreateTopicData & { id: number }): Promise<Topic> => {
+    const formData = new FormData();
+    formData.append("marhalah", String(data.marhalah));
+    formData.append("order", String(data.order));
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+    if (data.arabic_title) formData.append("arabic_title", data.arabic_title);
+    if (data.arabic_content) formData.append("arabic_content", data.arabic_content);
+    if (data.examples) formData.append("examples", data.examples);
+    if (data.audio) formData.append("audio", data.audio);
+    if (data.pdf) formData.append("pdf", data.pdf);
+    return apiUpload<Topic>(`/admin/topics/${data.id}/`, formData, "PATCH");
+  },
+
   deleteTopic: (id: number): Promise<void> =>
     apiClient(`/admin/topics/${id}/`, { method: "DELETE" }),
+
+  getExercises: async (marhalahId?: number): Promise<Exercise[]> => {
+    const query = marhalahId ? `?marhalah=${marhalahId}` : "";
+    return apiClient<Exercise[]>(`/admin/exercises/${query}`);
+  },
+
+  createExercise: (data: CreateExerciseData): Promise<Exercise> =>
+    apiClient<Exercise>("/admin/exercises/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateExercise: (
+    id: number,
+    data: Partial<CreateExerciseData>
+  ): Promise<Exercise> =>
+    apiClient<Exercise>(`/admin/exercises/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteExercise: (id: number): Promise<void> =>
+    apiClient(`/admin/exercises/${id}/`, { method: "DELETE" }),
+
+  getExams: async (marhalahId?: number): Promise<Exam[]> => {
+    const query = marhalahId ? `?marhalah=${marhalahId}` : "";
+    return apiClient<Exam[]>(`/admin/exams/${query}`);
+  },
+
+  createExam: (data: CreateExamData): Promise<Exam> =>
+    apiClient<Exam>("/admin/exams/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateExam: (id: number, data: Partial<CreateExamData>): Promise<Exam> =>
+    apiClient<Exam>(`/admin/exams/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteExam: (id: number): Promise<void> =>
+    apiClient(`/admin/exams/${id}/`, { method: "DELETE" }),
 };

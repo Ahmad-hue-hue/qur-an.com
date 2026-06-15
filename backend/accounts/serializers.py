@@ -30,6 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
             "registration_number",
             "is_suspended",
+            "current_marhalah",
             "date_joined",
         ]
         read_only_fields = ["id", "role", "registration_number", "date_joined", "email"]
@@ -112,6 +113,35 @@ class AdminCreateStudentSerializer(serializers.ModelSerializer):
             phone=phone,
             role=User.Role.STUDENT,
         )
+
+
+class AdminUpdateStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "first_name",
+            "last_name",
+            "phone",
+            "is_suspended",
+            "current_marhalah",
+            "registration_number",
+        ]
+
+    def validate_phone(self, value):
+        digits = normalize_phone(value)
+        if len(digits) < 8:
+            raise serializers.ValidationError("Enter a valid phone number.")
+        qs = User.objects.filter(phone=digits)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("This phone number is already registered.")
+        return digits
+
+    def validate_current_marhalah(self, value):
+        if value < 1 or value > 4:
+            raise serializers.ValidationError("Marhalah must be between 1 and 4.")
+        return value
 
 
 class StudentLoginSerializer(serializers.Serializer):

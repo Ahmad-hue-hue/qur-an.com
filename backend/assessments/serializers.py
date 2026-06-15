@@ -8,6 +8,7 @@ from assessments.models import (
     ManualScore,
     Question,
 )
+from courses.models import Marhalah
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -85,6 +86,61 @@ class ExamSerializer(serializers.ModelSerializer):
             "max_score",
             "has_submitted",
         ]
+
+
+class ExerciseAdminSerializer(serializers.ModelSerializer):
+    marhalah = serializers.PrimaryKeyRelatedField(queryset=Marhalah.objects.all())
+
+    class Meta:
+        model = Exercise
+        fields = ["id", "marhalah", "title", "description", "start_date", "end_date"]
+
+
+class ExamAdminSerializer(serializers.ModelSerializer):
+    marhalah = serializers.PrimaryKeyRelatedField(queryset=Marhalah.objects.all())
+
+    class Meta:
+        model = Exam
+        fields = [
+            "id",
+            "marhalah",
+            "title",
+            "description",
+            "duration_minutes",
+            "start_date",
+            "end_date",
+        ]
+
+
+class ExerciseCreateSerializer(ExerciseAdminSerializer):
+    question_text = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    question_options = serializers.ListField(
+        child=serializers.CharField(), required=False, write_only=True
+    )
+    correct_answer = serializers.CharField(required=False, allow_blank=True, write_only=True)
+
+    class Meta(ExerciseAdminSerializer.Meta):
+        fields = ExerciseAdminSerializer.Meta.fields + [
+            "question_text",
+            "question_options",
+            "correct_answer",
+        ]
+
+    def create(self, validated_data):
+        question_text = validated_data.pop("question_text", "")
+        question_options = validated_data.pop("question_options", [])
+        correct_answer = validated_data.pop("correct_answer", "")
+        exercise = Exercise.objects.create(**validated_data)
+        if question_text.strip():
+            Question.objects.create(
+                exercise=exercise,
+                type=Question.QuestionType.MCQ,
+                text=question_text.strip(),
+                options=question_options,
+                correct_answer=correct_answer or (question_options[0] if question_options else ""),
+                order=1,
+            )
+        return exercise
 
 
 class ManualScoreSerializer(serializers.ModelSerializer):

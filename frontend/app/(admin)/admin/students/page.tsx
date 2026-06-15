@@ -36,7 +36,10 @@ export default function AdminStudentsPage() {
       `${s.first_name} ${s.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
       s.phone?.includes(search.replace(/\D/g, "")) ||
       s.registration_number?.toLowerCase().includes(search.toLowerCase());
-    return matchesSearch;
+    const matchesMarhalah =
+      marhalahFilter === "all" ||
+      String(s.current_marhalah ?? 1) === marhalahFilter;
+    return matchesSearch && matchesMarhalah;
   });
 
   return (

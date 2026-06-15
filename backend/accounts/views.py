@@ -8,6 +8,7 @@ from accounts.permissions import IsAdmin
 from accounts.serializers import (
     AdminCreateStudentSerializer,
     AdminLoginSerializer,
+    AdminUpdateStudentSerializer,
     StudentLoginSerializer,
     StudentRegisterSerializer,
     UserSerializer,
@@ -194,10 +195,45 @@ class AdminStudentListCreateView(generics.ListCreateAPIView):
 class AdminStudentDetailView(APIView):
     permission_classes = [IsAdmin]
 
+    def get_student(self, pk):
+        return User.objects.filter(pk=pk, role=User.Role.STUDENT).first()
+
     def get(self, request, pk):
+        student = self.get_student(pk)
+        if not student:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(build_student_profile(student))
+
+    def patch(self, request, pk):
+        student = self.get_student(pk)
+        if not student:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = AdminUpdateStudentSerializer(
+            student, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(build_student_profile(student))
+
+    def delete(self, request, pk):
+        student = self.get_student(pk)
+        if not student:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        student.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminStudentAssignRegistrationView(APIView):
+    permission_classes = [IsAdmin]
+
+    def post(self, request, pk):
+        from assessments.services import assign_registration_number
+
         student = User.objects.filter(pk=pk, role=User.Role.STUDENT).first()
         if not student:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        assign_registration_number(student)
+        student.refresh_from_db()
         return Response(build_student_profile(student))
 
 

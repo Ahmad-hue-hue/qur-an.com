@@ -153,7 +153,11 @@ export default function StudentLoginPage() {
             <Link href="/register" className="font-semibold text-emerald-deep">
               Sign up
             </Link>{" "}
-            to get started.
+            to get started.{" "}
+            <span className="text-muted-foreground/60">·</span>{" "}
+            <Link href="/admin" className="font-semibold text-emerald-deep">
+              Admin panel
+            </Link>
           </p>
         )}
       </div>
