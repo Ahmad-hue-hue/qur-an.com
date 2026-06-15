@@ -10,8 +10,13 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const { logout } = useAuth();
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: studentApi.getProfile,
@@ -165,6 +170,17 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        <Button
+          variant="outline"
+          className="w-full text-destructive border-destructive/30 hover:bg-destructive/5"
+          onClick={() => {
+            logout();
+            router.push("/login");
+          }}
+        >
+          Sign Out
+        </Button>
       </div>
 
       <BottomNav />

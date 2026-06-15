@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { refreshAuth } = useAuth();
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -25,10 +27,11 @@ export default function RegisterPage() {
   const registerMutation = useMutation({
     mutationFn: () => authApi.register(form),
     onSuccess: () => {
+      refreshAuth();
       toast.success("Account created! Welcome to Tajweed Academy.");
       router.push("/dashboard");
     },
-    onError: () => toast.error("Registration failed"),
+    onError: (err: Error) => toast.error(err.message || "Registration failed"),
   });
 
   const update = (field: string, value: string) =>

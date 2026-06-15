@@ -203,3 +203,19 @@ class AdminTopicListCreateView(generics.ListCreateAPIView):
         ctx = super().get_serializer_context()
         ctx["request"] = self.request
         return ctx
+
+
+class AdminTopicDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdmin]
+    queryset = Topic.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method in ("PUT", "PATCH", "POST"):
+            from courses.serializers import TopicAdminSerializer
+            return TopicAdminSerializer
+        return TopicSerializer
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["request"] = self.request
+        return ctx

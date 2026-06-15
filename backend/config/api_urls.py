@@ -5,6 +5,7 @@ from accounts.views import (
     AdminStatsView,
     AdminStudentDetailView,
     AdminStudentListView,
+    AdminTopicDetailView,
     AdminTopicListCreateView,
     LoginView,
     RegisterView,
@@ -66,4 +67,9 @@ urlpatterns = [
         name="admin-student-detail",
     ),
     path("admin/topics/", AdminTopicListCreateView.as_view(), name="admin-topics"),
+    path(
+        "admin/topics/<int:pk>/",
+        AdminTopicDetailView.as_view(),
+        name="admin-topic-detail",
+    ),
 ]

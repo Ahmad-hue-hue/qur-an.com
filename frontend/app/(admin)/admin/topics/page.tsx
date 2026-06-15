@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import Link from "next/link";
 import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
@@ -26,10 +27,20 @@ import {
 
 export default function AdminTopicsPage() {
   const [marhalahId, setMarhalahId] = useState("1");
+  const queryClient = useQueryClient();
 
-  const { data: topics } = useQuery({
+  const { data: topics, isLoading } = useQuery({
     queryKey: ["admin-topics", marhalahId],
     queryFn: () => adminApi.getTopics(parseInt(marhalahId)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => adminApi.deleteTopic(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-topics"] });
+      toast.success("Topic deleted");
+    },
+    onError: (err: Error) => toast.error(err.message || "Delete failed"),
   });
 
   return (
@@ -64,6 +75,12 @@ export default function AdminTopicsPage() {
       </PageHeader>
 
       <div className="px-4 py-6 space-y-2">
+        {isLoading && (
+          <p className="text-sm text-muted-foreground text-center py-8">Loading topics...</p>
+        )}
+        {!isLoading && topics?.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-8">No topics yet.</p>
+        )}
         {topics?.map((topic) => (
           <Card key={topic.id} className="card-shadow">
             <CardContent className="p-4 flex items-center gap-3">
@@ -89,6 +106,8 @@ export default function AdminTopicsPage() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-destructive"
+                onClick={() => deleteMutation.mutate(topic.id)}
+                disabled={deleteMutation.isPending}
               >
                 <HugeiconsIcon icon={Delete02Icon} size={16} />
               </Button>
