@@ -64,16 +64,19 @@ class Command(BaseCommand):
                 "username": "ahmad@example.com",
                 "first_name": "Ahmad",
                 "last_name": "Hassan",
-                "phone": "+966 50 123 4567",
+                "phone": "966501234567",
                 "role": User.Role.STUDENT,
                 "registration_number": "TJW-2026-001",
                 "has_attempted_exercise": True,
             },
         )
         if created:
-            student.set_password("student123")
+            student.set_password("966501234567")
             student.save()
-            self.stdout.write("Created student: ahmad@example.com / student123")
+            self.stdout.write("Created student: Ahmad Hassan / 966501234567")
+        elif not student.phone:
+            student.phone = "966501234567"
+            student.save(update_fields=["phone"])
 
         for m in MARHALAHS:
             Marhalah.objects.get_or_create(number=m["number"], defaults=m)

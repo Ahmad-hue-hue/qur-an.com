@@ -24,10 +24,10 @@ API runs at `http://localhost:8000/api/`
 
 ## Default accounts (after seed)
 
-| Role | Email | Password |
+| Role | Login | Demo |
 |---|---|---|
-| Admin | admin@tajweed.academy | admin12345 |
-| Student | ahmad@example.com | student123 |
+| Student | Full name + phone | Ahmad Hassan / 966501234567 |
+| Admin | Email + password | admin@tajweed.academy / admin12345 |
 
 ## PostgreSQL
 

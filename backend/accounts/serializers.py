@@ -1,6 +1,13 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from accounts.utils import (
+    full_name_matches,
+    normalize_phone,
+    student_email_from_phone,
+)
 
 User = get_user_model()
 
@@ -42,27 +49,57 @@ class StudentProfileSerializer(UserSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
-
     class Meta:
         model = User
-        fields = ["email", "password", "first_name", "last_name", "phone"]
+        fields = ["first_name", "last_name", "phone"]
+
+    def validate_phone(self, value):
+        digits = normalize_phone(value)
+        if len(digits) < 8:
+            raise serializers.ValidationError("Enter a valid phone number.")
+        if User.objects.filter(phone=digits).exists():
+            raise serializers.ValidationError("This phone number is already registered.")
+        return digits
 
     def create(self, validated_data):
-        email = validated_data["email"]
+        phone = validated_data["phone"]
+        email = student_email_from_phone(phone)
         user = User.objects.create_user(
             username=email,
             email=email,
-            password=validated_data["password"],
+            password=phone,
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
-            phone=validated_data.get("phone", ""),
+            phone=phone,
             role=User.Role.STUDENT,
         )
         return user
 
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+class StudentLoginSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    phone = serializers.CharField()
+
+    def validate(self, attrs):
+        phone = normalize_phone(attrs["phone"])
+        name = attrs["name"]
+
+        if len(phone) < 8:
+            raise serializers.ValidationError("Enter a valid phone number.")
+
+        user = User.objects.filter(phone=phone, role=User.Role.STUDENT).first()
+        if not user:
+            raise serializers.ValidationError("No account found with this phone number.")
+        if user.is_suspended:
+            raise serializers.ValidationError("This account has been suspended.")
+        if not full_name_matches(user, name):
+            raise serializers.ValidationError("Name does not match our records.")
+
+        attrs["user"] = user
+        return attrs
+
+
+class AdminLoginSerializer(TokenObtainPairSerializer):
     username_field = User.EMAIL_FIELD
 
     @classmethod
@@ -73,6 +110,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
+        user = self.user
+        if not user.is_admin:
+            raise serializers.ValidationError("Admin access only.")
         data["access"] = data.pop("access")
         data["refresh"] = data.pop("refresh")
         return data
+
+
+def tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    refresh["role"] = user.role
+    return {"access": str(refresh.access_token), "refresh": str(refresh)}

@@ -19,9 +19,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
-    email: "",
     phone: "",
-    password: "",
   });
 
   const registerMutation = useMutation({
@@ -37,19 +35,16 @@ export default function RegisterPage() {
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
+  const canSubmit =
+    form.first_name.trim() && form.last_name.trim() && form.phone.trim();
+
   return (
     <AppShell variant="auth">
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
         <div className="text-center mb-8">
-          <p className="font-arabic text-2xl text-emerald-deep mb-1">
-            بسم الله
-          </p>
-          <h1 className="text-2xl font-bold text-emerald-deep">
-            Tajweed Academy
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Create your student account
-          </p>
+          <p className="font-arabic text-2xl text-emerald-deep mb-1">بسم الله</p>
+          <h1 className="text-2xl font-bold text-emerald-deep">Tajweed Academy</h1>
+          <p className="text-muted-foreground text-sm mt-1">Create your student account</p>
         </div>
 
         <Card className="w-full max-w-sm card-shadow">
@@ -74,31 +69,20 @@ export default function RegisterPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Email</Label>
+              <Label>Phone Number</Label>
               <Input
-                type="email"
-                value={form.email}
-                onChange={(e) => update("email", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Phone (optional)</Label>
-              <Input
+                type="tel"
+                placeholder="966501234567"
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>Password</Label>
-              <Input
-                type="password"
-                value={form.password}
-                onChange={(e) => update("password", e.target.value)}
-              />
+              <p className="text-xs text-muted-foreground">
+                Use this phone number to sign in later with your full name.
+              </p>
             </div>
             <Button
               className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
-              disabled={registerMutation.isPending}
+              disabled={registerMutation.isPending || !canSubmit}
               onClick={() => registerMutation.mutate()}
             >
               {registerMutation.isPending ? "Creating..." : "Create Account"}

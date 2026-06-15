@@ -142,15 +142,18 @@ export interface AuthTokens {
   refresh: string;
 }
 
-export interface LoginCredentials {
+export interface StudentLoginCredentials {
+  name: string;
+  phone: string;
+}
+
+export interface AdminLoginCredentials {
   email: string;
   password: string;
 }
 
 export interface RegisterData {
-  email: string;
-  password: string;
   first_name: string;
   last_name: string;
-  phone?: string;
+  phone: string;
 }

@@ -1,22 +1,32 @@
 import { apiClient, apiUpload, unwrapList } from "./client";
 import { clearTokens, setTokens } from "@/lib/auth/token";
 import type {
+  AdminLoginCredentials,
   AdminStats,
   AuthTokens,
   DashboardData,
   Exam,
   Exercise,
-  LoginCredentials,
   Marhalah,
   Question,
   RegisterData,
+  StudentLoginCredentials,
   StudentProfile,
   Topic,
   User,
 } from "@/lib/types";
 
 export const authApi = {
-  login: async (credentials: LoginCredentials): Promise<AuthTokens> => {
+  loginStudent: async (credentials: StudentLoginCredentials): Promise<AuthTokens> => {
+    const tokens = await apiClient<AuthTokens>("/auth/login/", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    });
+    setTokens(tokens.access, tokens.refresh);
+    return tokens;
+  },
+
+  loginAdmin: async (credentials: AdminLoginCredentials): Promise<AuthTokens> => {
     const tokens = await apiClient<AuthTokens>("/auth/login/", {
       method: "POST",
       body: JSON.stringify(credentials),

@@ -3,13 +3,14 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 from accounts.permissions import IsAdmin
 from accounts.serializers import (
-    CustomTokenObtainPairSerializer,
+    AdminLoginSerializer,
     RegisterSerializer,
+    StudentLoginSerializer,
     UserSerializer,
+    tokens_for_user,
 )
 from courses.models import Marhalah, Topic, TopicCompletion
 from courses.serializers import MarhalahSerializer, TopicSerializer
@@ -31,16 +32,27 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        refresh = CustomTokenObtainPairSerializer.get_token(user)
-        return Response(
-            {"access": str(refresh.access_token), "refresh": str(refresh)},
-            status=status.HTTP_201_CREATED,
-        )
+        return Response(tokens_for_user(user), status=status.HTTP_201_CREATED)
 
 
-class LoginView(TokenObtainPairView):
+class LoginView(APIView):
     permission_classes = [AllowAny]
-    serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request):
+        if "email" in request.data:
+            serializer = AdminLoginSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            return Response(
+                {
+                    "access": serializer.validated_data["access"],
+                    "refresh": serializer.validated_data["refresh"],
+                }
+            )
+
+        serializer = StudentLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        return Response(tokens_for_user(user))
 
 
 class StudentDashboardView(APIView):

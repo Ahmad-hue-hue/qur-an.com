@@ -37,10 +37,10 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Default Accounts
 
-| Role | Email | Password |
+| Role | Login | Demo |
 |---|---|---|
-| Admin | admin@tajweed.academy | admin12345 |
-| Student | ahmad@example.com | student123 |
+| Student | Full name + phone | Ahmad Hassan / `966501234567` |
+| Admin | Email + password | admin@tajweed.academy / admin12345 |
 
 ## Features
 
