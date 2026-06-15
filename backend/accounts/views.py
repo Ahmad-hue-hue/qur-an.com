@@ -9,6 +9,7 @@ from accounts.serializers import (
     AdminCreateStudentSerializer,
     AdminLoginSerializer,
     StudentLoginSerializer,
+    StudentRegisterSerializer,
     UserSerializer,
     tokens_for_user,
 )
@@ -22,6 +23,16 @@ from courses.services import (
 from assessments.services import get_marhalah_status
 
 User = get_user_model()
+
+
+class StudentRegisterView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = StudentRegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(tokens_for_user(user), status=status.HTTP_201_CREATED)
 
 
 class StudentLoginView(APIView):

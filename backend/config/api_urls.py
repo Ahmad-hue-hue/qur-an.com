@@ -10,6 +10,7 @@ from accounts.views import (
     AdminTopicListCreateView,
     StudentDashboardView,
     StudentLoginView,
+    StudentRegisterView,
     StudentMarhalahListView,
     StudentProfileView,
     StudentTopicCompleteView,
@@ -25,6 +26,7 @@ from assessments.views import (
 )
 
 urlpatterns = [
+    path("auth/student/register/", StudentRegisterView.as_view(), name="student-register"),
     path("auth/student/login/", StudentLoginView.as_view(), name="student-login"),
     path("auth/admin/login/", AdminLoginView.as_view(), name="admin-login"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

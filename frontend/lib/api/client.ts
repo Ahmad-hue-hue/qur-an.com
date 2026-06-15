@@ -48,12 +48,15 @@ function formatErrorMessage(data: unknown): string {
   const obj = data as Record<string, unknown>;
   if (typeof obj.detail === "string") return obj.detail;
   if (Array.isArray(obj.detail)) return obj.detail.join(", ");
-  const firstKey = Object.keys(obj)[0];
-  if (firstKey) {
-    const val = obj[firstKey];
-    if (Array.isArray(val)) return `${firstKey}: ${val.join(", ")}`;
-    if (typeof val === "string") return val;
+  if (typeof obj.non_field_errors === "object" && Array.isArray(obj.non_field_errors)) {
+    return obj.non_field_errors.join(", ");
   }
+  const messages = Object.entries(obj).flatMap(([key, val]) => {
+    if (Array.isArray(val)) return val.map((item) => `${key}: ${String(item)}`);
+    if (typeof val === "string") return [`${key}: ${val}`];
+    return [];
+  });
+  if (messages.length) return messages.join(", ");
   return "Request failed";
 }
 
@@ -69,7 +72,15 @@ export async function apiClient<T>(
     ...options.headers,
   };
 
-  const response = await fetch(url, { ...options, headers });
+  let response: Response;
+  try {
+    response = await fetch(url, { ...options, headers });
+  } catch {
+    throw new ApiError(
+      0,
+      "Cannot reach the server. Make sure the backend is running on port 8000."
+    );
+  }
 
   if (response.status === 401 && retry && getRefreshToken()) {
     const refreshed = await refreshAccessToken();

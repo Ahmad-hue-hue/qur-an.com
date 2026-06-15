@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.crypto import get_random_string
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -6,10 +7,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.utils import (
     full_name_matches,
     normalize_phone,
+    split_full_name,
     student_email_from_phone,
 )
 
 User = get_user_model()
+
+
+def random_student_password() -> str:
+    return get_random_string(32)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -48,6 +54,39 @@ class StudentProfileSerializer(UserSerializer):
         ]
 
 
+class StudentRegisterSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    phone = serializers.CharField()
+
+    def validate_phone(self, value):
+        digits = normalize_phone(value)
+        if len(digits) < 8:
+            raise serializers.ValidationError("Enter a valid phone number.")
+        if User.objects.filter(phone=digits).exists():
+            raise serializers.ValidationError("This phone number is already registered.")
+        return digits
+
+    def validate_name(self, value):
+        first_name, last_name = split_full_name(value)
+        if not first_name:
+            raise serializers.ValidationError("Enter your full name.")
+        return value.strip()
+
+    def create(self, validated_data):
+        first_name, last_name = split_full_name(validated_data["name"])
+        phone = validated_data["phone"]
+        email = student_email_from_phone(phone)
+        return User.objects.create_user(
+            username=email,
+            email=email,
+            password=random_student_password(),
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            role=User.Role.STUDENT,
+        )
+
+
 class AdminCreateStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -67,7 +106,7 @@ class AdminCreateStudentSerializer(serializers.ModelSerializer):
         return User.objects.create_user(
             username=email,
             email=email,
-            password=User.objects.make_random_password(),
+            password=random_student_password(),
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
             phone=phone,

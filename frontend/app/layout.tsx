@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Amiri, Inter } from "next/font/google";
+import { Amiri, Inter, Playfair_Display } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -12,6 +12,11 @@ const amiri = Amiri({
   variable: "--font-amiri",
   weight: ["400", "700"],
   subsets: ["arabic", "latin"],
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-serif",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${amiri.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} ${amiri.variable} ${playfair.variable} h-full`}>
       <body className="min-h-full flex flex-col islamic-pattern">
         <Providers>{children}</Providers>
       </body>

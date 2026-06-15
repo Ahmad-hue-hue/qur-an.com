@@ -152,6 +152,11 @@ export interface AdminLoginCredentials {
   password: string;
 }
 
+export interface StudentRegisterCredentials {
+  name: string;
+  phone: string;
+}
+
 export interface CreateStudentData {
   first_name: string;
   last_name: string;

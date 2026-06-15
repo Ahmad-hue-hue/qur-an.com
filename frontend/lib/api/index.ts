@@ -11,12 +11,22 @@ import type {
   Marhalah,
   Question,
   StudentLoginCredentials,
+  StudentRegisterCredentials,
   StudentProfile,
   Topic,
   User,
 } from "@/lib/types";
 
 export const authApi = {
+  registerStudent: async (credentials: StudentRegisterCredentials): Promise<AuthTokens> => {
+    const tokens = await apiClient<AuthTokens>("/auth/student/register/", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    });
+    setTokens(tokens.access, tokens.refresh);
+    return tokens;
+  },
+
   loginStudent: async (credentials: StudentLoginCredentials): Promise<AuthTokens> => {
     const tokens = await apiClient<AuthTokens>("/auth/student/login/", {
       method: "POST",

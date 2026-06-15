@@ -15,6 +15,15 @@ def full_name_matches(user, name: str) -> bool:
     return user_name == normalize_name(name)
 
 
+def split_full_name(name: str) -> tuple[str, str]:
+    parts = (name or "").strip().split()
+    if not parts:
+        return "", ""
+    if len(parts) == 1:
+        return parts[0], ""
+    return parts[0], " ".join(parts[1:])
+
+
 def student_email_from_phone(phone: str) -> str:
     digits = normalize_phone(phone)
     return f"{digits}@students.tajweed.local"
