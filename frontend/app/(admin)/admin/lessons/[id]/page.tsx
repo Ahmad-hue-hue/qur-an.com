@@ -81,18 +81,14 @@ export default function EditLessonPage({
     onError: (err: Error) => toast.error(err.message || "Update failed"),
   });
 
-  if (isLoading) {
-    return (
-      <AppShell variant="admin">
-        <p className="p-6 text-sm text-muted-foreground">Loading lesson...</p>
-      </AppShell>
-    );
-  }
-
-  if (!topic) return null;
-
   return (
     <AppShell variant="admin">
+      {isLoading && (
+        <p className="p-6 text-sm text-muted-foreground">Loading lesson...</p>
+      )}
+
+      {!isLoading && topic && (
+        <>
       <PageHeader title="Edit Lesson">
         <Link
           href="/admin/topics"
@@ -225,6 +221,8 @@ export default function EditLessonPage({
           {updateMutation.isPending ? "Saving..." : "Update Lesson"}
         </Button>
       </div>
+        </>
+      )}
     </AppShell>
   );
 }

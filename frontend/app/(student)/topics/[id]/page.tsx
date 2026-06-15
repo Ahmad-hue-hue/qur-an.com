@@ -48,24 +48,21 @@ export default function TopicDetailPage({
     },
   });
 
-  if (isLoading) {
-    return (
-      <AppShell>
-        <Skeleton className="h-32 w-full rounded-none" />
-        <div className="p-4 space-y-4">
-          <Skeleton className="h-48 w-full" />
-        </div>
-        <BottomNav />
-      </AppShell>
-    );
-  }
-
-  if (!topic) return null;
-
-  const isDone = topic.is_completed || completed;
+  const isDone = topic ? topic.is_completed || completed : false;
 
   return (
     <AppShell>
+      {isLoading && (
+        <>
+          <Skeleton className="h-32 w-full rounded-none" />
+          <div className="p-4 space-y-4">
+            <Skeleton className="h-48 w-full" />
+          </div>
+        </>
+      )}
+
+      {!isLoading && topic && (
+        <>
       <PageHeader title={topic.title} arabicTitle={topic.arabic_title}>
         <div className="flex items-center justify-between mt-2">
           <Link
@@ -168,6 +165,8 @@ export default function TopicDetailPage({
           {isDone ? "Completed" : "Mark as Completed"}
         </Button>
       </div>
+        </>
+      )}
 
       <BottomNav />
     </AppShell>

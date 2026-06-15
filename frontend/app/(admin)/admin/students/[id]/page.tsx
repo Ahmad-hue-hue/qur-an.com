@@ -126,19 +126,12 @@ export default function AdminStudentDetailPage({
     setEditOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <AppShell variant="admin">
-        <Skeleton className="h-32 w-full" />
-        <BottomNav variant="admin" />
-      </AppShell>
-    );
-  }
-
-  if (!student) return null;
-
   return (
     <AppShell variant="admin">
+      {isLoading && <Skeleton className="h-32 w-full" />}
+
+      {!isLoading && student && (
+        <>
       <PageHeader
         title={`${student.first_name} ${student.last_name}`}
         subtitle={student.registration_number || "Pending Assignment"}
@@ -298,6 +291,8 @@ export default function AdminStudentDetailPage({
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}
       />
+        </>
+      )}
 
       <BottomNav variant="admin" />
     </AppShell>

@@ -44,15 +44,15 @@ export default function StudentLoginPage() {
 
   const alreadySignedIn = isReady && isLoggedIn && !loggingOut;
 
-  if (!isReady) {
-    return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
   return (
+    <>
+      {!isReady && (
+        <div className="min-h-screen bg-cream flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      )}
+
+      {isReady && (
     <div className="min-h-screen bg-cream flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 max-w-md mx-auto w-full">
         <LoginLogo className="w-24 h-20 mb-6" />
@@ -156,5 +156,7 @@ export default function StudentLoginPage() {
         )}
       </div>
     </div>
+      )}
+    </>
   );
 }
