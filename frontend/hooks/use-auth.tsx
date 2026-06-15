@@ -6,7 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -25,33 +25,91 @@ interface AuthContextValue {
   refreshAuth: () => void;
 }
 
+type AuthSnapshot = {
+  version: number;
+  isReady: boolean;
+  isLoggedIn: boolean;
+  role: "student" | "admin" | null;
+};
+
+const authStore = (() => {
+  let version = 0;
+  let cachedSnapshot: AuthSnapshot = {
+    version: 0,
+    isReady: false,
+    isLoggedIn: false,
+    role: null,
+  };
+  const listeners = new Set<() => void>();
+
+  function buildSnapshot(): AuthSnapshot {
+    if (typeof window === "undefined") {
+      return { version, isReady: false, isLoggedIn: false, role: null };
+    }
+    const loggedIn = isAuthenticated();
+    return {
+      version,
+      isReady: true,
+      isLoggedIn: loggedIn,
+      role: loggedIn ? getUserRole() : null,
+    };
+  }
+
+  return {
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getSnapshot() {
+      const next = buildSnapshot();
+      if (
+        cachedSnapshot.version === next.version &&
+        cachedSnapshot.isReady === next.isReady &&
+        cachedSnapshot.isLoggedIn === next.isLoggedIn &&
+        cachedSnapshot.role === next.role
+      ) {
+        return cachedSnapshot;
+      }
+      cachedSnapshot = next;
+      return cachedSnapshot;
+    },
+    getServerSnapshot() {
+      return { version: 0, isReady: false, isLoggedIn: false, role: null };
+    },
+    notify() {
+      version += 1;
+      listeners.forEach((listener) => listener());
+    },
+  };
+})();
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isReady, setIsReady] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState<"student" | "admin" | null>(null);
+  const snapshot = useSyncExternalStore(
+    authStore.subscribe,
+    authStore.getSnapshot,
+    authStore.getServerSnapshot
+  );
 
   const refreshAuth = useCallback(() => {
-    const loggedIn = isAuthenticated();
-    setIsLoggedIn(loggedIn);
-    setRole(loggedIn ? getUserRole() : null);
-    setIsReady(true);
+    authStore.notify();
   }, []);
-
-  useEffect(() => {
-    refreshAuth();
-  }, [refreshAuth]);
 
   const logout = useCallback(() => {
     authApi.logout();
-    setIsLoggedIn(false);
-    setRole(null);
+    authStore.notify();
   }, []);
 
   const value = useMemo(
-    () => ({ isReady, isLoggedIn, role, logout, refreshAuth }),
-    [isReady, isLoggedIn, role, logout, refreshAuth]
+    () => ({
+      isReady: snapshot.isReady,
+      isLoggedIn: snapshot.isLoggedIn,
+      role: snapshot.role,
+      logout,
+      refreshAuth,
+    }),
+    [snapshot.isReady, snapshot.isLoggedIn, snapshot.role, logout, refreshAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

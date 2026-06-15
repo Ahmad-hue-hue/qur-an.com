@@ -15,7 +15,6 @@ import {
   File01Icon,
   Task01Icon,
   Add01Icon,
-  Upload01Icon,
 } from "@hugeicons/core-free-icons";
 
 const quickActions = [

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -42,26 +42,21 @@ export default function EditLessonPage({
     queryFn: () => adminApi.getTopic(topicId),
   });
 
-  const [marhalahId, setMarhalahId] = useState("1");
-  const [title, setTitle] = useState("");
-  const [arabicTitle, setArabicTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [arabicContent, setArabicContent] = useState("");
-  const [examples, setExamples] = useState("");
+  const [marhalahIdOverride, setMarhalahIdOverride] = useState<string | null>(null);
+  const [titleOverride, setTitleOverride] = useState<string | null>(null);
+  const [arabicTitleOverride, setArabicTitleOverride] = useState<string | null>(null);
+  const [contentOverride, setContentOverride] = useState<string | null>(null);
+  const [arabicContentOverride, setArabicContentOverride] = useState<string | null>(null);
+  const [examplesOverride, setExamplesOverride] = useState<string | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
-  useEffect(() => {
-    if (!topic || initialized) return;
-    setMarhalahId(String(topic.marhalah));
-    setTitle(topic.title);
-    setArabicTitle(topic.arabic_title || "");
-    setContent(topic.content);
-    setArabicContent(topic.arabic_content || "");
-    setExamples(topic.examples || "");
-    setInitialized(true);
-  }, [topic, initialized]);
+  const marhalahId = marhalahIdOverride ?? String(topic?.marhalah ?? "1");
+  const title = titleOverride ?? topic?.title ?? "";
+  const arabicTitle = arabicTitleOverride ?? topic?.arabic_title ?? "";
+  const content = contentOverride ?? topic?.content ?? "";
+  const arabicContent = arabicContentOverride ?? topic?.arabic_content ?? "";
+  const examples = examplesOverride ?? topic?.examples ?? "";
 
   const updateMutation = useMutation({
     mutationFn: () =>
@@ -111,7 +106,7 @@ export default function EditLessonPage({
       <div className="px-4 py-6 space-y-5">
         <div className="space-y-2">
           <Label>Marḥalah</Label>
-          <Select value={marhalahId} onValueChange={(v) => setMarhalahId(v ?? "1")}>
+          <Select value={marhalahId} onValueChange={(v) => setMarhalahIdOverride(v ?? "1")}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -127,7 +122,7 @@ export default function EditLessonPage({
 
         <div className="space-y-2">
           <Label>Topic Title</Label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input value={title} onChange={(e) => setTitleOverride(e.target.value)} />
         </div>
 
         <div className="space-y-2">
@@ -135,7 +130,7 @@ export default function EditLessonPage({
           <Input
             className="font-arabic"
             value={arabicTitle}
-            onChange={(e) => setArabicTitle(e.target.value)}
+            onChange={(e) => setArabicTitleOverride(e.target.value)}
           />
         </div>
 
@@ -144,7 +139,7 @@ export default function EditLessonPage({
           <Textarea
             className="min-h-32"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => setContentOverride(e.target.value)}
           />
         </div>
 
@@ -153,7 +148,7 @@ export default function EditLessonPage({
           <Textarea
             className="min-h-24 font-arabic"
             value={arabicContent}
-            onChange={(e) => setArabicContent(e.target.value)}
+            onChange={(e) => setArabicContentOverride(e.target.value)}
           />
         </div>
 
@@ -162,7 +157,7 @@ export default function EditLessonPage({
           <Input
             className="font-arabic"
             value={examples}
-            onChange={(e) => setExamples(e.target.value)}
+            onChange={(e) => setExamplesOverride(e.target.value)}
           />
         </div>
 

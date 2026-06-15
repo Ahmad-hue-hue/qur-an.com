@@ -22,20 +22,15 @@ export default function StudentLoginPage() {
   const { refreshAuth, logout, isLoggedIn, role, isReady } = useAuth();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [showForm, setShowForm] = useState(false);
+  const loggingOut = searchParams.get("logout") === "1";
 
   useEffect(() => {
-    if (searchParams.get("logout") === "1") {
+    if (loggingOut) {
       logout();
       refreshAuth();
-      setShowForm(true);
       router.replace("/login");
-      return;
     }
-    if (!isLoggedIn) {
-      setShowForm(true);
-    }
-  }, [searchParams, logout, refreshAuth, router, isLoggedIn]);
+  }, [loggingOut, logout, refreshAuth, router]);
 
   const loginMutation = useMutation({
     mutationFn: () => authApi.loginStudent({ name, phone }),
@@ -47,7 +42,7 @@ export default function StudentLoginPage() {
     onError: (err: Error) => toast.error(err.message || "Invalid credentials"),
   });
 
-  const alreadySignedIn = isReady && isLoggedIn && !showForm;
+  const alreadySignedIn = isReady && isLoggedIn && !loggingOut;
 
   if (!isReady) {
     return (
@@ -90,7 +85,6 @@ export default function StudentLoginPage() {
                   onClick={() => {
                     logout();
                     refreshAuth();
-                    setShowForm(true);
                   }}
                 >
                   Sign out
