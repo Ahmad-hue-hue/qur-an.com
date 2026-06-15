@@ -85,16 +85,17 @@ export function useRequireAuth(requiredRole?: "student" | "admin") {
   return auth;
 }
 
-export function useGuestOnly() {
+export function useGuestOnly(options?: { redirectIfSignedIn?: boolean }) {
   const router = useRouter();
   const auth = useAuth();
+  const redirectIfSignedIn = options?.redirectIfSignedIn ?? true;
 
   useEffect(() => {
-    if (!auth.isReady) return;
+    if (!auth.isReady || !redirectIfSignedIn) return;
     if (auth.isLoggedIn) {
       router.replace(getDefaultRoute(auth.role));
     }
-  }, [auth.isReady, auth.isLoggedIn, auth.role, router]);
+  }, [auth.isReady, auth.isLoggedIn, auth.role, router, redirectIfSignedIn]);
 
   return auth;
 }

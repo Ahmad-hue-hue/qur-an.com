@@ -27,8 +27,14 @@ export function AuthGuard({ children, role }: AuthGuardProps) {
   return <>{children}</>;
 }
 
-export function GuestGuard({ children }: { children: ReactNode }) {
-  const auth = useGuestOnly();
+export function GuestGuard({
+  children,
+  allowSignedIn = false,
+}: {
+  children: ReactNode;
+  allowSignedIn?: boolean;
+}) {
+  const auth = useGuestOnly({ redirectIfSignedIn: !allowSignedIn });
 
   if (!auth.isReady) {
     return (
@@ -38,7 +44,7 @@ export function GuestGuard({ children }: { children: ReactNode }) {
     );
   }
 
-  if (auth.isLoggedIn) return null;
+  if (auth.isLoggedIn && !allowSignedIn) return null;
 
   return <>{children}</>;
 }

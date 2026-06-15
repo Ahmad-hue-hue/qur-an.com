@@ -1,9 +1,14 @@
 import { GuestGuard } from "@/components/auth/auth-guard";
+import { Suspense } from "react";
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <GuestGuard>{children}</GuestGuard>;
+  return (
+    <Suspense fallback={null}>
+      <GuestGuard allowSignedIn>{children}</GuestGuard>
+    </Suspense>
+  );
 }
