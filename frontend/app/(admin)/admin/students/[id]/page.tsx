@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomNav } from "@/components/layout/bottom-nav";
@@ -19,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 
@@ -29,12 +31,15 @@ export default function AdminStudentDetailPage({
 }) {
   const { id } = use(params);
   const studentId = parseInt(id);
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
     phone: "",
+    registration_number: "",
   });
 
   const { data: student, isLoading } = useQuery({
@@ -53,6 +58,7 @@ export default function AdminStudentDetailPage({
         first_name: form.first_name,
         last_name: form.last_name,
         phone: form.phone,
+        registration_number: form.registration_number.trim() || null,
       }),
     onSuccess: () => {
       invalidate();
@@ -64,9 +70,13 @@ export default function AdminStudentDetailPage({
 
   const assignRegMutation = useMutation({
     mutationFn: () => adminApi.assignRegistrationNumber(studentId),
-    onSuccess: () => {
+    onSuccess: (updated) => {
       invalidate();
-      toast.success("Registration number assigned");
+      setForm((prev) => ({
+        ...prev,
+        registration_number: updated.registration_number || "",
+      }));
+      toast.success("Registration number generated");
     },
     onError: (err: Error) => toast.error(err.message || "Failed to assign number"),
   });
@@ -95,12 +105,23 @@ export default function AdminStudentDetailPage({
     onError: (err: Error) => toast.error(err.message || "Action failed"),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => adminApi.deleteStudent(studentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-students"] });
+      toast.success("Student deleted");
+      router.push("/admin/students");
+    },
+    onError: (err: Error) => toast.error(err.message || "Delete failed"),
+  });
+
   const openEdit = () => {
     if (!student) return;
     setForm({
       first_name: student.first_name,
       last_name: student.last_name,
       phone: student.phone || "",
+      registration_number: student.registration_number || "",
     });
     setEditOpen(true);
   };
@@ -163,14 +184,6 @@ export default function AdminStudentDetailPage({
         </Card>
 
         <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            className="text-sm"
-            disabled={!!student.registration_number || assignRegMutation.isPending}
-            onClick={() => assignRegMutation.mutate()}
-          >
-            Assign Reg No
-          </Button>
           <Button variant="outline" className="text-sm" onClick={openEdit}>
             Edit Info
           </Button>
@@ -189,6 +202,13 @@ export default function AdminStudentDetailPage({
             onClick={() => suspendMutation.mutate()}
           >
             {student.is_suspended ? "Reactivate" : "Suspend"}
+          </Button>
+          <Button
+            variant="outline"
+            className="text-sm text-destructive"
+            onClick={() => setDeleteOpen(true)}
+          >
+            Delete Student
           </Button>
         </div>
       </div>
@@ -229,6 +249,29 @@ export default function AdminStudentDetailPage({
                 }
               />
             </div>
+            <div className="space-y-2">
+              <Label>Registration Number</Label>
+              <Input
+                placeholder="e.g. TJW-2026-001"
+                value={form.registration_number}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    registration_number: e.target.value,
+                  }))
+                }
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full"
+                disabled={assignRegMutation.isPending}
+                onClick={() => assignRegMutation.mutate()}
+              >
+                {assignRegMutation.isPending ? "Generating..." : "Auto-generate number"}
+              </Button>
+            </div>
             <Button
               className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
               disabled={
@@ -244,6 +287,17 @@ export default function AdminStudentDetailPage({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete student?"
+        description={`This will permanently remove ${student.first_name} ${student.last_name} and all related progress. This cannot be undone.`}
+        confirmLabel="Delete Student"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
+      />
 
       <BottomNav variant="admin" />
     </AppShell>

@@ -44,3 +44,18 @@ class AdminStudentAPITests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.student.refresh_from_db()
         self.assertTrue(self.student.registration_number)
+
+    def test_update_registration_number_manually(self):
+        response = self.client.patch(
+            f"/api/admin/students/{self.student.id}/",
+            {"registration_number": "TJW-2026-999"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.registration_number, "TJW-2026-999")
+
+    def test_delete_student(self):
+        response = self.client.delete(f"/api/admin/students/{self.student.id}/")
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(User.objects.filter(pk=self.student.id).exists())

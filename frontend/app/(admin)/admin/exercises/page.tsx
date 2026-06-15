@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 
@@ -32,6 +33,10 @@ export default function AdminExercisesPage() {
   const queryClient = useQueryClient();
   const [marhalahId, setMarhalahId] = useState("1");
   const [showForm, setShowForm] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
   const now = new Date();
   const weekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -76,6 +81,7 @@ export default function AdminExercisesPage() {
     mutationFn: (id: number) => adminApi.deleteExercise(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-exercises"] });
+      setPendingDelete(null);
       toast.success("Exercise deleted");
     },
     onError: (err: Error) => toast.error(err.message || "Delete failed"),
@@ -211,7 +217,9 @@ export default function AdminExercisesPage() {
                 variant="ghost"
                 size="icon"
                 className="text-destructive"
-                onClick={() => deleteMutation.mutate(exercise.id)}
+                onClick={() =>
+                  setPendingDelete({ id: exercise.id, title: exercise.title })
+                }
                 disabled={deleteMutation.isPending}
               >
                 <HugeiconsIcon icon={Delete02Icon} size={16} />
@@ -226,6 +234,17 @@ export default function AdminExercisesPage() {
           </p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        title="Delete exercise?"
+        description={`Are you sure you want to delete "${pendingDelete?.title}"? This cannot be undone.`}
+        confirmLabel="Delete Exercise"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
+      />
 
       <BottomNav variant="admin" />
     </AppShell>

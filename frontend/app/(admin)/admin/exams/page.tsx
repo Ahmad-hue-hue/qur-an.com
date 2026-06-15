@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 
@@ -32,6 +33,10 @@ export default function AdminExamsPage() {
   const queryClient = useQueryClient();
   const [marhalahId, setMarhalahId] = useState("1");
   const [showForm, setShowForm] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
   const now = new Date();
   const weekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -71,6 +76,7 @@ export default function AdminExamsPage() {
     mutationFn: (id: number) => adminApi.deleteExam(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-exams"] });
+      setPendingDelete(null);
       toast.success("Exam deleted");
     },
     onError: (err: Error) => toast.error(err.message || "Delete failed"),
@@ -184,7 +190,7 @@ export default function AdminExamsPage() {
                 variant="ghost"
                 size="icon"
                 className="text-destructive"
-                onClick={() => deleteMutation.mutate(exam.id)}
+                onClick={() => setPendingDelete({ id: exam.id, title: exam.title })}
                 disabled={deleteMutation.isPending}
               >
                 <HugeiconsIcon icon={Delete02Icon} size={16} />
@@ -199,6 +205,17 @@ export default function AdminExamsPage() {
           </p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        title="Delete exam?"
+        description={`Are you sure you want to delete "${pendingDelete?.title}"? This cannot be undone.`}
+        confirmLabel="Delete Exam"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
+      />
 
       <BottomNav variant="admin" />
     </AppShell>

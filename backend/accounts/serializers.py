@@ -143,6 +143,17 @@ class AdminUpdateStudentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Marhalah must be between 1 and 4.")
         return value
 
+    def validate_registration_number(self, value):
+        if value is None or value == "":
+            return None
+        value = value.strip()
+        qs = User.objects.filter(registration_number=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("This registration number is already in use.")
+        return value
+
 
 class StudentLoginSerializer(serializers.Serializer):
     name = serializers.CharField()

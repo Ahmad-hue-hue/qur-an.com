@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DragDropVerticalIcon,
@@ -27,6 +28,10 @@ import {
 
 export default function AdminTopicsPage() {
   const [marhalahId, setMarhalahId] = useState("1");
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: topics, isLoading } = useQuery({
@@ -38,6 +43,7 @@ export default function AdminTopicsPage() {
     mutationFn: (id: number) => adminApi.deleteTopic(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-topics"] });
+      setPendingDelete(null);
       toast.success("Topic deleted");
     },
     onError: (err: Error) => toast.error(err.message || "Delete failed"),
@@ -99,7 +105,7 @@ export default function AdminTopicsPage() {
                   </p>
                 )}
               </div>
-              <Link href={`/admin/lessons/${topic.id}`}>
+              <Link href={`/admin/lessons/${topic.id}`} title="Edit lesson">
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <HugeiconsIcon icon={Edit02Icon} size={16} />
                 </Button>
@@ -108,7 +114,9 @@ export default function AdminTopicsPage() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-destructive"
-                onClick={() => deleteMutation.mutate(topic.id)}
+                onClick={() =>
+                  setPendingDelete({ id: topic.id, title: topic.title })
+                }
                 disabled={deleteMutation.isPending}
               >
                 <HugeiconsIcon icon={Delete02Icon} size={16} />
@@ -117,6 +125,17 @@ export default function AdminTopicsPage() {
           </Card>
         ))}
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        title="Delete lesson?"
+        description={`Are you sure you want to delete "${pendingDelete?.title}"? This cannot be undone.`}
+        confirmLabel="Delete Lesson"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
+      />
 
       <BottomNav variant="admin" />
     </AppShell>
