@@ -15,7 +15,6 @@ import {
   getDefaultRoute,
   getUserRole,
   isAuthenticated,
-  type TokenPayload,
 } from "@/lib/auth/token";
 
 interface AuthContextValue {
@@ -71,7 +70,7 @@ export function useRequireAuth(requiredRole?: "student" | "admin") {
   useEffect(() => {
     if (!auth.isReady) return;
     if (!auth.isLoggedIn) {
-      router.replace("/login");
+      router.replace(requiredRole === "admin" ? "/admin/login" : "/login");
       return;
     }
     if (requiredRole === "admin" && auth.role !== "admin") {

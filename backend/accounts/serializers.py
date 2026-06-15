@@ -3,11 +3,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.utils import (
-    full_name_matches,
-    normalize_phone,
-    student_email_from_phone,
-)
+from accounts.utils import normalize_phone, student_email_from_phone
 
 User = get_user_model()
 
@@ -26,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
             "is_suspended",
             "date_joined",
         ]
-        read_only_fields = ["id", "role", "registration_number", "date_joined"]
+        read_only_fields = ["id", "role", "registration_number", "date_joined", "email"]
 
 
 class StudentProfileSerializer(UserSerializer):
@@ -48,10 +44,12 @@ class StudentProfileSerializer(UserSerializer):
         ]
 
 
-class RegisterSerializer(serializers.ModelSerializer):
+class AdminCreateStudentSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "phone"]
+        fields = ["first_name", "last_name", "phone", "password"]
 
     def validate_phone(self, value):
         digits = normalize_phone(value)
@@ -63,37 +61,32 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         phone = validated_data["phone"]
+        password = validated_data.pop("password")
         email = student_email_from_phone(phone)
-        user = User.objects.create_user(
+        return User.objects.create_user(
             username=email,
             email=email,
-            password=phone,
+            password=password,
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
             phone=phone,
             role=User.Role.STUDENT,
         )
-        return user
 
 
 class StudentLoginSerializer(serializers.Serializer):
-    name = serializers.CharField()
     phone = serializers.CharField()
+    password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
         phone = normalize_phone(attrs["phone"])
-        name = attrs["name"]
-
-        if len(phone) < 8:
-            raise serializers.ValidationError("Enter a valid phone number.")
+        password = attrs["password"]
 
         user = User.objects.filter(phone=phone, role=User.Role.STUDENT).first()
-        if not user:
-            raise serializers.ValidationError("No account found with this phone number.")
+        if not user or not user.check_password(password):
+            raise serializers.ValidationError("Invalid phone number or password.")
         if user.is_suspended:
             raise serializers.ValidationError("This account has been suspended.")
-        if not full_name_matches(user, name):
-            raise serializers.ValidationError("Name does not match our records.")
 
         attrs["user"] = user
         return attrs
@@ -110,9 +103,8 @@ class AdminLoginSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        user = self.user
-        if not user.is_admin:
-            raise serializers.ValidationError("Admin access only.")
+        if not self.user.is_admin:
+            raise serializers.ValidationError("Invalid email or password.")
         data["access"] = data.pop("access")
         data["refresh"] = data.pop("refresh")
         return data

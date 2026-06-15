@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api";
-import { getUserRole, getDefaultRoute } from "@/lib/auth/token";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
@@ -13,18 +12,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function StudentLoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const { refreshAuth } = useAuth();
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const loginMutation = useMutation({
-    mutationFn: () => authApi.loginStudent({ phone, password }),
+    mutationFn: () => authApi.loginAdmin({ email, password }),
     onSuccess: () => {
       refreshAuth();
-      toast.success("Welcome back!");
-      router.push(getDefaultRoute(getUserRole()));
+      toast.success("Welcome, Admin!");
+      router.push("/admin");
     },
     onError: (err: Error) => toast.error(err.message || "Invalid credentials"),
   });
@@ -35,23 +34,23 @@ export default function StudentLoginPage() {
         <div className="text-center mb-8">
           <p className="font-arabic text-2xl text-emerald-deep mb-1">بسم الله</p>
           <h1 className="text-2xl font-bold text-emerald-deep">Tajweed Academy</h1>
-          <p className="text-muted-foreground text-sm mt-1">Student Portal</p>
+          <p className="text-muted-foreground text-sm mt-1">Administration Portal</p>
         </div>
 
-        <Card className="w-full max-w-sm card-shadow">
+        <Card className="w-full max-w-sm card-shadow border-emerald-deep/20">
           <CardHeader>
-            <CardTitle className="text-lg">Student Login</CardTitle>
+            <CardTitle className="text-lg">Admin Login</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="phone"
-                type="tel"
-                placeholder="966501234567"
-                autoComplete="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="admin@tajweed.academy"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -66,13 +65,13 @@ export default function StudentLoginPage() {
             </div>
             <Button
               className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
-              disabled={loginMutation.isPending || !phone.trim() || !password}
+              disabled={loginMutation.isPending || !email || !password}
               onClick={() => loginMutation.mutate()}
             >
               {loginMutation.isPending ? "Signing in..." : "Sign In"}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              Accounts are created by your administrator.
+              Authorized personnel only. All access is logged.
             </p>
           </CardContent>
         </Card>

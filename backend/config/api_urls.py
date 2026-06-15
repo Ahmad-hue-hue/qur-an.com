@@ -2,14 +2,14 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from accounts.views import (
+    AdminLoginView,
     AdminStatsView,
     AdminStudentDetailView,
-    AdminStudentListView,
+    AdminStudentListCreateView,
     AdminTopicDetailView,
     AdminTopicListCreateView,
-    LoginView,
-    RegisterView,
     StudentDashboardView,
+    StudentLoginView,
     StudentMarhalahListView,
     StudentProfileView,
     StudentTopicCompleteView,
@@ -25,8 +25,8 @@ from assessments.views import (
 )
 
 urlpatterns = [
-    path("auth/register/", RegisterView.as_view(), name="register"),
-    path("auth/login/", LoginView.as_view(), name="login"),
+    path("auth/student/login/", StudentLoginView.as_view(), name="student-login"),
+    path("auth/admin/login/", AdminLoginView.as_view(), name="admin-login"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("student/dashboard/", StudentDashboardView.as_view(), name="student-dashboard"),
     path("student/profile/", StudentProfileView.as_view(), name="student-profile"),
@@ -60,7 +60,7 @@ urlpatterns = [
     ),
     path("student/exams/", StudentExamListView.as_view(), name="student-exams"),
     path("admin/stats/", AdminStatsView.as_view(), name="admin-stats"),
-    path("admin/students/", AdminStudentListView.as_view(), name="admin-students"),
+    path("admin/students/", AdminStudentListCreateView.as_view(), name="admin-students"),
     path(
         "admin/students/<int:pk>/",
         AdminStudentDetailView.as_view(),

@@ -19,8 +19,8 @@ import {
 } from "@hugeicons/core-free-icons";
 
 const quickActions = [
+  { label: "Register New Student", href: "/admin/students/new", icon: UserGroupIcon },
   { label: "Add New Lesson", href: "/admin/lessons/new", icon: Add01Icon },
-  { label: "Upload Audio", href: "/admin/lessons/new", icon: Upload01Icon },
   { label: "Create Exercise", href: "/admin/exercises", icon: Task01Icon },
   { label: "Create Exam", href: "/admin/exams", icon: File01Icon },
   { label: "Manage Students", href: "/admin/students", icon: UserGroupIcon },

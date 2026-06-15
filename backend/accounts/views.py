@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 
 from accounts.permissions import IsAdmin
 from accounts.serializers import (
+    AdminCreateStudentSerializer,
     AdminLoginSerializer,
-    RegisterSerializer,
     StudentLoginSerializer,
     UserSerializer,
     tokens_for_user,
@@ -24,35 +24,27 @@ from assessments.services import get_marhalah_status
 User = get_user_model()
 
 
-class RegisterView(generics.CreateAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = RegisterSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response(tokens_for_user(user), status=status.HTTP_201_CREATED)
-
-
-class LoginView(APIView):
+class StudentLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        if "email" in request.data:
-            serializer = AdminLoginSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            return Response(
-                {
-                    "access": serializer.validated_data["access"],
-                    "refresh": serializer.validated_data["refresh"],
-                }
-            )
-
         serializer = StudentLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        return Response(tokens_for_user(user))
+        return Response(tokens_for_user(serializer.validated_data["user"]))
+
+
+class AdminLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = AdminLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            {
+                "access": serializer.validated_data["access"],
+                "refresh": serializer.validated_data["refresh"],
+            }
+        )
 
 
 class StudentDashboardView(APIView):
@@ -177,11 +169,15 @@ class AdminStatsView(APIView):
         )
 
 
-class AdminStudentListView(generics.ListAPIView):
+class AdminStudentListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAdmin]
-    serializer_class = UserSerializer
     queryset = User.objects.filter(role=User.Role.STUDENT).order_by("-date_joined")
     filterset_fields = ["current_marhalah", "is_suspended"]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return AdminCreateStudentSerializer
+        return UserSerializer
 
 
 class AdminStudentDetailView(APIView):

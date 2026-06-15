@@ -8,6 +8,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Search01Icon, ArrowRight01Icon, Add01Icon } from "@hugeicons/core-free-icons";
 
 export default function AdminStudentsPage() {
   const [search, setSearch] = useState("");
@@ -33,7 +34,7 @@ export default function AdminStudentsPage() {
     const matchesSearch =
       !search ||
       `${s.first_name} ${s.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-      s.email.toLowerCase().includes(search.toLowerCase()) ||
+      s.phone?.includes(search.replace(/\D/g, "")) ||
       s.registration_number?.toLowerCase().includes(search.toLowerCase());
     return matchesSearch;
   });
@@ -43,6 +44,13 @@ export default function AdminStudentsPage() {
       <PageHeader title="Student Management" />
 
       <div className="px-4 py-6 space-y-4">
+        <Link href="/admin/students/new">
+          <Button className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2">
+            <HugeiconsIcon icon={Add01Icon} size={18} />
+            Register New Student
+          </Button>
+        </Link>
+
         <div className="relative">
           <HugeiconsIcon
             icon={Search01Icon}
@@ -90,7 +98,7 @@ export default function AdminStudentsPage() {
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {student.registration_number || "Pending Assignment"} ·{" "}
-                      {student.email}
+                      {student.phone || "No phone"}
                     </p>
                   </div>
                   {student.is_suspended && (

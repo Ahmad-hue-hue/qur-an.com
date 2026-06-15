@@ -71,9 +71,9 @@ class Command(BaseCommand):
             },
         )
         if created:
-            student.set_password("966501234567")
+            student.set_password("Student@123")
             student.save()
-            self.stdout.write("Created student: Ahmad Hassan / 966501234567")
+            self.stdout.write("Created student: Ahmad Hassan / 966501234567 / Student@123")
         elif not student.phone:
             student.phone = "966501234567"
             student.save(update_fields=["phone"])

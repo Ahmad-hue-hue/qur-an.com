@@ -4,12 +4,12 @@ import type {
   AdminLoginCredentials,
   AdminStats,
   AuthTokens,
+  CreateStudentData,
   DashboardData,
   Exam,
   Exercise,
   Marhalah,
   Question,
-  RegisterData,
   StudentLoginCredentials,
   StudentProfile,
   Topic,
@@ -18,7 +18,7 @@ import type {
 
 export const authApi = {
   loginStudent: async (credentials: StudentLoginCredentials): Promise<AuthTokens> => {
-    const tokens = await apiClient<AuthTokens>("/auth/login/", {
+    const tokens = await apiClient<AuthTokens>("/auth/student/login/", {
       method: "POST",
       body: JSON.stringify(credentials),
     });
@@ -27,18 +27,9 @@ export const authApi = {
   },
 
   loginAdmin: async (credentials: AdminLoginCredentials): Promise<AuthTokens> => {
-    const tokens = await apiClient<AuthTokens>("/auth/login/", {
+    const tokens = await apiClient<AuthTokens>("/auth/admin/login/", {
       method: "POST",
       body: JSON.stringify(credentials),
-    });
-    setTokens(tokens.access, tokens.refresh);
-    return tokens;
-  },
-
-  register: async (data: RegisterData): Promise<AuthTokens> => {
-    const tokens = await apiClient<AuthTokens>("/auth/register/", {
-      method: "POST",
-      body: JSON.stringify(data),
     });
     setTokens(tokens.access, tokens.refresh);
     return tokens;
@@ -108,6 +99,12 @@ export const adminApi = {
     const data = await apiClient<User[] | { results: User[] }>("/admin/students/");
     return unwrapList(data);
   },
+
+  createStudent: (data: CreateStudentData): Promise<User> =>
+    apiClient<User>("/admin/students/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 
   getStudent: (id: number): Promise<StudentProfile> =>
     apiClient<StudentProfile>(`/admin/students/${id}/`),
