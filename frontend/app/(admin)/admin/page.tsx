@@ -7,6 +7,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -26,7 +27,7 @@ const quickActions = [
 ];
 
 export default function AdminDashboardPage() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: adminApi.getStats,
   });
@@ -45,13 +46,36 @@ export default function AdminDashboardPage() {
       <PageHeader title="Admin Dashboard" subtitle="Tajweed Academy" />
 
       <div className="px-4 py-6 space-y-6">
-        {isLoading ? (
+        {isError && (
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardContent className="p-4 space-y-3">
+              <p className="text-sm font-medium text-destructive">
+                Cannot reach the backend API
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {error instanceof Error
+                  ? error.message
+                  : "Start the Django server on port 8000."}
+              </p>
+              <p className="text-xs text-muted-foreground font-mono">
+                cd backend && uv run python manage.py runserver
+              </p>
+              <Button size="sm" variant="outline" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {isLoading && (
           <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-24 rounded-xl" />
             ))}
           </div>
-        ) : (
+        )}
+
+        {!isLoading && !isError && stats && (
           <div className="grid grid-cols-2 gap-3">
             {statCards.map((stat) => (
               <Card key={stat.label} className="card-shadow">
