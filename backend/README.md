@@ -17,7 +17,7 @@ cd backend
 cp .env.example .env
 uv sync
 uv run python manage.py migrate
-uv run python manage.py seed_data
+uv run python manage.py reset_platform
 uv run python manage.py runserver
 ```
 
@@ -38,13 +38,19 @@ Students authenticate with **full name + phone** (no password). Admins use **ema
 
 When `DEBUG=True`, admin endpoints allow unauthenticated access for local development.
 
-## Seed Data
+## Fresh setup (default)
+
+```bash
+uv run python manage.py reset_platform
+```
+
+Creates an empty platform: 4 Marḥalah stages and score weights only. No users, topics, exercises, or exams.
+
+## Optional demo data
 
 ```bash
 uv run python manage.py seed_data
 ```
-
-Creates demo admin, student, Marḥalahs, topics, exercises, and exams.
 
 | Role | Login |
 |---|---|

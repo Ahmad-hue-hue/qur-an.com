@@ -1,14 +1,16 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.management import call_command
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
+
+from assessments.models import Exam, Exercise, ScoreWeights
+from courses.models import Marhalah, Topic
 
 User = get_user_model()
 
 
 class AdminStudentAPITests(TestCase):
     def setUp(self):
-        from django.test import override_settings
-
         self.settings = override_settings(DEBUG=True)
         self.settings.enable()
         self.client = APIClient()
@@ -59,3 +61,46 @@ class AdminStudentAPITests(TestCase):
         response = self.client.delete(f"/api/admin/students/{self.student.id}/")
         self.assertEqual(response.status_code, 204)
         self.assertFalse(User.objects.filter(pk=self.student.id).exists())
+
+
+class ResetPlatformCommandTests(TestCase):
+    def test_reset_platform_creates_empty_structure(self):
+        User.objects.create_user(
+            username="old@students.tajweed.local",
+            email="old@students.tajweed.local",
+            password="unused",
+            first_name="Old",
+            last_name="User",
+            phone="966500000000",
+            role=User.Role.STUDENT,
+        )
+        marhalah = Marhalah.objects.create(
+            number=99, title="Temp", unlock_threshold=0, order=99
+        )
+        Topic.objects.create(
+            marhalah=marhalah,
+            order=1,
+            title="Temp Topic",
+            content="Temp",
+        )
+
+        call_command("reset_platform")
+
+        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(Topic.objects.count(), 0)
+        self.assertEqual(Exercise.objects.count(), 0)
+        self.assertEqual(Exam.objects.count(), 0)
+        self.assertEqual(Marhalah.objects.count(), 4)
+        self.assertTrue(ScoreWeights.objects.filter(pk=1).exists())
+
+    def test_admin_stats_after_reset(self):
+        call_command("reset_platform")
+
+        client = APIClient()
+        response = client.get("/api/admin/stats/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total_students"], 0)
+        self.assertEqual(response.json()["total_topics"], 0)
+        self.assertEqual(response.json()["total_assessments"], 0)
+        self.assertEqual(response.json()["total_marhalahs"], 4)

@@ -24,7 +24,7 @@ cd backend
 cp .env.example .env
 uv sync
 uv run python manage.py migrate
-uv run python manage.py seed_data
+uv run python manage.py reset_platform
 uv run python manage.py runserver
 ```
 
@@ -61,14 +61,30 @@ NEXT_PUBLIC_USE_MOCK=false
 
 `/admin/login` redirects to `/admin`.
 
-## Demo Data (after `seed_data`)
+## Fresh Start (default)
+
+After migrate, run **`reset_platform`** for a clean system with no users, lessons, or assessments — only the 4 Marḥalah structure:
+
+```bash
+uv run python manage.py reset_platform
+```
+
+Then open **http://localhost:3000/admin** and add students, lessons, exercises, and exams.
+
+Students can self-register at **http://localhost:3000/register**.
+
+## Optional Demo Data
+
+To load sample users and content for testing:
+
+```bash
+uv run python manage.py seed_data
+```
 
 | Role | Credentials |
 |---|---|
 | Student | **Ahmad Hassan** / **966501234567** |
-| Admin (optional) | **admin@tajweed.academy** / **admin12345** |
-
-New students can also sign up at `/register` with any name and phone number.
+| Admin | **admin@tajweed.academy** / **admin12345** |
 
 ## Student Features
 

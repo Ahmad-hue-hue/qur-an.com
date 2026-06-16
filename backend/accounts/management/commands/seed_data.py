@@ -34,7 +34,7 @@ TOPICS_M1 = [
 
 
 class Command(BaseCommand):
-    help = "Seed database with initial Tajweed Academy data"
+    help = "Load optional demo data (users, sample lessons, exercises). Use reset_platform for a fresh start."
 
     def handle(self, *args, **options):
         ScoreWeights.objects.get_or_create(

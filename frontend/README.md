@@ -23,6 +23,8 @@ Open [http://localhost:3000](http://localhost:3000)
 
 Make sure the Django backend is running on port 8000.
 
+After backend setup, run `uv run python manage.py reset_platform` for a clean empty platform (no demo data).
+
 ## Environment
 
 `.env.local`:
@@ -88,9 +90,12 @@ frontend/
     └── auth/          # JWT token helpers
 ```
 
-## Demo Login
+## Getting Started
 
-After backend seed data:
+After registering at `/register` or being added by an admin, sign in at `/login` with your full name and phone number.
 
-- **Student:** Ahmad Hassan / 966501234567 at `/login`
-- **Admin panel:** go directly to `/admin` (no login needed in local dev)
+For a fresh local backend with no demo data:
+
+```bash
+cd ../backend && uv run python manage.py reset_platform
+```
