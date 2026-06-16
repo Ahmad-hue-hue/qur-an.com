@@ -32,19 +32,21 @@ type AuthSnapshot = {
   role: "student" | "admin" | null;
 };
 
+const SERVER_SNAPSHOT: AuthSnapshot = {
+  version: 0,
+  isReady: false,
+  isLoggedIn: false,
+  role: null,
+};
+
 const authStore = (() => {
   let version = 0;
-  let cachedSnapshot: AuthSnapshot = {
-    version: 0,
-    isReady: false,
-    isLoggedIn: false,
-    role: null,
-  };
+  let cachedSnapshot: AuthSnapshot = SERVER_SNAPSHOT;
   const listeners = new Set<() => void>();
 
   function buildSnapshot(): AuthSnapshot {
     if (typeof window === "undefined") {
-      return { version, isReady: false, isLoggedIn: false, role: null };
+      return SERVER_SNAPSHOT;
     }
     const loggedIn = isAuthenticated();
     return {
@@ -74,7 +76,7 @@ const authStore = (() => {
       return cachedSnapshot;
     },
     getServerSnapshot() {
-      return { version: 0, isReady: false, isLoggedIn: false, role: null };
+      return SERVER_SNAPSHOT;
     },
     notify() {
       version += 1;
