@@ -84,6 +84,29 @@ class AdminAssessmentAPITests(TestCase):
         exercise = Exercise.objects.get(title="Mixed Exercise")
         self.assertEqual(exercise.questions.count(), 4)
 
+    def test_update_exercise_question(self):
+        question = Question.objects.create(
+            exercise=self.exercise,
+            type=Question.QuestionType.MCQ,
+            text="Old text",
+            options=["A", "B"],
+            correct_answer="A",
+            order=1,
+        )
+        response = self.client.patch(
+            f"/api/admin/exercises/{self.exercise.id}/questions/{question.id}/",
+            {
+                "text": "Updated text",
+                "options": ["X", "Y"],
+                "correct_answer": "Y",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        question.refresh_from_db()
+        self.assertEqual(question.text, "Updated text")
+        self.assertEqual(question.correct_answer, "Y")
+
 
 @override_settings(DEBUG=True)
 class ExerciseGradingTests(TestCase):

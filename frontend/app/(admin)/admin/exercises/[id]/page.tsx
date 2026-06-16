@@ -27,7 +27,9 @@ import {
   Add01Icon,
   ArrowLeft01Icon,
   Delete02Icon,
+  Edit02Icon,
 } from "@hugeicons/core-free-icons";
+import type { QuestionAdmin } from "@/lib/types";
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
   { value: "mcq", label: "Multiple Choice" },
@@ -53,6 +55,34 @@ const emptyQuestionForm = (): CreateQuestionData & { option_a: string; option_b:
   max_score: 1,
 });
 
+function questionToForm(q: QuestionAdmin) {
+  return {
+    type: q.type,
+    text: q.text,
+    option_a: q.options?.[0] ?? "",
+    option_b: q.options?.[1] ?? "",
+    correct_answer: q.correct_answer ?? "",
+    max_score: q.max_score ?? 1,
+  };
+}
+
+function formToPayload(form: ReturnType<typeof emptyQuestionForm>): CreateQuestionData {
+  const payload: CreateQuestionData = {
+    type: form.type,
+    text: form.text,
+    max_score: form.max_score,
+  };
+  if (form.type === "mcq") {
+    payload.options = [form.option_a, form.option_b].filter(Boolean);
+    payload.correct_answer = form.correct_answer || form.option_a;
+  } else if (form.type === "true_false") {
+    payload.correct_answer = form.correct_answer || "true";
+  } else if (form.type === "fill_blank") {
+    payload.correct_answer = form.correct_answer;
+  }
+  return payload;
+}
+
 export default function AdminExerciseDetailPage({
   params,
 }: {
@@ -62,6 +92,7 @@ export default function AdminExerciseDetailPage({
   const exerciseId = parseInt(id);
   const queryClient = useQueryClient();
   const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
   const [questionForm, setQuestionForm] = useState(emptyQuestionForm);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [gradeDrafts, setGradeDrafts] = useState<
@@ -79,31 +110,34 @@ export default function AdminExerciseDetailPage({
     enabled: Boolean(exercise),
   });
 
-  const addQuestionMutation = useMutation({
+  const resetQuestionForm = () => {
+    setShowQuestionForm(false);
+    setEditingQuestionId(null);
+    setQuestionForm(emptyQuestionForm());
+  };
+
+  const saveQuestionMutation = useMutation({
     mutationFn: () => {
-      const payload: CreateQuestionData = {
-        type: questionForm.type,
-        text: questionForm.text,
-        max_score: questionForm.max_score,
-      };
-      if (questionForm.type === "mcq") {
-        payload.options = [questionForm.option_a, questionForm.option_b].filter(Boolean);
-        payload.correct_answer = questionForm.correct_answer || questionForm.option_a;
-      } else if (questionForm.type === "true_false") {
-        payload.correct_answer = questionForm.correct_answer || "true";
-      } else if (questionForm.type === "fill_blank") {
-        payload.correct_answer = questionForm.correct_answer;
+      const payload = formToPayload(questionForm);
+      if (editingQuestionId) {
+        return adminApi.updateExerciseQuestion(exerciseId, editingQuestionId, payload);
       }
       return adminApi.addExerciseQuestion(exerciseId, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-exercise", exerciseId] });
-      toast.success("Question added");
-      setShowQuestionForm(false);
-      setQuestionForm(emptyQuestionForm());
+      toast.success(editingQuestionId ? "Question updated" : "Question added");
+      resetQuestionForm();
     },
-    onError: (err: Error) => toast.error(err.message || "Failed to add question"),
+    onError: (err: Error) =>
+      toast.error(err.message || (editingQuestionId ? "Update failed" : "Failed to add question")),
   });
+
+  const startEditingQuestion = (q: QuestionAdmin) => {
+    setEditingQuestionId(q.id);
+    setQuestionForm(questionToForm(q));
+    setShowQuestionForm(true);
+  };
 
   const deleteQuestionMutation = useMutation({
     mutationFn: (questionId: number) =>
@@ -176,15 +210,26 @@ export default function AdminExerciseDetailPage({
 
             <Button
               className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
-              onClick={() => setShowQuestionForm((v) => !v)}
+              onClick={() => {
+                if (showQuestionForm && !editingQuestionId) {
+                  resetQuestionForm();
+                } else {
+                  setEditingQuestionId(null);
+                  setQuestionForm(emptyQuestionForm());
+                  setShowQuestionForm(true);
+                }
+              }}
             >
               <HugeiconsIcon icon={Add01Icon} size={18} />
-              {showQuestionForm ? "Cancel" : "Add Question"}
+              {showQuestionForm && !editingQuestionId ? "Cancel" : "Add Question"}
             </Button>
 
             {showQuestionForm && (
               <Card className="card-shadow">
                 <CardContent className="p-5 space-y-4">
+                  <p className="text-sm font-medium text-emerald-deep">
+                    {editingQuestionId ? "Edit question" : "New question"}
+                  </p>
                   <div className="space-y-2">
                     <Label>Question type</Label>
                     <Select
@@ -306,13 +351,24 @@ export default function AdminExerciseDetailPage({
                     />
                   </div>
 
-                  <Button
-                    className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
-                    disabled={!questionForm.text.trim() || addQuestionMutation.isPending}
-                    onClick={() => addQuestionMutation.mutate()}
-                  >
-                    {addQuestionMutation.isPending ? "Saving..." : "Save Question"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream"
+                      disabled={!questionForm.text.trim() || saveQuestionMutation.isPending}
+                      onClick={() => saveQuestionMutation.mutate()}
+                    >
+                      {saveQuestionMutation.isPending
+                        ? "Saving..."
+                        : editingQuestionId
+                          ? "Update Question"
+                          : "Save Question"}
+                    </Button>
+                    {editingQuestionId && (
+                      <Button variant="outline" onClick={resetQuestionForm}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -339,14 +395,23 @@ export default function AdminExerciseDetailPage({
                         </p>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive shrink-0"
-                      onClick={() => setPendingDeleteId(q.id)}
-                    >
-                      <HugeiconsIcon icon={Delete02Icon} size={16} />
-                    </Button>
+                    <div className="flex shrink-0 gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => startEditingQuestion(q)}
+                      >
+                        <HugeiconsIcon icon={Edit02Icon} size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive"
+                        onClick={() => setPendingDeleteId(q.id)}
+                      >
+                        <HugeiconsIcon icon={Delete02Icon} size={16} />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
