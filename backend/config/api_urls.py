@@ -22,9 +22,12 @@ from assessments.admin_views import (
     AdminExamDetailView,
     AdminExamListCreateView,
     AdminExamQuestionListCreateView,
+    AdminExerciseAnswerGradeView,
     AdminExerciseDetailView,
     AdminExerciseListCreateView,
+    AdminExerciseQuestionDetailView,
     AdminExerciseQuestionListCreateView,
+    AdminExerciseSubmissionListView,
 )
 from assessments.views import (
     StudentExamListView,
@@ -98,6 +101,21 @@ urlpatterns = [
         "admin/exercises/<int:exercise_id>/questions/",
         AdminExerciseQuestionListCreateView.as_view(),
         name="admin-exercise-questions",
+    ),
+    path(
+        "admin/exercises/<int:exercise_id>/questions/<int:pk>/",
+        AdminExerciseQuestionDetailView.as_view(),
+        name="admin-exercise-question-detail",
+    ),
+    path(
+        "admin/exercises/<int:exercise_id>/submissions/",
+        AdminExerciseSubmissionListView.as_view(),
+        name="admin-exercise-submissions",
+    ),
+    path(
+        "admin/exercise-grades/<int:pk>/",
+        AdminExerciseAnswerGradeView.as_view(),
+        name="admin-exercise-grade",
     ),
     path("admin/exams/", AdminExamListCreateView.as_view(), name="admin-exams"),
     path(

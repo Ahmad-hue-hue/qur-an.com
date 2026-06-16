@@ -1,18 +1,22 @@
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import IsAdmin
-from assessments.models import Exam, Exercise, Question
+from assessments.models import Exam, Exercise, ExerciseAnswerGrade, ExerciseSubmission, Question
 from assessments.serializers import (
     ExamAdminSerializer,
     ExamSerializer,
     ExerciseAdminSerializer,
+    ExerciseAnswerGradeSerializer,
     ExerciseCreateSerializer,
     ExerciseSerializer,
+    ExerciseSubmissionAdminSerializer,
+    GradeAnswerSerializer,
     QuestionAdminSerializer,
 )
-from assessments.services import get_assessment_status
+from assessments.services import get_assessment_status, recalculate_submission_score
 
 
 def serialize_exercise(exercise):
@@ -138,7 +142,77 @@ class AdminExerciseQuestionListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         exercise = Exercise.objects.filter(pk=self.kwargs["exercise_id"]).first()
-        serializer.save(exercise=exercise)
+        if not exercise:
+            return
+        order = exercise.questions.count() + 1
+        serializer.save(exercise=exercise, order=serializer.validated_data.get("order", order))
+
+
+class AdminExerciseQuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdmin]
+    serializer_class = QuestionAdminSerializer
+
+    def get_queryset(self):
+        return Question.objects.filter(exercise_id=self.kwargs["exercise_id"])
+
+
+class AdminExerciseSubmissionListView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request, exercise_id):
+        exercise = Exercise.objects.filter(pk=exercise_id).first()
+        if not exercise:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        submissions = (
+            ExerciseSubmission.objects.filter(exercise=exercise)
+            .select_related("student")
+            .prefetch_related("answer_grades__question")
+            .order_by("-submitted_at")
+        )
+        pending = request.query_params.get("pending") == "true"
+        if pending:
+            submissions = submissions.filter(
+                grading_status=ExerciseSubmission.GradingStatus.PENDING_MANUAL
+            )
+
+        return Response(
+            ExerciseSubmissionAdminSerializer(submissions, many=True).data
+        )
+
+
+class AdminExerciseAnswerGradeView(APIView):
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, pk):
+        grade = (
+            ExerciseAnswerGrade.objects.select_related(
+                "submission", "submission__exercise", "question"
+            )
+            .filter(pk=pk)
+            .first()
+        )
+        if not grade:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = GradeAnswerSerializer(
+            data=request.data, context={"grade": grade}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        grade.score = serializer.validated_data["score"]
+        grade.feedback = serializer.validated_data.get("feedback", "")
+        grade.graded_at = timezone.now()
+        grade.save(update_fields=["score", "feedback", "graded_at"])
+
+        submission = recalculate_submission_score(grade.submission)
+
+        return Response(
+            {
+                "grade": ExerciseAnswerGradeSerializer(grade).data,
+                "submission": ExerciseSubmissionAdminSerializer(submission).data,
+            }
+        )
 
 
 class AdminExamQuestionListCreateView(generics.ListCreateAPIView):

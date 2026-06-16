@@ -7,6 +7,10 @@ import type {
   CreateStudentData,
   CreateExerciseData,
   CreateExamData,
+  CreateQuestionData,
+  ExerciseAnswerGrade,
+  ExerciseDetail,
+  ExerciseSubmissionAdmin,
   UpdateStudentData,
   DashboardData,
   Exam,
@@ -84,7 +88,7 @@ export const studentApi = {
   submitExercise: (
     id: number,
     answers: Record<number, string>
-  ): Promise<{ score: number; max_score: number }> =>
+  ): Promise<{ score: number; max_score: number; grading_status?: string }> =>
     apiClient(`/student/exercises/${id}/submit/`, {
       method: "POST",
       body: JSON.stringify({ answers }),
@@ -199,6 +203,52 @@ export const adminApi = {
 
   deleteExercise: (id: number): Promise<void> =>
     apiClient(`/admin/exercises/${id}/`, { method: "DELETE" }),
+
+  getExercise: (id: number): Promise<ExerciseDetail> =>
+    apiClient<ExerciseDetail>(`/admin/exercises/${id}/`),
+
+  addExerciseQuestion: (
+    exerciseId: number,
+    data: CreateQuestionData
+  ): Promise<Question> =>
+    apiClient<Question>(`/admin/exercises/${exerciseId}/questions/`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateExerciseQuestion: (
+    exerciseId: number,
+    questionId: number,
+    data: Partial<CreateQuestionData>
+  ): Promise<Question> =>
+    apiClient<Question>(`/admin/exercises/${exerciseId}/questions/${questionId}/`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteExerciseQuestion: (exerciseId: number, questionId: number): Promise<void> =>
+    apiClient(`/admin/exercises/${exerciseId}/questions/${questionId}/`, {
+      method: "DELETE",
+    }),
+
+  getExerciseSubmissions: (
+    exerciseId: number,
+    pendingOnly?: boolean
+  ): Promise<ExerciseSubmissionAdmin[]> => {
+    const query = pendingOnly ? "?pending=true" : "";
+    return apiClient<ExerciseSubmissionAdmin[]>(
+      `/admin/exercises/${exerciseId}/submissions/${query}`
+    );
+  },
+
+  gradeExerciseAnswer: (
+    gradeId: number,
+    data: { score: number; feedback?: string }
+  ): Promise<{ grade: ExerciseAnswerGrade; submission: ExerciseSubmissionAdmin }> =>
+    apiClient(`/admin/exercise-grades/${gradeId}/`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 
   getExams: async (marhalahId?: number): Promise<Exam[]> => {
     const query = marhalahId ? `?marhalah=${marhalahId}` : "";

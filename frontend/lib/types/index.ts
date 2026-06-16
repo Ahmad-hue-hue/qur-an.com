@@ -6,7 +6,14 @@ export type TopicStatus = "completed" | "active" | "locked";
 
 export type AssessmentStatus = "open" | "upcoming" | "expired" | "completed";
 
-export type QuestionType = "mcq" | "written";
+export type QuestionType =
+  | "mcq"
+  | "fill_blank"
+  | "true_false"
+  | "fill_gap"
+  | "written";
+
+export type GradingStatus = "complete" | "pending_manual";
 
 export interface User {
   id: number;
@@ -69,6 +76,7 @@ export interface Exercise {
   score?: number;
   max_score?: number;
   has_submitted: boolean;
+  grading_status?: GradingStatus;
 }
 
 export interface Exam {
@@ -93,6 +101,43 @@ export interface Question {
   arabic_text?: string;
   options?: string[];
   order: number;
+  correct_answer?: string;
+  max_score?: number;
+}
+
+export interface QuestionAdmin extends Question {
+  exercise?: number;
+  exam?: number;
+}
+
+export interface ExerciseAnswerGrade {
+  id: number;
+  question_id: number;
+  question_text: string;
+  question_type: QuestionType;
+  answer_text: string;
+  score: number | null;
+  max_score: number;
+  feedback?: string;
+  graded_at?: string | null;
+  student_name?: string;
+}
+
+export interface ExerciseSubmissionAdmin {
+  id: number;
+  student: number;
+  student_name: string;
+  exercise: number;
+  answers: Record<string, string>;
+  score: number;
+  max_score: number;
+  grading_status: GradingStatus;
+  submitted_at: string;
+  answer_grades: ExerciseAnswerGrade[];
+}
+
+export interface ExerciseDetail extends Exercise {
+  questions?: QuestionAdmin[];
 }
 
 export interface ManualScore {
@@ -182,6 +227,17 @@ export interface CreateExerciseData {
   question_text?: string;
   question_options?: string[];
   correct_answer?: string;
+  questions?: CreateQuestionData[];
+}
+
+export interface CreateQuestionData {
+  type: QuestionType;
+  text: string;
+  arabic_text?: string;
+  options?: string[];
+  correct_answer?: string;
+  order?: number;
+  max_score?: number;
 }
 
 export interface CreateExamData {

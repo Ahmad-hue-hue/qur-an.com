@@ -3,12 +3,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from assessments.models import Exam, Exercise, ExerciseSubmission
+from assessments.models import Exercise, ExerciseAnswerGrade, ExerciseSubmission
 from assessments.serializers import ExamSerializer, ExerciseSerializer, QuestionSerializer
 from assessments.services import (
     assign_registration_number,
     get_assessment_status,
-    grade_mcq_submission,
+    grade_exercise_submission,
+    recalculate_submission_score,
 )
 
 
@@ -30,6 +31,7 @@ class StudentExerciseListView(APIView):
                     "score": float(submission.score) if submission else None,
                     "max_score": float(submission.max_score) if submission else None,
                     "has_submitted": bool(submission),
+                    "grading_status": submission.grading_status if submission else None,
                 }
             )
         return Response(data)
@@ -51,6 +53,7 @@ class StudentExerciseDetailView(APIView):
                 "score": float(submission.score) if submission else None,
                 "max_score": float(submission.max_score) if submission else None,
                 "has_submitted": bool(submission),
+                "grading_status": submission.grading_status if submission else None,
             }
         )
 
@@ -92,22 +95,43 @@ class StudentExerciseSubmitView(APIView):
 
         answers = request.data.get("answers", {})
         questions = list(exercise.questions.all())
-        score, max_score = grade_mcq_submission(questions, answers)
+        auto_score, max_score, manual_items = grade_exercise_submission(questions, answers)
 
-        ExerciseSubmission.objects.create(
+        grading_status = (
+            ExerciseSubmission.GradingStatus.PENDING_MANUAL
+            if manual_items
+            else ExerciseSubmission.GradingStatus.COMPLETE
+        )
+
+        submission = ExerciseSubmission.objects.create(
             student=request.user,
             exercise=exercise,
             answers=answers,
-            score=score,
+            score=auto_score,
             max_score=max_score,
+            grading_status=grading_status,
         )
+
+        for item in manual_items:
+            ExerciseAnswerGrade.objects.create(
+                submission=submission,
+                question=item["question"],
+                answer_text=item["answer_text"],
+                max_score=item["max_score"],
+            )
 
         if not request.user.has_attempted_exercise:
             request.user.has_attempted_exercise = True
             request.user.save(update_fields=["has_attempted_exercise"])
             assign_registration_number(request.user)
 
-        return Response({"score": float(score), "max_score": float(max_score)})
+        return Response(
+            {
+                "score": float(submission.score),
+                "max_score": float(max_score),
+                "grading_status": submission.grading_status,
+            }
+        )
 
 
 class StudentExamListView(APIView):

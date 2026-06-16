@@ -20,9 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Link from "next/link";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Delete02Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 function toLocalInputValue(date: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -105,6 +106,18 @@ export default function AdminExercisesPage() {
       </PageHeader>
 
       <div className="px-4 py-6 space-y-4">
+        <Card className="card-shadow border-emerald-deep/20 bg-emerald-light/30">
+          <CardContent className="p-4 text-sm space-y-1">
+            <p className="font-medium text-emerald-deep">Question types supported</p>
+            <p className="text-muted-foreground">
+              MCQ · Fill in the blank · True/False (auto-graded) · Fill the gap (manual grading)
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Create an exercise, then open it to add questions of each type.
+            </p>
+          </CardContent>
+        </Card>
+
         <Button
           className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
           onClick={() => setShowForm((v) => !v)}
@@ -155,7 +168,10 @@ export default function AdminExercisesPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Sample MCQ Question (optional)</Label>
+                <Label>First question (optional MCQ)</Label>
+                <p className="text-xs text-muted-foreground">
+                  You can add fill-blank, true/false, and fill-the-gap questions after saving.
+                </p>
                 <Input
                   placeholder="Question text"
                   value={form.question_text}
@@ -205,14 +221,26 @@ export default function AdminExercisesPage() {
         {exercises?.map((exercise) => (
           <Card key={exercise.id} className="card-shadow">
             <CardContent className="p-4 flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm">{exercise.title}</p>
+              <Link href={`/admin/exercises/${exercise.id}`} className="flex-1 min-w-0">
+                <p className="font-medium text-sm hover:text-emerald-deep">
+                  {exercise.title}
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {format(new Date(exercise.start_date), "MMM d")} –{" "}
                   {format(new Date(exercise.end_date), "MMM d")} ·{" "}
                   {exercise.question_count} questions · {exercise.status}
                 </p>
-              </div>
+              </Link>
+              <Link href={`/admin/exercises/${exercise.id}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1 border-emerald-deep/30 text-emerald-deep"
+                >
+                  Manage
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"

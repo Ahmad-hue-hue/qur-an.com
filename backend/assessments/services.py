@@ -6,8 +6,10 @@ from django.utils import timezone
 
 from assessments.models import (
     ExamSubmission,
+    ExerciseAnswerGrade,
     ExerciseSubmission,
     ManualScore,
+    Question,
     ScoreWeights,
 )
 from courses.models import Marhalah, Topic, TopicCompletion
@@ -153,13 +155,75 @@ def assign_registration_number(student):
     return reg_no
 
 
-def grade_mcq_submission(questions, answers):
-    score = Decimal("0")
+def normalize_answer(value):
+    return (value or "").strip().lower()
+
+
+def get_answer(answers, question_id):
+    return answers.get(str(question_id)) or answers.get(question_id) or ""
+
+
+def is_auto_correct(question, answer):
+    if question.type == Question.QuestionType.MCQ:
+        return answer == question.correct_answer
+    if question.type == Question.QuestionType.TRUE_FALSE:
+        return normalize_answer(answer) == normalize_answer(question.correct_answer)
+    if question.type == Question.QuestionType.FILL_BLANK:
+        return normalize_answer(answer) == normalize_answer(question.correct_answer)
+    return False
+
+
+def grade_exercise_submission(questions, answers):
+    auto_score = Decimal("0")
     max_score = Decimal("0")
+    manual_items = []
+
     for question in questions:
         max_score += Decimal(str(question.max_score))
-        if question.type == "mcq":
-            answer = answers.get(str(question.id)) or answers.get(question.id)
-            if answer and answer == question.correct_answer:
-                score += Decimal(str(question.max_score))
+        answer = get_answer(answers, question.id)
+
+        if question.requires_manual_grading:
+            manual_items.append(
+                {
+                    "question": question,
+                    "answer_text": answer,
+                    "max_score": Decimal(str(question.max_score)),
+                }
+            )
+        elif is_auto_correct(question, answer):
+            auto_score += Decimal(str(question.max_score))
+
+    return auto_score, max_score, manual_items
+
+
+def recalculate_submission_score(submission):
+    auto_score = Decimal("0")
+    for question in submission.exercise.questions.all():
+        if question.requires_manual_grading:
+            continue
+        answer = get_answer(submission.answers, question.id)
+        if is_auto_correct(question, answer):
+            auto_score += Decimal(str(question.max_score))
+
+    manual_score = Decimal("0")
+    pending = False
+    for grade in submission.answer_grades.select_related("question"):
+        if grade.score is None:
+            pending = True
+        else:
+            manual_score += grade.score
+
+    submission.score = auto_score + manual_score
+    submission.grading_status = (
+        ExerciseSubmission.GradingStatus.PENDING_MANUAL
+        if pending
+        else ExerciseSubmission.GradingStatus.COMPLETE
+    )
+    submission.save(update_fields=["score", "grading_status"])
+    return submission
+
+
+def grade_mcq_submission(questions, answers):
+    """Backward-compatible wrapper."""
+    score, max_score, _ = grade_exercise_submission(questions, answers)
     return score, max_score

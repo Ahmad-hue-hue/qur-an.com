@@ -53,6 +53,9 @@ class Exam(models.Model):
 class Question(models.Model):
     class QuestionType(models.TextChoices):
         MCQ = "mcq", "Multiple Choice"
+        FILL_BLANK = "fill_blank", "Fill in the Blank"
+        TRUE_FALSE = "true_false", "True or False"
+        FILL_GAP = "fill_gap", "Fill the Gap"
         WRITTEN = "written", "Written"
 
     exercise = models.ForeignKey(
@@ -61,7 +64,7 @@ class Question(models.Model):
     exam = models.ForeignKey(
         Exam, on_delete=models.CASCADE, null=True, blank=True, related_name="questions"
     )
-    type = models.CharField(max_length=10, choices=QuestionType.choices)
+    type = models.CharField(max_length=20, choices=QuestionType.choices)
     text = models.TextField()
     arabic_text = models.TextField(blank=True)
     options = models.JSONField(default=list, blank=True)
@@ -75,8 +78,19 @@ class Question(models.Model):
     def __str__(self):
         return f"Q{self.order}: {self.text[:50]}"
 
+    @property
+    def requires_manual_grading(self):
+        return self.type in {
+            self.QuestionType.FILL_GAP,
+            self.QuestionType.WRITTEN,
+        }
+
 
 class ExerciseSubmission(models.Model):
+    class GradingStatus(models.TextChoices):
+        COMPLETE = "complete", "Complete"
+        PENDING_MANUAL = "pending_manual", "Pending Manual Grading"
+
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -88,10 +102,30 @@ class ExerciseSubmission(models.Model):
     answers = models.JSONField(default=dict)
     score = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     max_score = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    grading_status = models.CharField(
+        max_length=20,
+        choices=GradingStatus.choices,
+        default=GradingStatus.COMPLETE,
+    )
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = [["student", "exercise"]]
+
+
+class ExerciseAnswerGrade(models.Model):
+    submission = models.ForeignKey(
+        ExerciseSubmission, on_delete=models.CASCADE, related_name="answer_grades"
+    )
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer_text = models.TextField(blank=True)
+    score = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    max_score = models.DecimalField(max_digits=6, decimal_places=2, default=1)
+    feedback = models.TextField(blank=True)
+    graded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = [["submission", "question"]]
 
 
 class ExamSubmission(models.Model):
