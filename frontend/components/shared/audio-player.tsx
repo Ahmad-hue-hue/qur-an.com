@@ -15,6 +15,7 @@ import {
   filenameFromStorageUrl,
   getStorageDownloadUrl,
   sanitizeDownloadName,
+  downloadStorageFile,
 } from "@/lib/download";
 
 interface AudioPlayerProps {
@@ -31,6 +32,7 @@ export function AudioPlayer({ src, title, className, downloadFilename }: AudioPl
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -120,16 +122,26 @@ export function AudioPlayer({ src, title, className, downloadFilename }: AudioPl
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
+  const resolvedDownloadName =
+    downloadFilename ??
+    filenameFromStorageUrl(
+      src ?? "",
+      sanitizeDownloadName(title ?? "lesson-audio", "mp3")
+    );
+
   const downloadHref = src
-    ? getStorageDownloadUrl(
-        src,
-        downloadFilename ??
-          filenameFromStorageUrl(
-            src,
-            sanitizeDownloadName(title ?? "lesson-audio", "mp3")
-          )
-      )
+    ? getStorageDownloadUrl(src, resolvedDownloadName)
     : null;
+
+  const handleDownload = async () => {
+    if (!src || downloading) return;
+    setDownloading(true);
+    try {
+      await downloadStorageFile(src, resolvedDownloadName);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   if (!src) {
     return (
@@ -203,23 +215,30 @@ export function AudioPlayer({ src, title, className, downloadFilename }: AudioPl
           <HugeiconsIcon icon={Forward01Icon} size={20} />
         </Button>
         {downloadHref && (
-          <a
-            href={downloadHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-2"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-cream hover:bg-emerald-mid/50 ml-2"
+            aria-label="Download audio"
+            disabled={downloading}
+            onClick={() => void handleDownload()}
           >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-cream hover:bg-emerald-mid/50"
-              aria-label="Download audio"
-            >
-              <HugeiconsIcon icon={Download01Icon} size={20} />
-            </Button>
-          </a>
+            <HugeiconsIcon icon={Download01Icon} size={20} />
+          </Button>
         )}
       </div>
+
+      {downloadHref && (
+        <Button
+          variant="outline"
+          className="w-full mt-3 gap-2 border-cream/30 text-cream hover:bg-emerald-mid/40 hover:text-cream"
+          disabled={downloading}
+          onClick={() => void handleDownload()}
+        >
+          <HugeiconsIcon icon={Download01Icon} size={18} />
+          {downloading ? "Downloading..." : "Download Audio"}
+        </Button>
+      )}
     </div>
   );
 }

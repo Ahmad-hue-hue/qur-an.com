@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Download01Icon } from "@hugeicons/core-free-icons";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   filenameFromStorageUrl,
   getStorageDownloadUrl,
   sanitizeDownloadName,
+  downloadStorageFile,
 } from "@/lib/download";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +29,8 @@ export function DownloadButton({
   variant = "outline",
   fullWidth = false,
 }: DownloadButtonProps) {
+  const [downloading, setDownloading] = useState(false);
+
   if (!url) {
     return (
       <Button
@@ -46,20 +50,25 @@ export function DownloadButton({
     filenameFromStorageUrl(url, sanitizeDownloadName(label, ext));
   const href = getStorageDownloadUrl(url, resolvedName);
 
+  const handleDownload = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      await downloadStorageFile(url, resolvedName);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        buttonVariants({ variant }),
-        fullWidth && "w-full gap-2",
-        "inline-flex items-center justify-center",
-        className
-      )}
+    <Button
+      variant={variant}
+      className={cn(fullWidth && "w-full gap-2", className)}
+      disabled={downloading}
+      onClick={() => void handleDownload()}
     >
       <HugeiconsIcon icon={Download01Icon} size={18} />
-      {label}
-    </a>
+      {downloading ? "Downloading..." : label}
+    </Button>
   );
 }
