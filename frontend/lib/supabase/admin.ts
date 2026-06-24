@@ -236,25 +236,23 @@ export const adminApi = {
 
   createTopic: async (data: CreateTopicData): Promise<Topic> => {
     const supabase = getSupabase();
+
+    let audio_url: string | null = null;
+    let pdf_url: string | null = null;
+
     const inserted = throwIfError(
-      await supabase
-        .from("topics")
-        .insert({
-          marhalah_id: data.marhalah,
-          order: data.order,
-          title: data.title,
-          arabic_title: data.arabic_title ?? "",
-          content: data.content,
-          arabic_content: data.arabic_content ?? "",
-          examples: data.examples ?? "",
-        })
-        .select("*")
-        .single()
+      await supabase.rpc("admin_create_topic", {
+        p_marhalah_id: data.marhalah,
+        p_order: data.order,
+        p_title: data.title,
+        p_arabic_title: data.arabic_title ?? "",
+        p_content: data.content,
+        p_arabic_content: data.arabic_content ?? "",
+        p_examples: data.examples ?? "",
+      })
     ) as Record<string, unknown>;
 
     const topicId = inserted.id as number;
-    let audio_url = inserted.audio_url as string | null;
-    let pdf_url = inserted.pdf_url as string | null;
 
     if (data.audio) {
       audio_url = await uploadLessonFile("lesson-audio", data.audio, topicId);
@@ -265,17 +263,22 @@ export const adminApi = {
 
     if (audio_url || pdf_url) {
       throwIfError(
-        await supabase
-          .from("topics")
-          .update({ audio_url, pdf_url })
-          .eq("id", topicId)
-          .select("*")
-          .single()
+        await supabase.rpc("admin_update_topic", {
+          p_id: topicId,
+          p_marhalah_id: data.marhalah,
+          p_order: data.order,
+          p_title: data.title,
+          p_arabic_title: data.arabic_title ?? "",
+          p_content: data.content,
+          p_arabic_content: data.arabic_content ?? "",
+          p_examples: data.examples ?? "",
+          p_audio_url: audio_url,
+          p_pdf_url: pdf_url,
+        })
       );
     }
 
-    const topics = await adminApi.getTopics();
-    return topics.find((t) => t.id === topicId)!;
+    return adminApi.getTopic(topicId);
   },
 
   getTopic: async (id: number): Promise<Topic> => {
@@ -300,8 +303,10 @@ export const adminApi = {
 
   updateTopic: async (data: CreateTopicData & { id: number }): Promise<Topic> => {
     const supabase = getSupabase();
-    let audio_url: string | undefined;
-    let pdf_url: string | undefined;
+    const existing = await adminApi.getTopic(data.id);
+    let audio_url = existing.audio_url ?? null;
+    let pdf_url = existing.pdf_url ?? null;
+
     if (data.audio) {
       audio_url = await uploadLessonFile("lesson-audio", data.audio, data.id);
     }
@@ -310,26 +315,25 @@ export const adminApi = {
     }
 
     throwIfError(
-      await supabase
-        .from("topics")
-        .update({
-          marhalah_id: data.marhalah,
-          order: data.order,
-          title: data.title,
-          arabic_title: data.arabic_title ?? "",
-          content: data.content,
-          arabic_content: data.arabic_content ?? "",
-          examples: data.examples ?? "",
-          ...(audio_url ? { audio_url } : {}),
-          ...(pdf_url ? { pdf_url } : {}),
-        })
-        .eq("id", data.id)
+      await supabase.rpc("admin_update_topic", {
+        p_id: data.id,
+        p_marhalah_id: data.marhalah,
+        p_order: data.order,
+        p_title: data.title,
+        p_arabic_title: data.arabic_title ?? "",
+        p_content: data.content,
+        p_arabic_content: data.arabic_content ?? "",
+        p_examples: data.examples ?? "",
+        p_audio_url: audio_url,
+        p_pdf_url: pdf_url,
+      })
     );
+
     return adminApi.getTopic(data.id);
   },
 
   deleteTopic: async (id: number): Promise<void> => {
-    throwIfError(await getSupabase().from("topics").delete().eq("id", id));
+    throwIfError(await getSupabase().rpc("admin_delete_topic", { p_id: id }));
   },
 
   getExercises: async (marhalahId?: number): Promise<Exercise[]> => {
