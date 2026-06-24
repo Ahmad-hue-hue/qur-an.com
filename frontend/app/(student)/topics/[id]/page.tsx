@@ -144,9 +144,7 @@ export default function TopicDetailPage({
           </Card>
         )}
 
-        {topic.audio_url && (
-          <AudioPlayer src={topic.audio_url} title="Lesson Audio" />
-        )}
+        <AudioPlayer src={topic.audio_url} title="Lesson Audio" />
 
         {topic.pdf_url && (
           <a href={topic.pdf_url} target="_blank" rel="noopener noreferrer">

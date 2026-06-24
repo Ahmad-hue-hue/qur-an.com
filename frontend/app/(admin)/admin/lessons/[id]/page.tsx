@@ -158,14 +158,12 @@ export default function EditLessonPage({
           />
         </div>
 
-        {topic.audio_url && !audioFile && (
-          <>
-            <p className="text-xs text-muted-foreground">
-              Current audio uploaded. Upload a new file to replace it.
-            </p>
-            <AudioPlayer src={topic.audio_url} title="Current lesson audio" />
-          </>
-        )}
+        <section>
+          <AudioPlayer
+            src={topic.audio_url && !audioFile ? topic.audio_url : undefined}
+            title="Current lesson audio"
+          />
+        </section>
 
         <Card className="card-shadow">
           <CardContent className="p-4">

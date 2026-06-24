@@ -103,6 +103,10 @@ export default function AdminTopicsPage() {
                     {topic.arabic_title}
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  {topic.audio_url ? "Audio attached" : "No audio"}
+                  {topic.pdf_url ? " · PDF attached" : ""}
+                </p>
               </div>
               <Link href={`/admin/lessons/${topic.id}`} title="Edit lesson">
                 <Button variant="ghost" size="icon" className="h-8 w-8">

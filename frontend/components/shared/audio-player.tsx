@@ -114,7 +114,19 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  if (!src) return null;
+  if (!src) {
+    return (
+      <div
+        className={cn(
+          "bg-emerald-deep/60 rounded-2xl p-4 text-cream/70 card-shadow border border-dashed border-cream/20",
+          className
+        )}
+      >
+        {title && <p className="text-sm text-cream/80 mb-1">{title}</p>}
+        <p className="text-xs">No audio uploaded for this lesson yet.</p>
+      </div>
+    );
+  }
 
   return (
     <div
