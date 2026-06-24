@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PlayIcon,
@@ -24,50 +24,97 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !src) return;
+
+    setError(null);
+    setReady(false);
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
+
+    audio.src = src;
+    audio.load();
 
     const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
       setProgress((audio.currentTime / audio.duration) * 100 || 0);
     };
-    const onLoaded = () => setDuration(audio.duration);
+    const onLoaded = () => {
+      if (Number.isFinite(audio.duration)) {
+        setDuration(audio.duration);
+        setReady(true);
+      }
+    };
     const onEnded = () => setIsPlaying(false);
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onError = () => {
+      setError("Could not load audio. Try the download button instead.");
+      setIsPlaying(false);
+      setReady(false);
+    };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoaded);
+    audio.addEventListener("durationchange", onLoaded);
+    audio.addEventListener("canplay", onLoaded);
     audio.addEventListener("ended", onEnded);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("error", onError);
+
     return () => {
+      audio.pause();
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoaded);
+      audio.removeEventListener("durationchange", onLoaded);
+      audio.removeEventListener("canplay", onLoaded);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("error", onError);
     };
-  }, []);
+  }, [src]);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(async () => {
     const audio = audioRef.current;
-    if (!audio) return;
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
+    if (!audio || !src) return;
+
+    try {
+      if (audio.paused) {
+        await audio.play();
+      } else {
+        audio.pause();
+      }
+    } catch {
+      setError("Tap play again to start audio.");
+      setIsPlaying(false);
     }
-    setIsPlaying(!isPlaying);
-  };
+  }, [src]);
 
   const seek = (seconds: number) => {
     const audio = audioRef.current;
-    if (!audio) return;
-    audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
+    if (!audio || !Number.isFinite(audio.duration)) return;
+    audio.currentTime = Math.max(
+      0,
+      Math.min(audio.duration, audio.currentTime + seconds)
+    );
   };
 
   const formatTime = (t: number) => {
+    if (!Number.isFinite(t)) return "0:00";
     const m = Math.floor(t / 60);
     const s = Math.floor(t % 60);
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
+
+  if (!src) return null;
 
   return (
     <div
@@ -76,8 +123,15 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
         className
       )}
     >
-      {src && <audio ref={audioRef} src={src} preload="metadata" />}
+      <audio ref={audioRef} preload="metadata" playsInline />
+
       {title && <p className="text-sm text-cream/80 mb-3">{title}</p>}
+
+      {error && (
+        <p className="text-xs text-gold mb-3" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs tabular-nums w-10">{formatTime(currentTime)}</span>
@@ -98,13 +152,15 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
           size="icon"
           className="text-cream hover:bg-emerald-mid/50"
           onClick={() => seek(-10)}
+          disabled={!ready}
         >
           <HugeiconsIcon icon={Backward01Icon} size={20} />
         </Button>
         <Button
           size="icon"
           className="h-12 w-12 rounded-full bg-gold text-emerald-deep hover:bg-gold/90"
-          onClick={togglePlay}
+          onClick={() => void togglePlay()}
+          aria-label={isPlaying ? "Pause" : "Play"}
         >
           <HugeiconsIcon icon={isPlaying ? PauseIcon : PlayIcon} size={24} />
         </Button>
@@ -113,20 +169,20 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
           size="icon"
           className="text-cream hover:bg-emerald-mid/50"
           onClick={() => seek(10)}
+          disabled={!ready}
         >
           <HugeiconsIcon icon={Forward01Icon} size={20} />
         </Button>
-        {src && (
-          <a href={src} download className="ml-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-cream hover:bg-emerald-mid/50"
-            >
-              <HugeiconsIcon icon={Download01Icon} size={20} />
-            </Button>
-          </a>
-        )}
+        <a href={src} download target="_blank" rel="noopener noreferrer" className="ml-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-cream hover:bg-emerald-mid/50"
+            aria-label="Download audio"
+          >
+            <HugeiconsIcon icon={Download01Icon} size={20} />
+          </Button>
+        </a>
       </div>
     </div>
   );

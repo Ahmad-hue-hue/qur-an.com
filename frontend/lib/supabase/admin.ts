@@ -43,8 +43,14 @@ async function uploadLessonFile(
   const supabase = getSupabase();
   const ext = file.name.split(".").pop() ?? "bin";
   const path = `topics/${topicId}/${Date.now()}.${ext}`;
+  const contentType =
+    bucket === "lesson-audio"
+      ? file.type || "audio/mpeg"
+      : file.type || "application/pdf";
+
   const { error } = await supabase.storage.from(bucket).upload(path, file, {
     upsert: true,
+    contentType,
   });
   if (error) throw new SupabaseApiError(error.message);
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);

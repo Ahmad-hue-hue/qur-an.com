@@ -26,6 +26,7 @@ import {
   Cancel01Icon,
   ArrowLeft01Icon,
 } from "@hugeicons/core-free-icons";
+import { AudioPlayer } from "@/components/shared/audio-player";
 
 export default function EditLessonPage({
   params,
@@ -158,9 +159,12 @@ export default function EditLessonPage({
         </div>
 
         {topic.audio_url && !audioFile && (
-          <p className="text-xs text-muted-foreground">
-            Current audio uploaded. Upload a new file to replace it.
-          </p>
+          <>
+            <p className="text-xs text-muted-foreground">
+              Current audio uploaded. Upload a new file to replace it.
+            </p>
+            <AudioPlayer src={topic.audio_url} title="Current lesson audio" />
+          </>
         )}
 
         <Card className="card-shadow">
