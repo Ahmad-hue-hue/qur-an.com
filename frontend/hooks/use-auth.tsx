@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { authApi } from "@/lib/api";
 import { getSupabase } from "@/lib/supabase/client";
+import { fetchUserRole } from "@/lib/supabase/role";
 import { getDefaultRoute } from "@/lib/auth/token";
 
 type AppRole = "student" | "admin" | null;
@@ -31,28 +32,9 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 async function resolveRole(session: Session | null): Promise<AppRole> {
   if (!session?.user) return null;
 
-  const metaRole = session.user.user_metadata?.role;
-  if (metaRole === "admin" || metaRole === "student") {
-    return metaRole;
-  }
-
   const supabase = getSupabase();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", session.user.id)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Failed to resolve profile role:", error.message);
-    return null;
-  }
-
-  if (data?.role === "admin" || data?.role === "student") {
-    return data.role;
-  }
-
-  return "student";
+  const role = await fetchUserRole(supabase, session.user.id);
+  return role;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -133,16 +115,16 @@ export function useRequireAuth(requiredRole?: "student" | "admin") {
 
   useEffect(() => {
     if (!auth.isReady) return;
+
     if (!auth.isLoggedIn) {
-      router.replace("/login");
+      const next =
+        requiredRole === "admin"
+          ? "/login?next=/admin"
+          : "/login";
+      router.replace(next);
       return;
     }
-    if (requiredRole === "admin") {
-      if (auth.role === "student") {
-        router.replace("/dashboard");
-      }
-      return;
-    }
+
     if (requiredRole === "student" && auth.role === "admin") {
       router.replace("/admin");
     }

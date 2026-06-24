@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 export default function StudentLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
   const { refreshAuth, logout, isLoggedIn, role, isReady, setRole } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +40,9 @@ export default function StudentLoginPage() {
       setRole(loginRole);
       await refreshAuth();
       toast.success(loginRole === "admin" ? "Welcome, admin!" : "Welcome back!");
-      router.push(getDefaultRoute(loginRole));
+      const destination =
+        nextPath && nextPath.startsWith("/") ? nextPath : getDefaultRoute(loginRole);
+      router.push(destination);
     },
     onError: (err: Error) => toast.error(err.message || "Invalid credentials"),
   });

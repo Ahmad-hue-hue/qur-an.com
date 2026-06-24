@@ -1,5 +1,6 @@
 import { getSupabase } from "@/lib/supabase/client";
-import { normalizePhone, splitFullName, SupabaseApiError, throwIfError } from "@/lib/supabase/utils";
+import { fetchUserRole } from "@/lib/supabase/role";
+import { normalizePhone, splitFullName, SupabaseApiError } from "@/lib/supabase/utils";
 import type { AdminLoginCredentials, StudentRegisterCredentials } from "@/lib/types";
 
 export const authApi = {
@@ -40,15 +41,14 @@ export const authApi = {
     });
     if (error) throw new SupabaseApiError(error.message);
 
-    const profile = throwIfError(
-      await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single()
-    ) as { role: "student" | "admin" };
+    const role = await fetchUserRole(supabase, data.user.id);
+    if (!role) {
+      throw new SupabaseApiError("Could not load your account profile. Try again.");
+    }
 
-    return { session: data.session, role: profile.role };
+    await supabase.auth.refreshSession();
+
+    return { session: data.session, role };
   },
 
   /** @deprecated Use login() — admins and students share the same sign-in page. */

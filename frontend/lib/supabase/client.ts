@@ -33,11 +33,40 @@ export function getSupabaseAnonKey(): string {
 }
 
 export function createClient(): SupabaseClient {
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
+
   if (typeof window === "undefined") {
-    return createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
+    return createBrowserClient(url, key);
   }
+
   if (!client) {
-    client = createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
+    client = createBrowserClient(url, key, {
+      cookies: {
+        getAll() {
+          return document.cookie
+            .split(";")
+            .map((part) => part.trim())
+            .filter(Boolean)
+            .map((cookie) => {
+              const eq = cookie.indexOf("=");
+              const name = eq === -1 ? cookie : cookie.slice(0, eq);
+              const value = eq === -1 ? "" : cookie.slice(eq + 1);
+              return { name, value: decodeURIComponent(value) };
+            });
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const encoded = encodeURIComponent(value);
+            const parts = [`${name}=${encoded}`, "path=/"];
+            if (options?.maxAge) parts.push(`max-age=${options.maxAge}`);
+            if (options?.sameSite) parts.push(`samesite=${options.sameSite}`);
+            if (options?.secure) parts.push("secure");
+            document.cookie = parts.join("; ");
+          });
+        },
+      },
+    });
   }
   return client;
 }
