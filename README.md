@@ -49,11 +49,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 | Role | URL | Access |
 |---|---|---|
-| Student login | `/login` | Email + password |
+| Student login | `/login` | Email + password (students & admins) |
 | Student signup | `/register` | Email, password, name, phone |
 | Student app | `/dashboard` | Dashboard, topics, exercises, profile |
-| Admin login | `/admin/login` | Admin email + password |
-| Admin panel | `/admin` | Content, students, assessments |
+| Admin panel | `/admin` | Content, students, assessments (sign in at `/login`) |
 
 ## First-time setup
 
@@ -64,7 +63,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 update public.profiles set role = 'admin' where email = 'you@example.com';
 ```
 
-3. Sign in at `/admin/login`
+3. Sign in at `/login` with your admin email
 4. Add lessons, exercises, and students from the admin panel
 
 Migrations seed the 4 Marḥalah stages automatically.

@@ -21,3 +21,5 @@ frontend/.env.local
 # Supabase local
 supabase/.branches
 supabase/.temp
+.vercel
+.env*

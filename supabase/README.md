@@ -102,3 +102,5 @@ Migration `20250614000006_indexes_and_rls_performance.sql` applies [Supabase Pos
 - Indexes on all foreign key columns (faster joins and cascades)
 - Partial index on published topics by marhalah
 - RLS policies use `(select auth.uid())` and `(select public.is_admin())` for per-statement caching
+
+Migration `20250614000007_security_hardening.sql` locks down RPC execute permissions (revokes anon access) and removes storage listing policies on public buckets.
