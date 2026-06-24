@@ -34,11 +34,11 @@ export default function StudentLoginPage() {
   }, [loggingOut, logout, refreshAuth, router]);
 
   const loginMutation = useMutation({
-    mutationFn: () => authApi.loginStudent({ email, password }),
-    onSuccess: async () => {
+    mutationFn: () => authApi.login({ email, password }),
+    onSuccess: async ({ role }) => {
       await refreshAuth();
-      toast.success("Welcome back!");
-      router.push("/dashboard");
+      toast.success(role === "admin" ? "Welcome, admin!" : "Welcome back!");
+      router.push(getDefaultRoute(role));
     },
     onError: (err: Error) => toast.error(err.message || "Invalid credentials"),
   });
@@ -156,11 +156,7 @@ export default function StudentLoginPage() {
                   <Link href="/register" className="font-semibold text-emerald-deep">
                     Sign up
                   </Link>{" "}
-                  to get started.{" "}
-                  <span className="text-muted-foreground/60">·</span>{" "}
-                  <Link href="/admin/login" className="font-semibold text-emerald-deep">
-                    Admin login
-                  </Link>
+                  to get started.
                 </p>
               )}
             </div>

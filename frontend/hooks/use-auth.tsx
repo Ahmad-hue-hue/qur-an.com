@@ -112,7 +112,7 @@ export function useRequireAuth(requiredRole?: "student" | "admin") {
   useEffect(() => {
     if (!auth.isReady) return;
     if (!auth.isLoggedIn) {
-      router.replace(requiredRole === "admin" ? "/admin/login" : "/login");
+      router.replace("/login");
       return;
     }
     if (requiredRole === "admin" && auth.role !== "admin") {

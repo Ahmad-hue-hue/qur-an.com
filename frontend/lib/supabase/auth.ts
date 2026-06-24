@@ -32,17 +32,7 @@ export const authApi = {
     return data.session;
   },
 
-  loginStudent: async ({ email, password }: { email: string; password: string }) => {
-    const supabase = getSupabase();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw new SupabaseApiError(error.message);
-    return data.session;
-  },
-
-  loginAdmin: async ({ email, password }: AdminLoginCredentials) => {
+  login: async ({ email, password }: { email: string; password: string }) => {
     const supabase = getSupabase();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -56,14 +46,26 @@ export const authApi = {
         .select("role")
         .eq("id", data.user.id)
         .single()
-    ) as { role: string };
+    ) as { role: "student" | "admin" };
 
-    if (profile.role !== "admin") {
+    return { session: data.session, role: profile.role };
+  },
+
+  /** @deprecated Use login() — admins and students share the same sign-in page. */
+  loginStudent: async ({ email, password }: { email: string; password: string }) => {
+    const { session } = await authApi.login({ email, password });
+    return session;
+  },
+
+  /** @deprecated Use login() — admins and students share the same sign-in page. */
+  loginAdmin: async ({ email, password }: AdminLoginCredentials) => {
+    const { session, role } = await authApi.login({ email, password });
+    if (role !== "admin") {
+      const supabase = getSupabase();
       await supabase.auth.signOut();
       throw new SupabaseApiError("Admin access required");
     }
-
-    return data.session;
+    return session;
   },
 
   logout: async () => {

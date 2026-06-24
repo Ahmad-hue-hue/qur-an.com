@@ -26,7 +26,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 |---|---|
 | `/login` | Student login (email + password) |
 | `/register` | Student registration |
-| `/admin/login` | Admin login |
 | `/dashboard` | Student home |
 | `/admin` | Admin dashboard |
 
