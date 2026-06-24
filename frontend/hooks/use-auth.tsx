@@ -23,19 +23,36 @@ interface AuthContextValue {
   role: AppRole;
   logout: () => void;
   refreshAuth: () => void;
+  setRole: (role: AppRole) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function resolveRole(session: Session | null): Promise<AppRole> {
   if (!session?.user) return null;
+
+  const metaRole = session.user.user_metadata?.role;
+  if (metaRole === "admin" || metaRole === "student") {
+    return metaRole;
+  }
+
   const supabase = getSupabase();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", session.user.id)
     .maybeSingle();
-  return (data?.role as AppRole) ?? "student";
+
+  if (error) {
+    console.error("Failed to resolve profile role:", error.message);
+    return null;
+  }
+
+  if (data?.role === "admin" || data?.role === "student") {
+    return data.role;
+  }
+
+  return "student";
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -85,6 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setRoleDirect = useCallback((nextRole: AppRole) => {
+    setRole(nextRole);
+  }, []);
+
   const value = useMemo(
     () => ({
       isReady,
@@ -92,8 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       logout,
       refreshAuth,
+      setRole: setRoleDirect,
     }),
-    [isReady, isLoggedIn, role, logout, refreshAuth]
+    [isReady, isLoggedIn, role, logout, refreshAuth, setRoleDirect]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -115,8 +137,10 @@ export function useRequireAuth(requiredRole?: "student" | "admin") {
       router.replace("/login");
       return;
     }
-    if (requiredRole === "admin" && auth.role !== "admin") {
-      router.replace("/dashboard");
+    if (requiredRole === "admin") {
+      if (auth.role === "student") {
+        router.replace("/dashboard");
+      }
       return;
     }
     if (requiredRole === "student" && auth.role === "admin") {

@@ -16,11 +16,11 @@ export function AuthGuard({ children, role }: AuthGuardProps) {
     auth.isReady &&
     auth.isLoggedIn &&
     (role !== "admin" || auth.role === "admin") &&
-    (role !== "student" || auth.role !== "admin");
+    (role !== "student" || auth.role === "student");
 
   return (
     <>
-      {(!auth.isReady || !auth.isLoggedIn) && (
+      {(!auth.isReady || !auth.isLoggedIn || (role === "admin" && auth.role !== "admin") || (role === "student" && auth.role !== "student")) && (
         <div className="p-4 space-y-4 w-full max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto">
           <Skeleton className="h-32 w-full rounded-2xl" />
           <Skeleton className="h-48 w-full rounded-2xl" />

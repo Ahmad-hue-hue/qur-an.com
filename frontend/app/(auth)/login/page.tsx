@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 export default function StudentLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refreshAuth, logout, isLoggedIn, role, isReady } = useAuth();
+  const { refreshAuth, logout, isLoggedIn, role, isReady, setRole } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const loggingOut = searchParams.get("logout") === "1";
@@ -35,10 +35,11 @@ export default function StudentLoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: () => authApi.login({ email, password }),
-    onSuccess: async ({ role }) => {
+    onSuccess: async ({ role: loginRole }) => {
+      setRole(loginRole);
       await refreshAuth();
-      toast.success(role === "admin" ? "Welcome, admin!" : "Welcome back!");
-      router.push(getDefaultRoute(role));
+      toast.success(loginRole === "admin" ? "Welcome, admin!" : "Welcome back!");
+      router.push(getDefaultRoute(loginRole));
     },
     onError: (err: Error) => toast.error(err.message || "Invalid credentials"),
   });
