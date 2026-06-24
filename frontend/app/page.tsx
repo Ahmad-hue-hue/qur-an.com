@@ -2,18 +2,21 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getDefaultRoute, getUserRole, isAuthenticated } from "@/lib/auth/token";
+import { useAuth } from "@/hooks/use-auth";
+import { getDefaultRoute } from "@/lib/auth/token";
 
 export default function HomePage() {
   const router = useRouter();
+  const { isReady, isLoggedIn, role } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      router.replace(getDefaultRoute(getUserRole()));
+    if (!isReady) return;
+    if (isLoggedIn) {
+      router.replace(getDefaultRoute(role));
     } else {
       router.replace("/login");
     }
-  }, [router]);
+  }, [isReady, isLoggedIn, role, router]);
 
   return null;
 }

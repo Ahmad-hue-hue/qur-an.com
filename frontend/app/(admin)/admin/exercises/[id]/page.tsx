@@ -186,7 +186,7 @@ export default function AdminExerciseDetailPage({
         </Link>
       </PageHeader>
 
-      <div className="px-4 py-6 space-y-4">
+      <div className="page-content">
         {isLoading && (
           <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
         )}
@@ -209,7 +209,7 @@ export default function AdminExerciseDetailPage({
             </Card>
 
             <Button
-              className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+              className="w-full sm:w-auto bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
               onClick={() => {
                 if (showQuestionForm && !editingQuestionId) {
                   resetQuestionForm();
@@ -271,7 +271,7 @@ export default function AdminExerciseDetailPage({
 
                   {questionForm.type === "mcq" && (
                     <>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="form-grid-2">
                         <Input
                           placeholder="Option A"
                           value={questionForm.option_a}
@@ -447,7 +447,7 @@ export default function AdminExerciseDetailPage({
                           {grade.answer_text || "(no answer)"}
                         </p>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="form-grid-2">
                         <div className="space-y-1">
                           <Label className="text-xs">
                             Score (max {grade.max_score})

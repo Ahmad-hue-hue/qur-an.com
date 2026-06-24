@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -100,8 +99,9 @@ export default function ProfilePage() {
             </div>
           </PageHeader>
 
-          <div className="px-4 py-6 space-y-6">
-            <Card className="card-shadow -mt-4">
+          <div className="page-content">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card className="card-shadow -mt-4 lg:mt-0">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold text-emerald-deep mb-3">
                   Personal Information
@@ -142,7 +142,7 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            <Card className="card-shadow">
+            <Card className="card-shadow lg:col-span-2">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold text-emerald-deep mb-3">
                   Academic Information
@@ -168,10 +168,11 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
 
             <Button
               variant="outline"
-              className="w-full text-destructive border-destructive/30 hover:bg-destructive/5"
+              className="w-full lg:col-span-2 text-destructive border-destructive/30 hover:bg-destructive/5"
               onClick={() => {
                 logout();
                 router.push("/login");
@@ -183,7 +184,6 @@ export default function ProfilePage() {
         </>
       )}
 
-      <BottomNav />
     </AppShell>
   );
 }

@@ -1,101 +1,39 @@
-# Tajweed Academy Frontend
+# Tajweed Platform — Frontend
 
-Next.js app for the Tajweed Learning & Assessment Platform.
-
-## Stack
-
-- Next.js (App Router)
-- TypeScript
-- Tailwind CSS v4
-- Shadcn UI + Hugeicons
-- TanStack Query
+Next.js app for students and admins. Data is served by **Supabase** (no separate Django server).
 
 ## Setup
 
+1. Complete [../supabase/README.md](../supabase/README.md) (project, migrations, admin user).
+2. Install and run:
+
 ```bash
-cd frontend
 bun install
 cp .env.example .env.local
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
-
-Make sure the Django backend is running on port 8000.
-
-After backend setup, run `uv run python manage.py reset_platform` for a clean empty platform (no demo data).
-
 ## Environment
 
-`.env.local`:
-
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-NEXT_PUBLIC_USE_MOCK=false
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ## Routes
 
-### Student
-
-| Route | Description |
+| Path | Description |
 |---|---|
-| `/login` | Student login (name + phone) |
-| `/register` | Student self-registration |
+| `/login` | Student login (email + password) |
+| `/register` | Student registration |
+| `/admin/login` | Admin login |
 | `/dashboard` | Student home |
-| `/marhalah/[id]` | Marḥalah topics |
-| `/topics/[id]` | Lesson detail |
-| `/assessments` | Exercises and exams |
-| `/exercises/[id]` | Take an exercise |
-| `/profile` | Student profile |
-
-### Admin
-
-| Route | Description |
-|---|---|
-| `/admin` | Admin dashboard (open in local dev) |
-| `/admin/students` | Student management |
-| `/admin/students/new` | Register a student |
-| `/admin/students/[id]` | Edit, suspend, promote, delete student |
-| `/admin/topics` | Manage lessons by Marḥalah |
-| `/admin/lessons/new` | Add a new lesson |
-| `/admin/lessons/[id]` | Edit a lesson |
-| `/admin/exercises` | Exercise management |
-| `/admin/exams` | Exam management |
+| `/admin` | Admin dashboard |
 
 ## Scripts
 
 ```bash
-bun dev      # Development server
-bun run build   # Production build
-bun run lint    # ESLint
-bun start    # Start production server
-```
-
-## Project Layout
-
-```
-frontend/
-├── app/
-│   ├── (student)/     # Authenticated student pages
-│   ├── (admin)/       # Admin panel
-│   └── (auth)/        # Login and register
-├── components/
-│   ├── auth/          # Login UI, guards
-│   ├── layout/        # App shell, nav
-│   └── shared/        # Shared dialogs, etc.
-├── hooks/             # Auth hooks
-└── lib/
-    ├── api/           # API client and endpoints
-    └── auth/          # JWT token helpers
-```
-
-## Getting Started
-
-After registering at `/register` or being added by an admin, sign in at `/login` with your full name and phone number.
-
-For a fresh local backend with no demo data:
-
-```bash
-cd ../backend && uv run python manage.py reset_platform
+bun dev      # development server
+bun run lint
+bun run build
 ```

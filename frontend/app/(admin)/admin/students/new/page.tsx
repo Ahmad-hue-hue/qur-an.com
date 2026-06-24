@@ -52,14 +52,14 @@ export default function AdminCreateStudentPage() {
         </Link>
       </PageHeader>
 
-      <div className="px-4 py-6">
+      <div className="page-content max-w-2xl">
         <Card className="card-shadow">
           <CardContent className="p-5 space-y-4">
             <p className="text-sm text-muted-foreground">
               Create a student account. The student signs in using their full name
               and phone number.
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="form-grid-2">
               <div className="space-y-2">
                 <Label>First Name</Label>
                 <Input

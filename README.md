@@ -9,33 +9,28 @@ Students learn through structured Marḥalah courses, complete topics, and take 
 | Layer | Tech |
 |---|---|
 | Frontend | Next.js (App Router), TypeScript, Tailwind v4, Shadcn UI, Hugeicons, TanStack Query |
-| Backend | Django 6, DRF, JWT, PostgreSQL (SQLite for local dev) |
-| Runtime | Bun (frontend), uv (backend) |
-| CI | GitHub Actions (backend tests + frontend lint/build) |
+| Backend | Supabase (Postgres, Auth, Storage, Edge Functions) |
+| Runtime | Bun (frontend) |
+| CI | GitHub Actions (frontend lint/build) |
 
 ## Quick Start
 
-Both servers must be running for the app to work.
+### 1. Supabase
 
-### Backend
+Follow [supabase/README.md](supabase/README.md) to:
 
-```bash
-cd backend
-cp .env.example .env
-uv sync
-uv run python manage.py migrate
-uv run python manage.py reset_platform
-uv run python manage.py runserver
-```
+1. Create a Supabase project
+2. Apply SQL migrations from `supabase/migrations/`
+3. Deploy edge functions (`create-student`, `delete-student`)
+4. Promote your first admin user in SQL
 
-API: `http://localhost:8000/api/`
-
-### Frontend
+### 2. Frontend
 
 ```bash
 cd frontend
 bun install
 cp .env.example .env.local
+# Edit .env.local with your Supabase URL and anon key
 bun dev
 ```
 
@@ -45,106 +40,46 @@ App: `http://localhost:3000`
 
 `frontend/.env.local`:
 
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-NEXT_PUBLIC_USE_MOCK=false
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ## Portals
 
 | Role | URL | Access |
 |---|---|---|
-| Student login | `/login` | Full name + phone (no password) |
-| Student signup | `/register` | Self-registration with name + phone |
+| Student login | `/login` | Email + password |
+| Student signup | `/register` | Email, password, name, phone |
 | Student app | `/dashboard` | Dashboard, topics, exercises, profile |
-| Admin panel | `/admin` | Open in local dev (no login required when `DEBUG=True`) |
+| Admin login | `/admin/login` | Admin email + password |
+| Admin panel | `/admin` | Content, students, assessments |
 
-`/admin/login` redirects to `/admin`.
+## First-time setup
 
-## Fresh Start (default)
+1. Register at `/register` or create a user in Supabase Auth
+2. Promote to admin in SQL:
 
-After migrate, run **`reset_platform`** for a clean system with no users, lessons, or assessments — only the 4 Marḥalah structure:
+```sql
+update public.profiles set role = 'admin' where email = 'you@example.com';
+```
+
+3. Sign in at `/admin/login`
+4. Add lessons, exercises, and students from the admin panel
+
+Migrations seed the 4 Marḥalah stages automatically.
+
+## Project structure
+
+```
+frontend/          Next.js app (student + admin UI)
+supabase/
+  migrations/      Postgres schema, RLS, RPC functions
+  functions/       Edge functions (create/delete student)
+```
+
+## Development
 
 ```bash
-uv run python manage.py reset_platform
+cd frontend && bun run lint && bun run build
 ```
-
-Then open **http://localhost:3000/admin** and add students, lessons, exercises, and exams.
-
-Students can self-register at **http://localhost:3000/register**.
-
-## Optional Demo Data
-
-To load sample users and content for testing:
-
-```bash
-uv run python manage.py seed_data
-```
-
-| Role | Credentials |
-|---|---|
-| Student | **Ahmad Hassan** / **966501234567** |
-| Admin | **admin@tajweed.academy** / **admin12345** |
-
-## Student Features
-
-- Dashboard with progress and current Marḥalah
-- Topic lessons with Arabic text, audio, and PDF
-- Exercises (MCQ) and exams with scheduled windows
-- Profile and assessment history
-- Registration number assigned on first exercise attempt (or by admin)
-
-## Admin Features
-
-Open **http://localhost:3000/admin** in local development.
-
-| Section | What you can do |
-|---|---|
-| **Dashboard** | View stats and quick actions |
-| **Students** | List, search, register, edit, suspend, promote, assign registration number manually, delete |
-| **Content** | Add/edit/delete lessons with audio and PDF uploads |
-| **Assessments** | Create and delete exercises and exams |
-
-Destructive actions (delete student, lesson, exercise, exam) require confirmation.
-
-## Business Rules
-
-- 4 Marḥalah stages with score-based unlock thresholds
-- Weighted final scores (exercises, exam, halaqah, tadreeb)
-- Students sign in with full name + phone only
-- Admin API is open when Django `DEBUG=True` (local development)
-
-## CI/CD
-
-GitHub Actions runs on every push/PR to `main`:
-
-- **Backend:** Django checks, migrations, tests
-- **Frontend:** ESLint, production build
-
-Workflow file: `.github/workflows/ci.yml`
-
-## Project Structure
-
-```
-tajweed-platform/
-├── .github/workflows/   # CI pipeline
-├── frontend/            # Next.js app
-│   ├── app/
-│   │   ├── (student)/   # Student routes
-│   │   ├── (admin)/     # Admin panel
-│   │   └── (auth)/      # Login & register
-│   └── lib/api/         # API client
-└── backend/             # Django REST API
-    ├── accounts/        # Users, auth, admin students
-    ├── courses/         # Marḥalah, topics, completions
-    └── assessments/     # Exercises, exams, scores
-```
-
-## Repository
-
-https://github.com/Ahmad-hue-hue/qur-an.com
-
-See also:
-
-- [backend/README.md](./backend/README.md) — API reference
-- [frontend/README.md](./frontend/README.md) — frontend development

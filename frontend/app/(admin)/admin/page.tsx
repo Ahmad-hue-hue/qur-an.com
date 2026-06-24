@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,20 +44,20 @@ export default function AdminDashboardPage() {
     <AppShell variant="admin">
       <PageHeader title="Admin Dashboard" subtitle="Tajweed Academy" />
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="page-content">
         {isError && (
           <Card className="border-destructive/30 bg-destructive/5">
             <CardContent className="p-4 space-y-3">
               <p className="text-sm font-medium text-destructive">
-                Cannot reach the backend API
+                Cannot reach Supabase
               </p>
               <p className="text-xs text-muted-foreground">
                 {error instanceof Error
                   ? error.message
-                  : "Start the Django server on port 8000."}
+                  : "Check your Supabase URL and anon key in .env.local"}
               </p>
               <p className="text-xs text-muted-foreground font-mono">
-                cd backend && uv run python manage.py runserver
+                See supabase/README.md for setup
               </p>
               <Button size="sm" variant="outline" onClick={() => refetch()}>
                 Retry
@@ -68,7 +67,7 @@ export default function AdminDashboardPage() {
         )}
 
         {isLoading && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="stat-grid">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-24 rounded-xl" />
             ))}
@@ -76,7 +75,7 @@ export default function AdminDashboardPage() {
         )}
 
         {!isLoading && !isError && stats && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="stat-grid">
             {statCards.map((stat) => (
               <Card key={stat.label} className="card-shadow">
                 <CardContent className="p-4">
@@ -99,7 +98,7 @@ export default function AdminDashboardPage() {
           <h2 className="text-sm font-semibold text-emerald-deep mb-3">
             Quick Actions
           </h2>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {quickActions.map((action) => (
               <Link key={action.label} href={action.href}>
                 <Card className="card-shadow hover:shadow-md transition-shadow">
@@ -120,7 +119,6 @@ export default function AdminDashboardPage() {
         </section>
       </div>
 
-      <BottomNav variant="admin" />
     </AppShell>
   );
 }

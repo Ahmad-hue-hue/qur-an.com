@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -105,7 +104,7 @@ export default function AdminExercisesPage() {
         </Select>
       </PageHeader>
 
-      <div className="px-4 py-6 space-y-4">
+      <div className="page-content">
         <Card className="card-shadow border-emerald-deep/20 bg-emerald-light/30">
           <CardContent className="p-4 text-sm space-y-1">
             <p className="font-medium text-emerald-deep">Question types supported</p>
@@ -119,7 +118,7 @@ export default function AdminExercisesPage() {
         </Card>
 
         <Button
-          className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+          className="w-full sm:w-auto bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
           onClick={() => setShowForm((v) => !v)}
         >
           <HugeiconsIcon icon={Add01Icon} size={18} />
@@ -145,7 +144,7 @@ export default function AdminExercisesPage() {
                   }
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="form-grid-2">
                 <div className="space-y-2">
                   <Label>Start</Label>
                   <Input
@@ -179,7 +178,7 @@ export default function AdminExercisesPage() {
                     setForm((p) => ({ ...p, question_text: e.target.value }))
                   }
                 />
-                <div className="grid grid-cols-2 gap-2">
+                <div className="form-grid-2">
                   <Input
                     placeholder="Option A"
                     value={form.option_a}
@@ -274,7 +273,6 @@ export default function AdminExercisesPage() {
         onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
       />
 
-      <BottomNav variant="admin" />
     </AppShell>
   );
 }

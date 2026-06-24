@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,7 +98,7 @@ export default function AdminExamsPage() {
         </Select>
       </PageHeader>
 
-      <div className="px-4 py-6 space-y-4">
+      <div className="page-content">
         <Button
           className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
           onClick={() => setShowForm((v) => !v)}
@@ -138,7 +137,7 @@ export default function AdminExamsPage() {
                   }
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="form-grid-2">
                 <div className="space-y-2">
                   <Label>Start</Label>
                   <Input
@@ -217,7 +216,6 @@ export default function AdminExamsPage() {
         onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
       />
 
-      <BottomNav variant="admin" />
     </AppShell>
   );
 }

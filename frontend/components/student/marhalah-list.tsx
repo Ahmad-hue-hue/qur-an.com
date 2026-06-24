@@ -19,7 +19,7 @@ interface MarhalahListProps {
 
 export function MarhalahList({ marhalahs }: MarhalahListProps) {
   return (
-    <div className="space-y-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
       {marhalahs.map((marhalah) => {
         const isLocked = marhalah.status === "locked";
         const content = (

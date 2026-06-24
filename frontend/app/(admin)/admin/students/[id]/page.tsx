@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ export default function AdminStudentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const studentId = parseInt(id);
+  const studentId = id;
   const router = useRouter();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
@@ -145,7 +144,7 @@ export default function AdminStudentDetailPage({
         </Link>
       </PageHeader>
 
-      <div className="px-4 py-6 space-y-4">
+      <div className="page-content">
         {student.is_suspended && (
           <Card className="border-destructive/30 bg-destructive/5">
             <CardContent className="p-4 text-sm text-destructive font-medium">
@@ -176,7 +175,7 @@ export default function AdminStudentDetailPage({
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <Button variant="outline" className="text-sm" onClick={openEdit}>
             Edit Info
           </Button>
@@ -212,7 +211,7 @@ export default function AdminStudentDetailPage({
             <DialogTitle>Edit Student</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="form-grid-2">
               <div className="space-y-2">
                 <Label>First Name</Label>
                 <Input
@@ -294,7 +293,6 @@ export default function AdminStudentDetailPage({
         </>
       )}
 
-      <BottomNav variant="admin" />
     </AppShell>
   );
 }

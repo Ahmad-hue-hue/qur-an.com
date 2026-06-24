@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,12 +51,12 @@ export default function AdminTopicsPage() {
   return (
     <AppShell variant="admin">
       <PageHeader title="Manage Topics">
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-3">
           <Select
             value={marhalahId}
             onValueChange={(v) => setMarhalahId(v ?? "1")}
           >
-            <SelectTrigger className="w-40 bg-emerald-mid/30 border-cream/20 text-cream">
+            <SelectTrigger className="w-full sm:w-40 bg-emerald-mid/30 border-cream/20 text-cream">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -80,7 +79,7 @@ export default function AdminTopicsPage() {
         </div>
       </PageHeader>
 
-      <div className="px-4 py-6 space-y-2">
+      <div className="page-content">
         {isLoading && (
           <p className="text-sm text-muted-foreground text-center py-8">Loading topics...</p>
         )}
@@ -89,7 +88,7 @@ export default function AdminTopicsPage() {
         )}
         {topics?.map((topic) => (
           <Card key={topic.id} className="card-shadow">
-            <CardContent className="p-4 flex items-center gap-3">
+            <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center">
               <HugeiconsIcon
                 icon={DragDropVerticalIcon}
                 size={18}
@@ -137,7 +136,6 @@ export default function AdminTopicsPage() {
         onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
       />
 
-      <BottomNav variant="admin" />
     </AppShell>
   );
 }

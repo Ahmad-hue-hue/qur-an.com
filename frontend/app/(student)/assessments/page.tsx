@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +30,7 @@ export default function AssessmentsPage() {
     <AppShell>
       <PageHeader title="Assessments" subtitle="Exercises & Exams" />
 
-      <div className="px-4 py-6">
+      <div className="page-content">
         <Tabs defaultValue="exercises">
           <TabsList className="w-full bg-muted/50">
             <TabsTrigger value="exercises" className="flex-1">
@@ -42,7 +41,7 @@ export default function AssessmentsPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="exercises" className="mt-4 space-y-3">
+          <TabsContent value="exercises" className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             {exercises?.map((ex) => (
               <Link
                 key={ex.id}
@@ -72,7 +71,7 @@ export default function AssessmentsPage() {
             ))}
           </TabsContent>
 
-          <TabsContent value="exams" className="mt-4 space-y-3">
+          <TabsContent value="exams" className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             {exams?.map((exam) => (
               <Card key={exam.id} className="card-shadow">
                 <CardContent className="p-4">
@@ -92,7 +91,7 @@ export default function AssessmentsPage() {
           </TabsContent>
         </Tabs>
 
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
           {dashboard?.halaqah && (
             <Card className="card-shadow">
               <CardContent className="p-4 flex items-center justify-between">
@@ -130,7 +129,6 @@ export default function AssessmentsPage() {
         </p>
       </div>
 
-      <BottomNav />
     </AppShell>
   );
 }

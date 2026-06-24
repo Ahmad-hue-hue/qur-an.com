@@ -16,7 +16,7 @@ export type QuestionType =
 export type GradingStatus = "complete" | "pending_manual";
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   first_name: string;
   last_name: string;
@@ -125,7 +125,7 @@ export interface ExerciseAnswerGrade {
 
 export interface ExerciseSubmissionAdmin {
   id: number;
-  student: number;
+  student: string;
   student_name: string;
   exercise: number;
   answers: Record<string, string>;
@@ -184,13 +184,13 @@ export interface AdminStats {
 }
 
 export interface AuthTokens {
-  access: string;
-  refresh: string;
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface StudentLoginCredentials {
-  name: string;
-  phone: string;
+  email: string;
+  password: string;
 }
 
 export interface AdminLoginCredentials {
@@ -199,6 +199,8 @@ export interface AdminLoginCredentials {
 }
 
 export interface StudentRegisterCredentials {
+  email: string;
+  password: string;
   name: string;
   phone: string;
 }

@@ -4,7 +4,6 @@ import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { TopicList } from "@/components/student/topic-list";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,7 +48,7 @@ export default function MarhalahTopicsPage({
           </Link>
       </PageHeader>
 
-      <div className="px-4 py-6">
+      <div className="page-content">
         {isLoading ? (
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -61,7 +60,6 @@ export default function MarhalahTopicsPage({
         )}
       </div>
 
-      <BottomNav />
     </AppShell>
   );
 }

@@ -19,9 +19,9 @@ export function ProgressCard({
   nextTopic,
 }: ProgressCardProps) {
   return (
-    <Card className="bg-emerald-deep text-cream border-0 card-shadow -mt-6 mx-4 relative z-20">
+    <Card className="bg-emerald-deep text-cream border-0 card-shadow -mt-6 mx-4 sm:mx-6 md:mx-8 relative z-20">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
           <div className="flex-1">
             <p className="text-cream/70 text-xs uppercase tracking-wide mb-1">
               Current Progress

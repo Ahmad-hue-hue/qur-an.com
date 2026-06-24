@@ -11,7 +11,7 @@ import type {
 } from "@/lib/types";
 
 export const mockUser: StudentProfile = {
-  id: 1,
+  id: "00000000-0000-0000-0000-000000000001",
   email: "ahmad@example.com",
   first_name: "Ahmad",
   last_name: "Hassan",
@@ -266,7 +266,7 @@ export const mockAdminStats: AdminStats = {
 export const mockStudents: User[] = [
   mockUser,
   {
-    id: 2,
+    id: "00000000-0000-0000-0000-000000000002",
     email: "fatima@example.com",
     first_name: "Fatima",
     last_name: "Ali",
@@ -276,7 +276,7 @@ export const mockStudents: User[] = [
     date_joined: "2026-01-20",
   },
   {
-    id: 3,
+    id: "00000000-0000-0000-0000-000000000003",
     email: "omar@example.com",
     first_name: "Omar",
     last_name: "Khan",

@@ -96,7 +96,7 @@ function QuestionInput({
 
   if (type === "true_false") {
     return (
-      <RadioGroup value={value} onValueChange={onChange} className="grid grid-cols-2 gap-3">
+      <RadioGroup value={value} onValueChange={onChange} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {["true", "false"].map((opt) => {
           const selected = value === opt;
           return (
@@ -217,7 +217,7 @@ export default function ExercisePage({
 
       {canTake && question && (
         <>
-          <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border px-4 py-3">
+          <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border px-4 py-3 sm:px-6 md:px-8">
             <div className="flex items-center justify-between mb-2">
               <Link
                 href="/dashboard"
@@ -238,7 +238,7 @@ export default function ExercisePage({
             </div>
           </div>
 
-          <div className="px-4 py-6 space-y-6">
+          <div className="page-content max-w-3xl mx-auto">
             <Card className="card-shadow">
               <CardContent className="p-5">
                 <p className="font-medium leading-relaxed">

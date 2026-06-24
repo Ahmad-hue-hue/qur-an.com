@@ -3,42 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Home01Icon,
-  BookOpen01Icon,
-  Task01Icon,
-  UserIcon,
-  DashboardSquare01Icon,
-  UserGroupIcon,
-  File01Icon,
-} from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
-
-const studentNav = [
-  { href: "/dashboard", label: "Home", icon: Home01Icon },
-  { href: "/marhalah/1", label: "Lessons", icon: BookOpen01Icon },
-  { href: "/assessments", label: "Assessments", icon: Task01Icon },
-  { href: "/profile", label: "Profile", icon: UserIcon },
-];
-
-const adminNav = [
-  { href: "/admin", label: "Dashboard", icon: DashboardSquare01Icon },
-  { href: "/admin/students", label: "Students", icon: UserGroupIcon },
-  { href: "/admin/topics", label: "Content", icon: File01Icon },
-  { href: "/admin/exercises", label: "Assessments", icon: Task01Icon },
-];
+import { getNavItems, type NavVariant } from "./nav-config";
 
 interface BottomNavProps {
-  variant?: "student" | "admin";
+  variant?: NavVariant;
+  className?: string;
 }
 
-export function BottomNav({ variant = "student" }: BottomNavProps) {
+export function BottomNav({ variant = "student", className }: BottomNavProps) {
   const pathname = usePathname();
-  const items = variant === "admin" ? adminNav : studentNav;
+  const items = getNavItems(variant);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border card-shadow safe-area-bottom">
-      <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
+    <nav
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-white card-shadow safe-area-bottom lg:hidden",
+        className
+      )}
+    >
+      <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2 sm:max-w-2xl">
         {items.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
@@ -47,7 +31,7 @@ export function BottomNav({ variant = "student" }: BottomNavProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors min-w-[64px]",
+                "flex min-w-[56px] flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 transition-colors sm:min-w-[64px] sm:px-3",
                 isActive
                   ? "text-emerald-deep"
                   : "text-muted-foreground hover:text-emerald-mid"

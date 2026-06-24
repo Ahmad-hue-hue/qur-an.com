@@ -82,7 +82,7 @@ export default function AddLessonPage() {
         </Link>
       </PageHeader>
 
-      <div className="px-4 py-6 space-y-5">
+      <div className="page-content max-w-3xl">
         <div className="space-y-2">
           <Label>Marḥalah</Label>
           <Select value={marhalahId} onValueChange={(v) => setMarhalahId(v ?? "1")}>

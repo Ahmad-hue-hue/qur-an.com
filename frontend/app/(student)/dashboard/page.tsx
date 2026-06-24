@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { ProgressCard } from "@/components/student/progress-card";
 import { MarhalahList } from "@/components/student/marhalah-list";
@@ -49,7 +48,7 @@ export default function DashboardPage() {
             nextTopic={data.next_topic?.title}
           />
 
-          <div className="px-4 mt-6 space-y-6">
+          <div className="page-content">
             <section>
               <h2 className="text-sm font-semibold text-emerald-deep mb-3">
                 Marḥalah Stages
@@ -61,7 +60,7 @@ export default function DashboardPage() {
               <h2 className="text-sm font-semibold text-emerald-deep mb-3">
                 Assessments
               </h2>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {data.exercises.map((ex) => (
                   <Link key={ex.id} href={`/exercises/${ex.id}`}>
                     <Card className="card-shadow hover:shadow-md transition-shadow">
@@ -143,7 +142,6 @@ export default function DashboardPage() {
         </>
       )}
 
-      <BottomNav />
     </AppShell>
   );
 }

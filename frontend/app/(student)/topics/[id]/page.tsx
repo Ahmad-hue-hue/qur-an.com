@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageHeader } from "@/components/layout/page-header";
 import { AudioPlayer } from "@/components/shared/audio-player";
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,7 @@ export default function TopicDetailPage({
         </div>
       </PageHeader>
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="page-content">
         {topic.arabic_content && (
           <Card className="card-shadow">
             <CardContent className="p-5">
@@ -114,7 +113,7 @@ export default function TopicDetailPage({
           <h3 className="text-sm font-semibold text-emerald-deep mb-3">
             The Six Throat Letters
           </h3>
-          <div className="grid grid-cols-6 gap-2">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
             {throatLetters.map((letter) => (
               <div
                 key={letter}
@@ -168,7 +167,6 @@ export default function TopicDetailPage({
         </>
       )}
 
-      <BottomNav />
     </AppShell>
   );
 }

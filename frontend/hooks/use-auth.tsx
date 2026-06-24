@@ -6,112 +6,94 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useSyncExternalStore,
+  useState,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import type { Session } from "@supabase/supabase-js";
 import { authApi } from "@/lib/api";
-import {
-  getDefaultRoute,
-  getUserRole,
-  isAuthenticated,
-} from "@/lib/auth/token";
+import { getSupabase } from "@/lib/supabase/client";
+import { getDefaultRoute } from "@/lib/auth/token";
+
+type AppRole = "student" | "admin" | null;
 
 interface AuthContextValue {
   isReady: boolean;
   isLoggedIn: boolean;
-  role: "student" | "admin" | null;
+  role: AppRole;
   logout: () => void;
   refreshAuth: () => void;
 }
 
-type AuthSnapshot = {
-  version: number;
-  isReady: boolean;
-  isLoggedIn: boolean;
-  role: "student" | "admin" | null;
-};
-
-const SERVER_SNAPSHOT: AuthSnapshot = {
-  version: 0,
-  isReady: false,
-  isLoggedIn: false,
-  role: null,
-};
-
-const authStore = (() => {
-  let version = 0;
-  let cachedSnapshot: AuthSnapshot = SERVER_SNAPSHOT;
-  const listeners = new Set<() => void>();
-
-  function buildSnapshot(): AuthSnapshot {
-    if (typeof window === "undefined") {
-      return SERVER_SNAPSHOT;
-    }
-    const loggedIn = isAuthenticated();
-    return {
-      version,
-      isReady: true,
-      isLoggedIn: loggedIn,
-      role: loggedIn ? getUserRole() : null,
-    };
-  }
-
-  return {
-    subscribe(listener: () => void) {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    getSnapshot() {
-      const next = buildSnapshot();
-      if (
-        cachedSnapshot.version === next.version &&
-        cachedSnapshot.isReady === next.isReady &&
-        cachedSnapshot.isLoggedIn === next.isLoggedIn &&
-        cachedSnapshot.role === next.role
-      ) {
-        return cachedSnapshot;
-      }
-      cachedSnapshot = next;
-      return cachedSnapshot;
-    },
-    getServerSnapshot() {
-      return SERVER_SNAPSHOT;
-    },
-    notify() {
-      version += 1;
-      listeners.forEach((listener) => listener());
-    },
-  };
-})();
-
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const snapshot = useSyncExternalStore(
-    authStore.subscribe,
-    authStore.getSnapshot,
-    authStore.getServerSnapshot
-  );
+async function resolveRole(session: Session | null): Promise<AppRole> {
+  if (!session?.user) return null;
+  const supabase = getSupabase();
+  const { data } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .maybeSingle();
+  return (data?.role as AppRole) ?? "student";
+}
 
-  const refreshAuth = useCallback(() => {
-    authStore.notify();
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isReady, setIsReady] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<AppRole>(null);
+
+  const syncSession = useCallback(async (session: Session | null) => {
+    if (!session) {
+      setIsLoggedIn(false);
+      setRole(null);
+      setIsReady(true);
+      return;
+    }
+    const nextRole = await resolveRole(session);
+    setIsLoggedIn(true);
+    setRole(nextRole);
+    setIsReady(true);
   }, []);
 
+  const refreshAuth = useCallback(async () => {
+    const supabase = getSupabase();
+    const { data } = await supabase.auth.getSession();
+    await syncSession(data.session);
+  }, [syncSession]);
+
+  useEffect(() => {
+    const supabase = getSupabase();
+
+    void supabase.auth.getSession().then(({ data }) => {
+      void syncSession(data.session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void syncSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [syncSession]);
+
   const logout = useCallback(() => {
-    authApi.logout();
-    authStore.notify();
+    void authApi.logout().finally(() => {
+      setIsLoggedIn(false);
+      setRole(null);
+    });
   }, []);
 
   const value = useMemo(
     () => ({
-      isReady: snapshot.isReady,
-      isLoggedIn: snapshot.isLoggedIn,
-      role: snapshot.role,
+      isReady,
+      isLoggedIn,
+      role,
       logout,
       refreshAuth,
     }),
-    [snapshot.isReady, snapshot.isLoggedIn, snapshot.role, logout, refreshAuth]
+    [isReady, isLoggedIn, role, logout, refreshAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
