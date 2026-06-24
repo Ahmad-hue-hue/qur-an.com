@@ -3,7 +3,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
+import { ConfigMissing } from "@/components/config-missing";
 import { AuthProvider } from "@/hooks/use-auth";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -17,6 +19,10 @@ export function Providers({ children }: { children: ReactNode }) {
         },
       })
   );
+
+  if (!isSupabaseConfigured()) {
+    return <ConfigMissing />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

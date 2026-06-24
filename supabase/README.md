@@ -65,7 +65,26 @@ bun run dev
 ```
 
 - Student app: [http://localhost:3000](http://localhost:3000)
-- Admin login: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
+- Sign in (students & admins): [http://localhost:3000/login](http://localhost:3000/login)
+
+## 7. Deploy on Vercel
+
+1. Import the GitHub repo in [Vercel](https://vercel.com)
+2. Set **Root Directory** to `frontend`
+3. Add **Environment Variables** (Production + Preview):
+
+| Name | Value |
+|------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://pwurwwbwlfguptuovlav.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your anon key from Supabase → Settings → API |
+
+4. Redeploy after saving env vars
+
+**Live app:** https://qur-an-com.vercel.app
+
+If env vars are missing, the app shows a configuration error instead of a blank page.
+
+For a custom domain (`qur-an.com`), add it in Vercel → Domains and point DNS to Vercel.
 
 ## Storage buckets
 
