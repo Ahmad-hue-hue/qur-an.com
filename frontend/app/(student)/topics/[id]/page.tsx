@@ -7,6 +7,8 @@ import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { AudioPlayer } from "@/components/shared/audio-player";
+import { DownloadButton } from "@/components/shared/download-button";
+import { sanitizeDownloadName } from "@/lib/download";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +18,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
   Bookmark01Icon,
-  File01Icon,
   CheckmarkCircle02Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -144,16 +145,22 @@ export default function TopicDetailPage({
           </Card>
         )}
 
-        <AudioPlayer src={topic.audio_url} title="Lesson Audio" />
+        <AudioPlayer
+          src={topic.audio_url}
+          title="Lesson Audio"
+          downloadFilename={
+            topic.audio_url
+              ? sanitizeDownloadName(topic.title, "mp3")
+              : undefined
+          }
+        />
 
-        {topic.pdf_url && (
-          <a href={topic.pdf_url} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="w-full gap-2">
-              <HugeiconsIcon icon={File01Icon} size={18} />
-              Download PDF
-            </Button>
-          </a>
-        )}
+        <DownloadButton
+          url={topic.pdf_url}
+          filename={sanitizeDownloadName(`${topic.title}-lesson`, "pdf")}
+          label="Download PDF"
+          fullWidth
+        />
 
         <Button
           className="w-full h-12 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"

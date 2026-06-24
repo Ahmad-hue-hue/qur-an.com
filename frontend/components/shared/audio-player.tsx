@@ -11,14 +11,20 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  filenameFromStorageUrl,
+  getStorageDownloadUrl,
+  sanitizeDownloadName,
+} from "@/lib/download";
 
 interface AudioPlayerProps {
   src?: string;
   title?: string;
   className?: string;
+  downloadFilename?: string;
 }
 
-export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
+export function AudioPlayer({ src, title, className, downloadFilename }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -114,6 +120,17 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
+  const downloadHref = src
+    ? getStorageDownloadUrl(
+        src,
+        downloadFilename ??
+          filenameFromStorageUrl(
+            src,
+            sanitizeDownloadName(title ?? "lesson-audio", "mp3")
+          )
+      )
+    : null;
+
   if (!src) {
     return (
       <div
@@ -185,16 +202,23 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
         >
           <HugeiconsIcon icon={Forward01Icon} size={20} />
         </Button>
-        <a href={src} download target="_blank" rel="noopener noreferrer" className="ml-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-cream hover:bg-emerald-mid/50"
-            aria-label="Download audio"
+        {downloadHref && (
+          <a
+            href={downloadHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-2"
           >
-            <HugeiconsIcon icon={Download01Icon} size={20} />
-          </Button>
-        </a>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-cream hover:bg-emerald-mid/50"
+              aria-label="Download audio"
+            >
+              <HugeiconsIcon icon={Download01Icon} size={20} />
+            </Button>
+          </a>
+        )}
       </div>
     </div>
   );

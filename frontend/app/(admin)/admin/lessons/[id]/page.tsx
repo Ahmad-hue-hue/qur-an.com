@@ -27,6 +27,8 @@ import {
   ArrowLeft01Icon,
 } from "@hugeicons/core-free-icons";
 import { AudioPlayer } from "@/components/shared/audio-player";
+import { DownloadButton } from "@/components/shared/download-button";
+import { sanitizeDownloadName } from "@/lib/download";
 
 export default function EditLessonPage({
   params,
@@ -158,10 +160,17 @@ export default function EditLessonPage({
           />
         </div>
 
-        <section>
+        <section className="space-y-3">
           <AudioPlayer
             src={topic.audio_url && !audioFile ? topic.audio_url : undefined}
             title="Current lesson audio"
+            downloadFilename={sanitizeDownloadName(topic.title, "mp3")}
+          />
+          <DownloadButton
+            url={topic.pdf_url}
+            filename={sanitizeDownloadName(`${topic.title}-lesson`, "pdf")}
+            label="Download PDF"
+            fullWidth
           />
         </section>
 
