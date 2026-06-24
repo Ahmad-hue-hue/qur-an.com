@@ -1,0 +1,43 @@
+---
+description: Use Supabase, Vercel, and GitHub MCP tools for backend, deploy, and repo tasks
+alwaysApply: true
+---
+
+# MCP workflow (Tajweed Platform)
+
+Prefer MCP tools over manual CLI when managing this project:
+
+## Supabase MCP
+Use for database, auth, and backend operations:
+- Apply or verify migrations (`list_migrations`, `apply_migration`)
+- Run SQL checks (`execute_sql`, `list_tables`)
+- Deploy or inspect edge functions
+- Check security/performance advisors after schema changes
+
+Project ref: `pwurwwbwlfguptuovlav`
+
+## Vercel MCP
+Use for deployment and production issues:
+- Inspect deployments, logs, and env vars
+- Redeploy after env or frontend changes
+- Manage domains and project settings
+
+Production URL: https://qur-an-com.vercel.app  
+Root directory: `frontend`
+
+## GitHub MCP
+Use for repository and CI operations:
+- Create commits, branches, and pull requests
+- Check workflow runs and deployment status
+- Manage issues and releases
+
+Repo: `Ahmad-hue-hue/qur-an.com`
+
+## Typical deploy flow
+1. **GitHub MCP** — push code changes
+2. **Supabase MCP** — apply migrations / verify schema if DB changed
+3. **Vercel MCP** — confirm env vars and redeploy production
+
+Required Vercel env vars:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`

@@ -69,6 +69,24 @@ update public.profiles set role = 'admin' where email = 'you@example.com';
 
 Migrations seed the 4 Marḥalah stages automatically.
 
+## MCP (Cursor agents)
+
+This project uses three MCP servers for AI-assisted development:
+
+| MCP | Purpose |
+|-----|---------|
+| **Supabase** | Database, migrations, SQL, edge functions |
+| **Vercel** | Deployments, env vars, logs, domains |
+| **GitHub** | Repo, PRs, CI, issues |
+
+Setup:
+1. Copy `.cursor/mcp.json.example` → `~/.cursor/mcp.json` (or merge into your global config)
+2. Add your [Supabase access token](https://supabase.com/dashboard/account/tokens) and [GitHub PAT](https://github.com/settings/tokens)
+3. For **Vercel**, use `"url": "https://mcp.vercel.com"` and click **Connect** in Cursor → Settings → MCP
+4. Restart Cursor
+
+Agent workflow rules: `.cursor/rules/mcp-workflow.mdc`
+
 ## Project structure
 
 ```
