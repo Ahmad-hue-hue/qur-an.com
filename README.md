@@ -11,7 +11,7 @@ Students learn through structured Marḥalah courses, complete topics, and take 
 | Frontend | Next.js (App Router), TypeScript, Tailwind v4, Shadcn UI, Hugeicons, TanStack Query |
 | Backend | Supabase (Postgres, Auth, Storage, Edge Functions) |
 | Runtime | Bun (frontend) |
-| CI | GitHub Actions (frontend lint/build) |
+| CI | GitHub Actions (frontend lint/build) — see [.github/ACTIONS.md](.github/ACTIONS.md) |
 
 ## Quick Start
 
@@ -98,5 +98,5 @@ supabase/
 ## Development
 
 ```bash
-cd frontend && bun run lint && bun run build
+cd frontend && bun run lint && bun run test && bun run build
 ```
