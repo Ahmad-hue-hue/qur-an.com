@@ -47,8 +47,8 @@ export function AuthGuard({ children, role }: AuthGuardProps) {
                 Admin access required
               </h1>
               <p className="text-sm text-muted-foreground">
-                This account is a student account. Sign in with an admin email to
-                open the admin panel.
+                This account is a student account. Sign in with an admin email and
+                password on the login page.
               </p>
               <Link
                 href="/dashboard"
@@ -63,7 +63,7 @@ export function AuthGuard({ children, role }: AuthGuardProps) {
                 href="/login?next=/admin"
                 className={cn(buttonVariants({ variant: "outline" }), "w-full")}
               >
-                Sign in as admin
+                Sign in with admin credentials
               </Link>
             </CardContent>
           </Card>

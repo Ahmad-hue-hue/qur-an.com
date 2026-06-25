@@ -27,10 +27,10 @@ export function AuthBrandPanel({ title, subtitle }: AuthBrandPanelProps) {
           Structured Marḥalah courses · Exercises · Assessments
         </p>
         <Link
-          href="/admin"
+          href="/login?next=/admin"
           className="inline-block text-sm text-gold hover:text-gold-light transition-colors"
         >
-          Admin panel →
+          Admin sign in →
         </Link>
       </div>
     </div>
