@@ -164,7 +164,12 @@ export default function EditLessonPage({
           <AudioPlayer
             src={topic.audio_url && !audioFile ? topic.audio_url : undefined}
             title="Current lesson audio"
-            downloadFilename={sanitizeDownloadName(topic.title, "mp3")}
+          />
+          <DownloadButton
+            url={topic.audio_url && !audioFile ? topic.audio_url : undefined}
+            filename={sanitizeDownloadName(topic.title, "mp3")}
+            label="Download Audio"
+            fullWidth
           />
           <DownloadButton
             url={topic.pdf_url}

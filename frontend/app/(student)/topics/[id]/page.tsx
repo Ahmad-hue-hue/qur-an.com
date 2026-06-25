@@ -135,14 +135,13 @@ export default function TopicDetailPage({
           </Card>
         )}
 
-        <AudioPlayer
-          src={topic.audio_url}
-          title="Lesson Audio"
-          downloadFilename={
-            topic.audio_url
-              ? sanitizeDownloadName(topic.title, "mp3")
-              : undefined
-          }
+        <AudioPlayer src={topic.audio_url} title="Lesson Audio" />
+
+        <DownloadButton
+          url={topic.audio_url}
+          filename={sanitizeDownloadName(topic.title, "mp3")}
+          label="Download Audio"
+          fullWidth
         />
 
         <DownloadButton

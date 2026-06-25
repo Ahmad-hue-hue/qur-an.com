@@ -5,34 +5,25 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PlayIcon,
   PauseIcon,
-  Download01Icon,
   Forward01Icon,
   Backward01Icon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  filenameFromStorageUrl,
-  getStorageDownloadUrl,
-  sanitizeDownloadName,
-  downloadStorageFile,
-} from "@/lib/download";
 
 interface AudioPlayerProps {
   src?: string;
   title?: string;
   className?: string;
-  downloadFilename?: string;
 }
 
-export function AudioPlayer({ src, title, className, downloadFilename }: AudioPlayerProps) {
+export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [downloading, setDownloading] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -122,27 +113,6 @@ export function AudioPlayer({ src, title, className, downloadFilename }: AudioPl
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const resolvedDownloadName =
-    downloadFilename ??
-    filenameFromStorageUrl(
-      src ?? "",
-      sanitizeDownloadName(title ?? "lesson-audio", "mp3")
-    );
-
-  const downloadHref = src
-    ? getStorageDownloadUrl(src, resolvedDownloadName)
-    : null;
-
-  const handleDownload = async () => {
-    if (!src || downloading) return;
-    setDownloading(true);
-    try {
-      await downloadStorageFile(src, resolvedDownloadName);
-    } finally {
-      setDownloading(false);
-    }
-  };
-
   if (!src) {
     return (
       <div
@@ -215,18 +185,6 @@ export function AudioPlayer({ src, title, className, downloadFilename }: AudioPl
           <HugeiconsIcon icon={Forward01Icon} size={20} />
         </Button>
       </div>
-
-      {downloadHref && (
-        <Button
-          variant="outline"
-          className="w-full mt-3 gap-2 border-cream/30 text-cream hover:bg-emerald-mid/40 hover:text-cream"
-          disabled={downloading}
-          onClick={() => void handleDownload()}
-        >
-          <HugeiconsIcon icon={Download01Icon} size={18} />
-          {downloading ? "Downloading..." : "Download Audio"}
-        </Button>
-      )}
     </div>
   );
 }
