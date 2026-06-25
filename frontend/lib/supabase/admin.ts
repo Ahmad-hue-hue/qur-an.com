@@ -172,12 +172,11 @@ export const adminApi = {
 
     const result: MarhalahAdmin[] = [];
     for (const row of rows) {
-      const topics = throwIfError(
-        await getSupabase()
-          .from("topics")
-          .select("id", { count: "exact", head: true })
-          .eq("marhalah_id", row.id as number)
-      );
+      const { count, error } = await getSupabase()
+        .from("topics")
+        .select("id", { count: "exact", head: true })
+        .eq("marhalah_id", row.id as number);
+      if (error) throw new SupabaseApiError(error.message);
       result.push({
         id: row.id as number,
         number: row.number as number,
@@ -185,7 +184,7 @@ export const adminApi = {
         description: (row.description as string) ?? "",
         unlock_threshold: row.unlock_threshold as number,
         order: row.order as number,
-        topics_count: topics.count ?? 0,
+        topics_count: count ?? 0,
       });
     }
     return result;
@@ -196,12 +195,11 @@ export const adminApi = {
       await getSupabase().from("marhalahs").select("*").eq("number", number).single()
     ) as Record<string, unknown>;
 
-    const topics = throwIfError(
-      await getSupabase()
-        .from("topics")
-        .select("id", { count: "exact", head: true })
-        .eq("marhalah_id", row.id as number)
-    );
+    const { count, error: topicsError } = await getSupabase()
+      .from("topics")
+      .select("id", { count: "exact", head: true })
+      .eq("marhalah_id", row.id as number);
+    if (topicsError) throw new SupabaseApiError(topicsError.message);
 
     return {
       id: row.id as number,
@@ -210,7 +208,7 @@ export const adminApi = {
       description: (row.description as string) ?? "",
       unlock_threshold: row.unlock_threshold as number,
       order: row.order as number,
-      topics_count: topics.count ?? 0,
+      topics_count: count ?? 0,
     };
   },
 
@@ -233,12 +231,11 @@ export const adminApi = {
         .single()
     ) as Record<string, unknown>;
 
-    const topics = throwIfError(
-      await getSupabase()
-        .from("topics")
-        .select("id", { count: "exact", head: true })
-        .eq("marhalah_id", row.id as number)
-    );
+    const { count, error: topicsError } = await getSupabase()
+      .from("topics")
+      .select("id", { count: "exact", head: true })
+      .eq("marhalah_id", row.id as number);
+    if (topicsError) throw new SupabaseApiError(topicsError.message);
 
     return {
       id: row.id as number,
@@ -247,7 +244,7 @@ export const adminApi = {
       description: (row.description as string) ?? "",
       unlock_threshold: row.unlock_threshold as number,
       order: row.order as number,
-      topics_count: topics.count ?? 0,
+      topics_count: count ?? 0,
     };
   },
 

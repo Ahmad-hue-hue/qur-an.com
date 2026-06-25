@@ -28,7 +28,10 @@ export function MarhalahSelectWithEdit({
   return (
     <>
       <div className="flex items-center gap-1">
-        <Select value={value} onValueChange={onValueChange}>
+        <Select
+          value={value}
+          onValueChange={(v) => onValueChange(v ?? value)}
+        >
           <SelectTrigger
             className={cn("w-full sm:w-40", triggerClassName)}
           >
