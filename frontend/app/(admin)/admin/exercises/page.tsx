@@ -26,6 +26,7 @@ import Link from "next/link";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { AdminExerciseWorkflowGuide } from "@/components/admin/admin-exercise-workflow-guide";
 import { AssessmentQuestionsDialog } from "@/components/admin/assessment-questions-dialog";
+import { MarhalahSelectWithEdit } from "@/components/admin/marhalah-select-with-edit";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete02Icon, ArrowRight01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 
@@ -111,18 +112,11 @@ export default function AdminExercisesPage() {
   return (
     <AppShell variant="admin">
       <PageHeader title="Exercise Management">
-        <Select value={marhalahId} onValueChange={(v) => setMarhalahId(v ?? "1")}>
-          <SelectTrigger className="w-40 bg-emerald-mid/30 border-cream/20 text-cream mt-3">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[1, 2, 3, 4].map((n) => (
-              <SelectItem key={n} value={String(n)}>
-                Marḥalah {n}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MarhalahSelectWithEdit
+          value={marhalahId}
+          onValueChange={(v) => setMarhalahId(v ?? "1")}
+          triggerClassName="bg-emerald-mid/30 border-cream/20 text-cream mt-3"
+        />
       </PageHeader>
 
       <div className="page-content space-y-4">

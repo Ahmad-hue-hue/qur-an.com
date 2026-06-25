@@ -49,6 +49,23 @@ export interface Marhalah {
   final_score?: number;
 }
 
+export interface MarhalahAdmin {
+  id: number;
+  number: number;
+  title: string;
+  description: string;
+  unlock_threshold: number;
+  order: number;
+  topics_count: number;
+}
+
+export interface UpdateMarhalahData {
+  title?: string;
+  description?: string;
+  unlock_threshold?: number;
+  order?: number;
+}
+
 export interface Topic {
   id: number;
   marhalah: number;

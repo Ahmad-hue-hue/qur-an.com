@@ -9,14 +9,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { MarhalahSelectWithEdit } from "@/components/admin/marhalah-select-with-edit";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DragDropVerticalIcon,
@@ -52,21 +46,11 @@ export default function AdminTopicsPage() {
     <AppShell variant="admin">
       <PageHeader title="Manage Topics">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-3">
-          <Select
+          <MarhalahSelectWithEdit
             value={marhalahId}
             onValueChange={(v) => setMarhalahId(v ?? "1")}
-          >
-            <SelectTrigger className="w-full sm:w-40 bg-emerald-mid/30 border-cream/20 text-cream">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[1, 2, 3, 4].map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  Marḥalah {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            triggerClassName="bg-emerald-mid/30 border-cream/20 text-cream"
+          />
           <Link href="/admin/lessons/new">
             <Button
               size="sm"

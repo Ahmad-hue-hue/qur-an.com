@@ -24,6 +24,8 @@ import type {
   Topic,
   UpdateStudentData,
   User,
+  MarhalahAdmin,
+  UpdateMarhalahData,
 } from "@/lib/types";
 
 export interface CreateTopicData {
@@ -160,6 +162,92 @@ export const adminApi = {
       total_marhalahs: marhalahs.count ?? 0,
       total_topics: topics.count ?? 0,
       total_assessments: (exercises.count ?? 0) + (exams.count ?? 0),
+    };
+  },
+
+  getMarhalahs: async (): Promise<MarhalahAdmin[]> => {
+    const rows = throwIfError(
+      await getSupabase().from("marhalahs").select("*").order("order")
+    ) as Record<string, unknown>[];
+
+    const result: MarhalahAdmin[] = [];
+    for (const row of rows) {
+      const topics = throwIfError(
+        await getSupabase()
+          .from("topics")
+          .select("id", { count: "exact", head: true })
+          .eq("marhalah_id", row.id as number)
+      );
+      result.push({
+        id: row.id as number,
+        number: row.number as number,
+        title: row.title as string,
+        description: (row.description as string) ?? "",
+        unlock_threshold: row.unlock_threshold as number,
+        order: row.order as number,
+        topics_count: topics.count ?? 0,
+      });
+    }
+    return result;
+  },
+
+  getMarhalah: async (number: number): Promise<MarhalahAdmin> => {
+    const row = throwIfError(
+      await getSupabase().from("marhalahs").select("*").eq("number", number).single()
+    ) as Record<string, unknown>;
+
+    const topics = throwIfError(
+      await getSupabase()
+        .from("topics")
+        .select("id", { count: "exact", head: true })
+        .eq("marhalah_id", row.id as number)
+    );
+
+    return {
+      id: row.id as number,
+      number: row.number as number,
+      title: row.title as string,
+      description: (row.description as string) ?? "",
+      unlock_threshold: row.unlock_threshold as number,
+      order: row.order as number,
+      topics_count: topics.count ?? 0,
+    };
+  },
+
+  updateMarhalah: async (
+    number: number,
+    data: UpdateMarhalahData
+  ): Promise<MarhalahAdmin> => {
+    const payload: Record<string, unknown> = {};
+    if (data.title != null) payload.title = data.title.trim();
+    if (data.description != null) payload.description = data.description.trim();
+    if (data.unlock_threshold != null) payload.unlock_threshold = data.unlock_threshold;
+    if (data.order != null) payload.order = data.order;
+
+    const row = throwIfError(
+      await getSupabase()
+        .from("marhalahs")
+        .update(payload)
+        .eq("number", number)
+        .select("*")
+        .single()
+    ) as Record<string, unknown>;
+
+    const topics = throwIfError(
+      await getSupabase()
+        .from("topics")
+        .select("id", { count: "exact", head: true })
+        .eq("marhalah_id", row.id as number)
+    );
+
+    return {
+      id: row.id as number,
+      number: row.number as number,
+      title: row.title as string,
+      description: (row.description as string) ?? "",
+      unlock_threshold: row.unlock_threshold as number,
+      order: row.order as number,
+      topics_count: topics.count ?? 0,
     };
   },
 
