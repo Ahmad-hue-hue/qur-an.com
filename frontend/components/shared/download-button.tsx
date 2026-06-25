@@ -6,7 +6,6 @@ import { Download01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
   filenameFromStorageUrl,
-  getStorageDownloadUrl,
   sanitizeDownloadName,
   downloadStorageFile,
 } from "@/lib/download";
@@ -48,7 +47,6 @@ export function DownloadButton({
   const resolvedName =
     filename ??
     filenameFromStorageUrl(url, sanitizeDownloadName(label, ext));
-  const href = getStorageDownloadUrl(url, resolvedName);
 
   const handleDownload = async () => {
     if (downloading) return;

@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { AssessmentResultsPanel } from "@/components/student/assessment-results-panel";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { useCountdown } from "@/lib/hooks/use-countdown";
 
 export default function ExamPage({
   params,
@@ -36,7 +37,6 @@ export default function ExamPage({
   const router = useRouter();
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const autoSubmitted = useRef(false);
 
   const { data: exam, isLoading: loadingEx, error: examError } = useQuery({
@@ -83,19 +83,7 @@ export default function ExamPage({
     onError: (err: Error) => toast.error(err.message || "Submission failed"),
   });
 
-  useEffect(() => {
-    if (session?.remaining_seconds != null) {
-      setRemainingSeconds(session.remaining_seconds);
-    }
-  }, [session?.remaining_seconds]);
-
-  useEffect(() => {
-    if (remainingSeconds == null || remainingSeconds <= 0) return;
-    const timer = window.setInterval(() => {
-      setRemainingSeconds((prev) => (prev == null ? prev : Math.max(0, prev - 1)));
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [remainingSeconds]);
+  const remainingSeconds = useCountdown(session?.deadline_at);
 
   useEffect(() => {
     if (

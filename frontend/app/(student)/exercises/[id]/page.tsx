@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
 import { studentApi } from "@/lib/api";
-import type { Question } from "@/lib/types";
 import { QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
 import {
   AssessmentQuestionInput,
