@@ -133,7 +133,7 @@ export default function LoginPage() {
                         id="email"
                         label="Email"
                         icon={Mail01Icon}
-                        placeholder={wantsAdmin ? "admin@tajweed.academy" : "you@example.com"}
+                        placeholder={wantsAdmin ? "admin@gmail.com" : "you@example.com"}
                         type="email"
                         autoComplete="email"
                         value={email}

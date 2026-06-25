@@ -58,14 +58,13 @@ where email = 'your-admin@email.com';
 
 3. Sign in at `/login` with your admin email (no sign up needed for existing admins)
 
-**Demo admin (production Supabase):**
+**Admin account (production):**
 
 | Email | Password |
 |-------|----------|
-| `admin@tajweed.academy` | `admin12345` |
-| `admin@gmail.com` | `admin12345` |
+| `admin@gmail.com` | `admin2026!` |
 
-Change passwords after first login in Supabase Dashboard → Authentication → Users.
+Sign in at `/login` — no sign up required for this account.
 
 ## 6. Run the frontend
 
