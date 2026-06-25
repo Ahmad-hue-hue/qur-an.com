@@ -11,7 +11,7 @@ import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +25,7 @@ import {
 import Link from "next/link";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { AdminExerciseWorkflowGuide } from "@/components/admin/admin-exercise-workflow-guide";
+import { AssessmentQuestionsDialog } from "@/components/admin/assessment-questions-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete02Icon, ArrowRight01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 
@@ -39,6 +40,10 @@ export default function AdminExercisesPage() {
   const [marhalahId, setMarhalahId] = useState("1");
   const [showForm, setShowForm] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
+  const [questionEditor, setQuestionEditor] = useState<{
     id: number;
     title: string;
   } | null>(null);
@@ -300,13 +305,17 @@ export default function AdminExercisesPage() {
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
-                  <Link
-                    href={`/admin/exercises/${exercise.id}`}
-                    className={buttonVariants({ variant: "ghost", size: "icon" })}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     aria-label="Edit questions"
+                    onClick={() =>
+                      setQuestionEditor({ id: exercise.id, title: exercise.title })
+                    }
                   >
                     <HugeiconsIcon icon={Edit02Icon} size={16} />
-                  </Link>
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -350,6 +359,14 @@ export default function AdminExercisesPage() {
         destructive
         loading={deleteMutation.isPending}
         onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
+      />
+
+      <AssessmentQuestionsDialog
+        kind="exercise"
+        assessmentId={questionEditor?.id ?? 0}
+        assessmentTitle={questionEditor?.title ?? ""}
+        open={!!questionEditor}
+        onOpenChange={(open) => !open && setQuestionEditor(null)}
       />
 
     </AppShell>
