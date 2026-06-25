@@ -8,7 +8,7 @@ import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MarhalahSelectWithEdit } from "@/components/admin/marhalah-select-with-edit";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -72,42 +72,49 @@ export default function AdminTopicsPage() {
         )}
         {topics?.map((topic) => (
           <Card key={topic.id} className="card-shadow">
-            <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <HugeiconsIcon
-                icon={DragDropVerticalIcon}
-                size={18}
-                className="text-muted-foreground cursor-grab"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">
-                  {topic.order}. {topic.title}
-                </p>
-                {topic.arabic_title && (
-                  <p className="font-arabic text-xs text-muted-foreground">
-                    {topic.arabic_title}
+            <CardContent className="p-4">
+              <div className="flex items-start gap-2">
+                <HugeiconsIcon
+                  icon={DragDropVerticalIcon}
+                  size={18}
+                  className="shrink-0 mt-0.5 text-muted-foreground cursor-grab"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">
+                    {topic.order}. {topic.title}
                   </p>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  {topic.audio_url ? "Audio attached" : "No audio"}
-                  {topic.pdf_url ? " · PDF attached" : ""}
-                </p>
+                  {topic.arabic_title && (
+                    <p className="font-arabic text-xs text-muted-foreground">
+                      {topic.arabic_title}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {topic.audio_url ? "Audio attached" : "No audio"}
+                    {topic.pdf_url ? " · PDF attached" : ""}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Link
+                    href={`/admin/lessons/${topic.id}`}
+                    className={buttonVariants({ variant: "ghost", size: "icon" })}
+                    aria-label="Edit lesson"
+                  >
+                    <HugeiconsIcon icon={Edit02Icon} size={16} />
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive"
+                    aria-label="Delete lesson"
+                    onClick={() =>
+                      setPendingDelete({ id: topic.id, title: topic.title })
+                    }
+                    disabled={deleteMutation.isPending}
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={16} />
+                  </Button>
+                </div>
               </div>
-              <Link href={`/admin/lessons/${topic.id}`} title="Edit lesson">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <HugeiconsIcon icon={Edit02Icon} size={16} />
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive"
-                onClick={() =>
-                  setPendingDelete({ id: topic.id, title: topic.title })
-                }
-                disabled={deleteMutation.isPending}
-              >
-                <HugeiconsIcon icon={Delete02Icon} size={16} />
-              </Button>
             </CardContent>
           </Card>
         ))}
