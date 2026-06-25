@@ -170,9 +170,9 @@ as $$
 declare
   v_submission_id bigint;
   v_exercise_id bigint;
-  total_score numeric := 0;
-  pending boolean := false;
-  grading_status text;
+  v_total_score numeric := 0;
+  v_pending boolean := false;
+  v_grading_status text;
 begin
   if not public.is_admin() then
     raise exception 'Admin only';
@@ -195,24 +195,24 @@ begin
   where id = p_grade_id;
 
   select bool_or(score is null)
-  into pending
+  into v_pending
   from public.exercise_answer_grades
   where submission_id = v_submission_id;
 
   select coalesce(sum(score), 0)
-  into total_score
+  into v_total_score
   from public.exercise_answer_grades
   where submission_id = v_submission_id
     and score is not null;
 
-  grading_status := case when pending then 'pending_manual' else 'complete' end;
+  v_grading_status := case when v_pending then 'pending_manual' else 'complete' end;
 
   update public.exercise_submissions
-  set score = total_score,
-      grading_status = grading_status
+  set score = v_total_score,
+      grading_status = v_grading_status
   where id = v_submission_id;
 
-  return jsonb_build_object('grading_status', grading_status);
+  return jsonb_build_object('grading_status', v_grading_status);
 end;
 $$;
 
@@ -233,10 +233,10 @@ declare
   status_val text;
   submission record;
   auto_score numeric := 0;
-  max_score numeric := 0;
+  v_max_score numeric := 0;
   answer_text text;
   deadline timestamptz;
-  grading_status text := 'complete';
+  v_grading_status text := 'complete';
   has_manual boolean := false;
 begin
   if v_student_id is null then
@@ -291,7 +291,7 @@ begin
     where exam_id = p_exam_id
     order by "order"
   loop
-    max_score := max_score + q.max_score;
+    v_max_score := v_max_score + q.max_score;
     answer_text := coalesce(p_answers ->> q.id::text, '');
 
     if public.question_requires_manual(q.type) then
@@ -306,14 +306,14 @@ begin
   end loop;
 
   if has_manual then
-    grading_status := 'pending_manual';
+    v_grading_status := 'pending_manual';
   end if;
 
   update public.exam_submissions
   set answers = p_answers,
       score = auto_score,
-      max_score = max_score,
-      grading_status = grading_status,
+      max_score = v_max_score,
+      grading_status = v_grading_status,
       submitted_at = now()
   where id = submission.id;
 
@@ -370,8 +370,8 @@ begin
 
   return jsonb_build_object(
     'score', auto_score,
-    'max_score', max_score,
-    'grading_status', grading_status
+    'max_score', v_max_score,
+    'grading_status', v_grading_status
   );
 end;
 $$;
@@ -389,9 +389,9 @@ as $$
 declare
   v_submission_id bigint;
   v_exam_id bigint;
-  total_score numeric := 0;
-  pending boolean := false;
-  grading_status text;
+  v_total_score numeric := 0;
+  v_pending boolean := false;
+  v_grading_status text;
 begin
   if not public.is_admin() then
     raise exception 'Admin only';
@@ -414,24 +414,24 @@ begin
   where id = p_grade_id;
 
   select bool_or(score is null)
-  into pending
+  into v_pending
   from public.exam_answer_grades
   where submission_id = v_submission_id;
 
   select coalesce(sum(score), 0)
-  into total_score
+  into v_total_score
   from public.exam_answer_grades
   where submission_id = v_submission_id
     and score is not null;
 
-  grading_status := case when pending then 'pending_manual' else 'complete' end;
+  v_grading_status := case when v_pending then 'pending_manual' else 'complete' end;
 
   update public.exam_submissions
-  set score = total_score,
-      grading_status = grading_status
+  set score = v_total_score,
+      grading_status = v_grading_status
   where id = v_submission_id;
 
-  return jsonb_build_object('grading_status', grading_status);
+  return jsonb_build_object('grading_status', v_grading_status);
 end;
 $$;
 
