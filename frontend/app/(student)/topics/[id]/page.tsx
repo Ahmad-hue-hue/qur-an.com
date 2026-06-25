@@ -137,19 +137,22 @@ export default function TopicDetailPage({
 
         <AudioPlayer src={topic.audio_url} title="Lesson Audio" />
 
-        <DownloadButton
-          url={topic.audio_url}
-          filename={sanitizeDownloadName(topic.title, "mp3")}
-          label="Download Audio"
-          fullWidth
-        />
-
-        <DownloadButton
-          url={topic.pdf_url}
-          filename={sanitizeDownloadName(`${topic.title}-lesson`, "pdf")}
-          label="Download PDF"
-          fullWidth
-        />
+        <div className="flex gap-2">
+          <DownloadButton
+            url={topic.audio_url}
+            filename={sanitizeDownloadName(topic.title, "mp3")}
+            label="Audio"
+            tone="gold"
+            className="flex-1 min-w-0 gap-1.5 text-xs sm:text-sm"
+          />
+          <DownloadButton
+            url={topic.pdf_url}
+            filename={sanitizeDownloadName(`${topic.title}-lesson`, "pdf")}
+            label="PDF"
+            tone="gold"
+            className="flex-1 min-w-0 gap-1.5 text-xs sm:text-sm"
+          />
+        </div>
 
         <Button
           className="w-full h-11 sm:h-10 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"

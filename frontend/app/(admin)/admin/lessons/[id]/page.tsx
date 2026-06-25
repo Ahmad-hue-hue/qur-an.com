@@ -165,18 +165,22 @@ export default function EditLessonPage({
             src={topic.audio_url && !audioFile ? topic.audio_url : undefined}
             title="Current lesson audio"
           />
-          <DownloadButton
-            url={topic.audio_url && !audioFile ? topic.audio_url : undefined}
-            filename={sanitizeDownloadName(topic.title, "mp3")}
-            label="Download Audio"
-            fullWidth
-          />
-          <DownloadButton
-            url={topic.pdf_url}
-            filename={sanitizeDownloadName(`${topic.title}-lesson`, "pdf")}
-            label="Download PDF"
-            fullWidth
-          />
+          <div className="flex gap-2">
+            <DownloadButton
+              url={topic.audio_url && !audioFile ? topic.audio_url : undefined}
+              filename={sanitizeDownloadName(topic.title, "mp3")}
+              label="Audio"
+              tone="gold"
+              className="flex-1 min-w-0 gap-1.5 text-xs sm:text-sm"
+            />
+            <DownloadButton
+              url={topic.pdf_url}
+              filename={sanitizeDownloadName(`${topic.title}-lesson`, "pdf")}
+              label="PDF"
+              tone="gold"
+              className="flex-1 min-w-0 gap-1.5 text-xs sm:text-sm"
+            />
+          </div>
         </section>
 
         <Card className="card-shadow">

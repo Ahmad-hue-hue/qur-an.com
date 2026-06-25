@@ -18,7 +18,13 @@ interface DownloadButtonProps {
   className?: string;
   variant?: "outline" | "ghost";
   fullWidth?: boolean;
+  tone?: "default" | "gold";
 }
+
+const toneClasses = {
+  default: "",
+  gold: "border-gold bg-gold text-emerald-deep hover:bg-gold/90 hover:text-emerald-deep",
+};
 
 export function DownloadButton({
   url,
@@ -27,6 +33,7 @@ export function DownloadButton({
   className,
   variant = "outline",
   fullWidth = false,
+  tone = "default",
 }: DownloadButtonProps) {
   const [downloading, setDownloading] = useState(false);
 
@@ -34,11 +41,16 @@ export function DownloadButton({
     return (
       <Button
         variant={variant}
-        className={cn(fullWidth && "w-full gap-2", className)}
+        className={cn(
+          fullWidth && "w-full gap-2",
+          toneClasses[tone],
+          tone === "gold" && "opacity-60",
+          className
+        )}
         disabled
       >
         <HugeiconsIcon icon={Download01Icon} size={18} />
-        {label} (not available)
+        <span className="truncate">{label}</span>
       </Button>
     );
   }
@@ -61,12 +73,18 @@ export function DownloadButton({
   return (
     <Button
       variant={variant}
-      className={cn(fullWidth && "w-full gap-2", className)}
+      className={cn(
+        fullWidth && "w-full gap-2",
+        toneClasses[tone],
+        className
+      )}
       disabled={downloading}
       onClick={() => void handleDownload()}
     >
       <HugeiconsIcon icon={Download01Icon} size={18} />
-      {downloading ? "Downloading..." : label}
+      <span className="truncate">
+        {downloading ? "Downloading..." : label}
+      </span>
     </Button>
   );
 }

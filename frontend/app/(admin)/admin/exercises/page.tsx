@@ -11,7 +11,7 @@ import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -300,14 +300,12 @@ export default function AdminExercisesPage() {
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
-                  <Link href={`/admin/exercises/${exercise.id}`}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Edit questions"
-                    >
-                      <HugeiconsIcon icon={Edit02Icon} size={16} />
-                    </Button>
+                  <Link
+                    href={`/admin/exercises/${exercise.id}`}
+                    className={buttonVariants({ variant: "ghost", size: "icon" })}
+                    aria-label="Edit questions"
+                  >
+                    <HugeiconsIcon icon={Edit02Icon} size={16} />
                   </Link>
                   <Button
                     variant="ghost"
