@@ -86,10 +86,10 @@ async function buildStudentProfile(studentId: string): Promise<StudentProfile> {
   const marhalah = throwIfError(
     await supabase
       .from("marhalahs")
-      .select("id")
+      .select("id, title")
       .eq("number", profile.current_marhalah)
       .single()
-  ) as { id: number };
+  ) as { id: number; title: string };
 
   const topics = throwIfError(
     await supabase
@@ -131,9 +131,7 @@ async function buildStudentProfile(studentId: string): Promise<StudentProfile> {
   return {
     ...mapProfileRow(profile),
     current_marhalah: profile.current_marhalah,
-    current_marhalah_title: (
-      await getMarhalahByNumber(profile.current_marhalah)
-    ).title,
+    current_marhalah_title: marhalah.title,
     progress_percent: total ? Math.round((completed / total) * 100) : 0,
     topics_completed: completed,
     total_topics: total,
