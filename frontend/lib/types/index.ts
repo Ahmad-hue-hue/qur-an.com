@@ -92,6 +92,7 @@ export interface Exam {
   score?: number;
   max_score?: number;
   has_submitted: boolean;
+  grading_status?: GradingStatus;
 }
 
 export interface Question {
@@ -147,11 +148,23 @@ export interface ExamDetail extends Exam {
 
 export interface ExamSubmissionAdmin {
   id: number;
+  student: string;
   student_name: string;
+  exam: number;
+  answers: Record<string, string>;
   score: number;
   max_score: number;
+  grading_status: GradingStatus;
   submitted_at: string;
-  answers: Record<string, string>;
+  answer_grades: ExerciseAnswerGrade[];
+}
+
+export interface AssessmentSubmissionResults {
+  score: number;
+  max_score: number;
+  grading_status: GradingStatus;
+  submitted_at: string;
+  answer_grades: ExerciseAnswerGrade[];
 }
 
 export interface ManualScore {

@@ -17,8 +17,20 @@ import {
 } from "@/lib/exercise-grading";
 import { QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
 
+type SubmissionWithGrades = Pick<
+  ExerciseSubmissionAdmin,
+  | "id"
+  | "student_name"
+  | "score"
+  | "max_score"
+  | "grading_status"
+  | "submitted_at"
+  | "answers"
+  | "answer_grades"
+>;
+
 function buildFallbackGrades(
-  submission: ExerciseSubmissionAdmin,
+  submission: SubmissionWithGrades,
   questions: QuestionAdmin[]
 ): ExerciseAnswerGrade[] {
   return questions.map((q) => ({
@@ -80,7 +92,7 @@ export function ExerciseSubmissionsPanel({
   submissions,
   questions,
 }: {
-  submissions?: ExerciseSubmissionAdmin[];
+  submissions?: SubmissionWithGrades[];
   questions?: QuestionAdmin[];
 }) {
   if (!submissions?.length) {

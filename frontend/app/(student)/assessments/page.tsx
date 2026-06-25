@@ -68,10 +68,17 @@ export default function AssessmentsPage() {
                         Opens {format(new Date(ex.start_date), "MMM d, yyyy")}
                       </p>
                     )}
-                    {ex.score !== undefined && (
-                      <p className="text-sm font-medium text-emerald-deep mt-2">
-                        Score: {ex.score}/{ex.max_score}
-                      </p>
+                    {ex.has_submitted && (
+                      <>
+                        {ex.score !== undefined && (
+                          <p className="text-sm font-medium text-emerald-deep mt-2">
+                            Score: {ex.score}/{ex.max_score}
+                          </p>
+                        )}
+                        <p className="text-xs text-emerald-deep mt-1">
+                          Tap to view your answers and feedback
+                        </p>
+                      </>
                     )}
                   </CardContent>
                 </Card>
@@ -97,9 +104,11 @@ export default function AssessmentsPage() {
                 exam.question_count > 0 &&
                 topicsComplete &&
                 !exam.has_submitted;
+              const canViewResults = exam.has_submitted;
+              const isClickable = canTake || canViewResults;
               const card = (
                 <Card
-                  className={`card-shadow ${canTake ? "hover:shadow-md transition-shadow" : ""}`}
+                  className={`card-shadow ${isClickable ? "hover:shadow-md transition-shadow" : ""}`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
@@ -112,10 +121,17 @@ export default function AssessmentsPage() {
                       {format(new Date(exam.start_date), "MMM d")} –{" "}
                       {format(new Date(exam.end_date), "MMM d, yyyy")}
                     </p>
-                    {exam.has_submitted && exam.score !== undefined && (
-                      <p className="text-sm font-medium text-emerald-deep mt-2">
-                        Score: {exam.score}/{exam.max_score}
-                      </p>
+                    {exam.has_submitted && (
+                      <>
+                        {exam.score !== undefined && (
+                          <p className="text-sm font-medium text-emerald-deep mt-2">
+                            Score: {exam.score}/{exam.max_score}
+                          </p>
+                        )}
+                        <p className="text-xs text-emerald-deep mt-1">
+                          Tap to view your answers and feedback
+                        </p>
+                      </>
                     )}
                     {exam.status === "open" && !topicsComplete && (
                       <p className="text-xs text-amber-700 mt-2">
@@ -141,7 +157,7 @@ export default function AssessmentsPage() {
                 </Card>
               );
 
-              return canTake ? (
+              return isClickable ? (
                 <Link key={exam.id} href={`/exams/${exam.id}`}>
                   {card}
                 </Link>

@@ -5,6 +5,7 @@ import {
 } from "@/lib/supabase/marhalah";
 import { mapProfileRow, SupabaseApiError, throwIfError } from "@/lib/supabase/utils";
 import type {
+  AssessmentSubmissionResults,
   DashboardData,
   Exercise,
   Exam,
@@ -288,7 +289,32 @@ async function buildExamRow(
     score: submission ? Number(submission.score) : undefined,
     max_score: submission ? Number(submission.max_score) : undefined,
     has_submitted: hasSubmitted,
+    grading_status: submission?.grading_status as Exam["grading_status"],
   };
+}
+
+function mapAnswerGrades(
+  grades: Record<string, unknown>[]
+): AssessmentSubmissionResults["answer_grades"] {
+  return grades.map((g) => {
+    const question = g.questions as {
+      text: string;
+      type: string;
+      correct_answer?: string;
+    };
+    return {
+      id: g.id as number,
+      question_id: g.question_id as number,
+      question_text: question?.text ?? "",
+      question_type: question?.type as AssessmentSubmissionResults["answer_grades"][0]["question_type"],
+      answer_text: g.answer_text as string,
+      correct_answer: question?.correct_answer || undefined,
+      score: g.score != null ? Number(g.score) : null,
+      max_score: Number(g.max_score),
+      feedback: (g.feedback as string) || undefined,
+      graded_at: (g.graded_at as string) ?? null,
+    };
+  });
 }
 
 export const studentApi = {
@@ -668,6 +694,38 @@ export const studentApi = {
     };
   },
 
+  getExerciseResults: async (id: number): Promise<AssessmentSubmissionResults> => {
+    const { user } = await getCurrentProfile();
+    const supabase = getSupabase();
+    const submission = throwIfError(
+      await supabase
+        .from("exercise_submissions")
+        .select(
+          `
+          *,
+          exercise_answer_grades (
+            id, question_id, answer_text, score, max_score, feedback, graded_at,
+            questions:question_id ( text, type, correct_answer )
+          )
+        `
+        )
+        .eq("student_id", user.id)
+        .eq("exercise_id", id)
+        .single()
+    ) as Record<string, unknown>;
+
+    const grades =
+      (submission.exercise_answer_grades as Record<string, unknown>[]) ?? [];
+
+    return {
+      score: Number(submission.score),
+      max_score: Number(submission.max_score),
+      grading_status: submission.grading_status as AssessmentSubmissionResults["grading_status"],
+      submitted_at: submission.submitted_at as string,
+      answer_grades: mapAnswerGrades(grades),
+    };
+  },
+
   getExams: async (): Promise<Exam[]> => {
     const { user, profile } = await getCurrentProfile();
     const marhalah = await getMarhalahByNumber(profile.current_marhalah);
@@ -749,10 +807,43 @@ export const studentApi = {
         p_exam_id: id,
         p_answers: payload,
       })
-    ) as { score: number; max_score: number };
+    ) as { score: number; max_score: number; grading_status: string };
     return {
       score: Number(result.score),
       max_score: Number(result.max_score),
+      grading_status: result.grading_status,
+    };
+  },
+
+  getExamResults: async (id: number): Promise<AssessmentSubmissionResults> => {
+    const { user } = await getCurrentProfile();
+    const supabase = getSupabase();
+    const submission = throwIfError(
+      await supabase
+        .from("exam_submissions")
+        .select(
+          `
+          *,
+          exam_answer_grades (
+            id, question_id, answer_text, score, max_score, feedback, graded_at,
+            questions:question_id ( text, type, correct_answer )
+          )
+        `
+        )
+        .eq("student_id", user.id)
+        .eq("exam_id", id)
+        .not("submitted_at", "is", null)
+        .single()
+    ) as Record<string, unknown>;
+
+    const grades = (submission.exam_answer_grades as Record<string, unknown>[]) ?? [];
+
+    return {
+      score: Number(submission.score),
+      max_score: Number(submission.max_score),
+      grading_status: submission.grading_status as AssessmentSubmissionResults["grading_status"],
+      submitted_at: submission.submitted_at as string,
+      answer_grades: mapAnswerGrades(grades),
     };
   },
 };

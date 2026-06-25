@@ -835,32 +835,81 @@ export const adminApi = {
     );
   },
 
-  getExamSubmissions: async (examId: number): Promise<ExamSubmissionAdmin[]> => {
-    const rows = throwIfError(
-      await getSupabase()
-        .from("exam_submissions")
-        .select(
-          `
-          *,
-          profiles:student_id ( first_name, last_name )
+  getExamSubmissions: async (
+    examId: number,
+    pendingOnly?: boolean
+  ): Promise<ExamSubmissionAdmin[]> => {
+    const supabase = getSupabase();
+    let query = supabase
+      .from("exam_submissions")
+      .select(
         `
+        *,
+        profiles:student_id ( first_name, last_name ),
+        exam_answer_grades (
+          id, question_id, answer_text, score, max_score, feedback, graded_at,
+          questions:question_id ( text, type, correct_answer )
         )
-        .eq("exam_id", examId)
-        .not("submitted_at", "is", null)
-        .order("submitted_at", { ascending: false })
-    ) as Record<string, unknown>[];
+      `
+      )
+      .eq("exam_id", examId)
+      .not("submitted_at", "is", null)
+      .order("submitted_at", { ascending: false });
+
+    if (pendingOnly) {
+      query = query.eq("grading_status", "pending_manual");
+    }
+
+    const rows = throwIfError(await query) as Record<string, unknown>[];
 
     return rows.map((row) => {
       const profile = row.profiles as { first_name: string; last_name: string };
+      const grades = (row.exam_answer_grades as Record<string, unknown>[]) ?? [];
       return {
         id: row.id as number,
-        student_name: `${profile.first_name} ${profile.last_name}`,
+        student: row.student_id as string,
+        student_name: `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim(),
+        exam: row.exam_id as number,
+        answers: row.answers as Record<string, string>,
         score: Number(row.score),
         max_score: Number(row.max_score),
+        grading_status: row.grading_status as ExamSubmissionAdmin["grading_status"],
         submitted_at: row.submitted_at as string,
-        answers: (row.answers as Record<string, string>) ?? {},
+        answer_grades: grades.map((g) => {
+          const question = g.questions as {
+            text: string;
+            type: string;
+            correct_answer?: string;
+          };
+          return {
+            id: g.id as number,
+            question_id: g.question_id as number,
+            question_text: question?.text ?? "",
+            question_type: question?.type as ExamSubmissionAdmin["answer_grades"][0]["question_type"],
+            answer_text: g.answer_text as string,
+            correct_answer: question?.correct_answer || undefined,
+            score: g.score != null ? Number(g.score) : null,
+            max_score: Number(g.max_score),
+            feedback: (g.feedback as string) || undefined,
+            graded_at: (g.graded_at as string) ?? null,
+          };
+        }),
       };
     });
+  },
+
+  gradeExamAnswer: async (
+    gradeId: number,
+    data: { score: number; feedback?: string }
+  ) => {
+    const result = throwIfError(
+      await getSupabase().rpc("grade_exam_answer", {
+        p_grade_id: gradeId,
+        p_score: data.score,
+        p_feedback: data.feedback ?? "",
+      })
+    );
+    return result;
   },
 };
 

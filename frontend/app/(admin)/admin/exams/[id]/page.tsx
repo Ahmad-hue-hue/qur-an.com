@@ -11,6 +11,7 @@ import { buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-quest
 import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import {
   ExerciseGradingGuide,
+  ExerciseSubmissionsPanel,
 } from "@/components/admin/exercise-submissions-panel";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -72,6 +73,9 @@ export default function AdminExamDetailPage({
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
   const [questionForm, setQuestionForm] = useState(emptyQuestionForm);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [gradeDrafts, setGradeDrafts] = useState<
+    Record<number, { score: string; feedback: string }>
+  >({});
 
   const { data: exam, isLoading } = useQuery({
     queryKey: ["admin-exam", examId],
@@ -123,6 +127,30 @@ export default function AdminExamDetailPage({
     },
     onError: (err: Error) => toast.error(err.message || "Delete failed"),
   });
+
+  const gradeMutation = useMutation({
+    mutationFn: ({
+      gradeId,
+      score,
+      feedback,
+    }: {
+      gradeId: number;
+      score: number;
+      feedback: string;
+    }) => adminApi.gradeExamAnswer(gradeId, { score, feedback }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-exam-submissions", examId] });
+      toast.success("Answer graded");
+    },
+    onError: (err: Error) => toast.error(err.message || "Grading failed"),
+  });
+
+  const pendingGrades =
+    submissions?.flatMap((sub) =>
+      sub.answer_grades
+        .filter((g) => g.score === null)
+        .map((g) => ({ ...g, submission: sub }))
+    ) ?? [];
 
   return (
     <AppShell variant="admin">
@@ -365,26 +393,89 @@ export default function AdminExamDetailPage({
 
             <ExerciseGradingGuide />
 
+            <ExerciseSubmissionsPanel
+              submissions={submissions}
+              questions={exam.questions}
+            />
+
             <div className="space-y-2 pt-2">
-              <h2 className="font-semibold text-sm">Student submissions</h2>
-              {submissions?.map((sub) => (
-                <Card key={sub.id} className="card-shadow">
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium text-sm">{sub.student_name}</p>
-                      <p className="text-sm text-emerald-deep font-medium">
-                        {sub.score}/{sub.max_score}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Submitted {format(new Date(sub.submitted_at), "MMM d, yyyy 'at' h:mm a")}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-              {!submissions?.length && (
+              <h2 className="font-semibold text-sm">
+                Manual grading
+                {pendingGrades.length > 0 && (
+                  <span className="ml-2 text-xs font-normal text-amber-600">
+                    {pendingGrades.length} pending
+                  </span>
+                )}
+              </h2>
+
+              {pendingGrades.map((grade) => {
+                const draft = gradeDrafts[grade.id] ?? { score: "", feedback: "" };
+                return (
+                  <Card key={grade.id} className="card-shadow border-amber-200/60">
+                    <CardContent className="p-4 space-y-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          {grade.submission.student_name} ·{" "}
+                          {format(new Date(grade.submission.submitted_at), "MMM d, h:mm a")}
+                        </p>
+                        <p className="text-sm font-medium mt-1">{grade.question_text}</p>
+                        <p className="text-sm mt-2 bg-muted/50 rounded-lg p-3">
+                          {grade.answer_text || "(no answer)"}
+                        </p>
+                      </div>
+                      <div className="form-grid-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">
+                            Score (max {grade.max_score})
+                          </Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={grade.max_score}
+                            value={draft.score}
+                            onChange={(e) =>
+                              setGradeDrafts((prev) => ({
+                                ...prev,
+                                [grade.id]: { ...draft, score: e.target.value },
+                              }))
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Feedback (optional)</Label>
+                          <Input
+                            value={draft.feedback}
+                            onChange={(e) =>
+                              setGradeDrafts((prev) => ({
+                                ...prev,
+                                [grade.id]: { ...draft, feedback: e.target.value },
+                              }))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-emerald-deep hover:bg-emerald-mid text-cream"
+                        disabled={draft.score === "" || gradeMutation.isPending}
+                        onClick={() =>
+                          gradeMutation.mutate({
+                            gradeId: grade.id,
+                            score: parseFloat(draft.score),
+                            feedback: draft.feedback,
+                          })
+                        }
+                      >
+                        Save grade
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+
+              {!pendingGrades.length && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No submissions yet.
+                  No answers waiting for manual grading.
                 </p>
               )}
             </div>

@@ -23,6 +23,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { AssessmentResultsPanel } from "@/components/student/assessment-results-panel";
 import { StatusBadge } from "@/components/shared/status-badge";
 
 export default function ExamPage({
@@ -41,6 +42,12 @@ export default function ExamPage({
   const { data: exam, isLoading: loadingEx, error: examError } = useQuery({
     queryKey: ["exam", examId],
     queryFn: () => studentApi.getExam(examId),
+  });
+
+  const { data: results, isLoading: loadingResults } = useQuery({
+    queryKey: ["exam-results", examId],
+    queryFn: () => studentApi.getExamResults(examId),
+    enabled: Boolean(exam?.has_submitted),
   });
 
   const canLoadQuestions =
@@ -65,7 +72,12 @@ export default function ExamPage({
   const submitMutation = useMutation({
     mutationFn: () => studentApi.submitExam(examId, answers),
     onSuccess: (result) => {
-      toast.success(`Exam submitted! Score: ${result.score}/${result.max_score}`);
+      const pending = result.grading_status === "pending_manual";
+      toast.success(
+        pending
+          ? `Submitted! Auto score: ${result.score}/${result.max_score}. Some answers await teacher review.`
+          : `Exam submitted! Score: ${result.score}/${result.max_score}`
+      );
       router.push("/assessments");
     },
     onError: (err: Error) => toast.error(err.message || "Submission failed"),
@@ -98,7 +110,9 @@ export default function ExamPage({
   }, [remainingSeconds, canLoadQuestions, submitMutation]);
 
   const isLoading =
-    loadingEx || (canLoadQuestions && (loadingSession || loadingQ));
+    loadingEx ||
+    (canLoadQuestions && (loadingSession || loadingQ)) ||
+    (exam?.has_submitted && loadingResults);
   const loadError = examError || sessionError;
   const question = questions?.[currentQ] ?? null;
   const isLast = questions ? currentQ === questions.length - 1 : false;
@@ -135,7 +149,27 @@ export default function ExamPage({
         </div>
       )}
 
-      {!isLoading && !loadError && exam && exam.has_submitted && (
+      {!isLoading && !loadError && exam && exam.has_submitted && results && (
+        <>
+          <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3">
+            <Link
+              href="/assessments"
+              className="inline-flex items-center gap-1 text-sm text-emerald-deep hover:text-emerald-mid"
+            >
+              Back to assessments
+            </Link>
+          </div>
+          <AssessmentResultsPanel
+            title={exam.title}
+            score={results.score}
+            maxScore={results.max_score}
+            gradingStatus={results.grading_status}
+            answerGrades={results.answer_grades}
+          />
+        </>
+      )}
+
+      {!isLoading && !loadError && exam && exam.has_submitted && !results && (
         <div className="flex items-center justify-center min-h-[60vh] p-4">
           <Card className="card-shadow w-full max-w-lg">
             <CardContent className="p-8 text-center space-y-3">

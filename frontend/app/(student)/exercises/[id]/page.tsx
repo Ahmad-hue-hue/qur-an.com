@@ -23,6 +23,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { AssessmentResultsPanel } from "@/components/student/assessment-results-panel";
 import { StatusBadge } from "@/components/shared/status-badge";
 
 export default function ExercisePage({
@@ -39,6 +40,12 @@ export default function ExercisePage({
   const { data: exercise, isLoading: loadingEx, error: exerciseError } = useQuery({
     queryKey: ["exercise", exerciseId],
     queryFn: () => studentApi.getExercise(exerciseId),
+  });
+
+  const { data: results, isLoading: loadingResults } = useQuery({
+    queryKey: ["exercise-results", exerciseId],
+    queryFn: () => studentApi.getExerciseResults(exerciseId),
+    enabled: Boolean(exercise?.has_submitted),
   });
 
   const canLoadQuestions =
@@ -67,7 +74,7 @@ export default function ExercisePage({
     onError: (err: Error) => toast.error(err.message || "Submission failed"),
   });
 
-  const isLoading = loadingEx || (canLoadQuestions && loadingQ);
+  const isLoading = loadingEx || (canLoadQuestions && loadingQ) || (exercise?.has_submitted && loadingResults);
   const question = questions?.[currentQ] ?? null;
   const isLast = questions ? currentQ === questions.length - 1 : false;
   const hasAnswer = question ? Boolean(answers[question.id]?.trim()) : false;
@@ -134,11 +141,30 @@ export default function ExercisePage({
         </div>
       )}
 
-      {!isLoading && !exerciseError && exercise && exercise.has_submitted && (
+      {!isLoading && !exerciseError && exercise && exercise.has_submitted && results && (
+        <>
+          <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3">
+            <Link
+              href="/assessments"
+              className="inline-flex items-center gap-1 text-sm text-emerald-deep hover:text-emerald-mid"
+            >
+              Back to assessments
+            </Link>
+          </div>
+          <AssessmentResultsPanel
+            title={exercise.title}
+            score={results.score}
+            maxScore={results.max_score}
+            gradingStatus={results.grading_status}
+            answerGrades={results.answer_grades}
+          />
+        </>
+      )}
+
+      {!isLoading && !exerciseError && exercise && exercise.has_submitted && !results && (
         <div className="flex items-center justify-center min-h-[60vh] p-4">
           <Card className="card-shadow w-full max-w-lg">
             <CardContent className="p-8 text-center space-y-3">
-              <StatusBadge status="completed" />
               <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
               <p className="text-sm text-muted-foreground">
                 You already submitted this exercise.
