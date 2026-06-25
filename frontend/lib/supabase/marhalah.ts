@@ -11,3 +11,14 @@ export async function resolveMarhalahIdByNumber(number: number): Promise<number>
   ) as { id: number };
   return row.id;
 }
+
+export async function resolveMarhalahNumberById(id: number): Promise<number> {
+  const row = throwIfError(
+    await getSupabase()
+      .from("marhalahs")
+      .select("number")
+      .eq("id", id)
+      .single()
+  ) as { number: number };
+  return row.number;
+}

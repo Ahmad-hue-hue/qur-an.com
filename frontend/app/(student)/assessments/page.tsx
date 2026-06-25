@@ -101,6 +101,21 @@ export default function AssessmentsPage() {
                     {format(new Date(exam.start_date), "MMM d")} –{" "}
                     {format(new Date(exam.end_date), "MMM d, yyyy")}
                   </p>
+                  {exam.has_submitted && exam.score !== undefined && (
+                    <p className="text-sm font-medium text-emerald-deep mt-2">
+                      Score: {exam.score}/{exam.max_score}
+                    </p>
+                  )}
+                  {exam.status === "open" && exam.question_count === 0 && (
+                    <p className="text-xs text-amber-700 mt-2">
+                      Waiting for your instructor to add exam questions.
+                    </p>
+                  )}
+                  {exam.status === "upcoming" && (
+                    <p className="text-xs text-amber-700 mt-2">
+                      Opens {format(new Date(exam.start_date), "MMM d, yyyy")}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             ))}

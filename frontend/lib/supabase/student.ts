@@ -1,6 +1,9 @@
 import { getSupabase } from "@/lib/supabase/client";
-import { resolveMarhalahIdByNumber } from "@/lib/supabase/marhalah";
-import { mapProfileRow, throwIfError } from "@/lib/supabase/utils";
+import {
+  resolveMarhalahIdByNumber,
+  resolveMarhalahNumberById,
+} from "@/lib/supabase/marhalah";
+import { mapProfileRow, SupabaseApiError, throwIfError } from "@/lib/supabase/utils";
 import type {
   DashboardData,
   Exercise,
@@ -44,6 +47,11 @@ async function getCurrentProfile() {
   const profile = throwIfError(
     await supabase.from("profiles").select("*").eq("id", user.id).single()
   );
+  if (profile.is_suspended) {
+    throw new Error(
+      "Your account has been suspended. Please contact your instructor."
+    );
+  }
   return { user, profile };
 }
 
@@ -168,21 +176,20 @@ async function buildExerciseRow(
   const supabase = getSupabase();
   const exerciseId = exercise.id as number;
 
-  const submission = (
+  const submission = throwIfError(
     await supabase
       .from("exercise_submissions")
       .select("*")
       .eq("student_id", studentId)
       .eq("exercise_id", exerciseId)
       .maybeSingle()
-  ).data;
+  );
 
-  const questionCount = (
-    await supabase
-      .from("questions")
-      .select("id", { count: "exact", head: true })
-      .eq("exercise_id", exerciseId)
-  ).count;
+  const { count: questionCount, error: countError } = await supabase
+    .from("questions")
+    .select("id", { count: "exact", head: true })
+    .eq("exercise_id", exerciseId);
+  if (countError) throw new SupabaseApiError(countError.message);
 
   const status = throwIfError(
     await supabase.rpc("get_assessment_status", {
@@ -192,9 +199,11 @@ async function buildExerciseRow(
     })
   ) as Exercise["status"];
 
+  const marhalahNumber = await resolveMarhalahNumberById(exercise.marhalah_id as number);
+
   return {
     id: exerciseId,
-    marhalah: exercise.marhalah_id as number,
+    marhalah: marhalahNumber,
     title: exercise.title as string,
     description: (exercise.description as string) || undefined,
     start_date: exercise.start_date as string,
@@ -215,21 +224,20 @@ async function buildExamRow(
   const supabase = getSupabase();
   const examId = exam.id as number;
 
-  const submission = (
+  const submission = throwIfError(
     await supabase
       .from("exam_submissions")
       .select("*")
       .eq("student_id", studentId)
       .eq("exam_id", examId)
       .maybeSingle()
-  ).data;
+  );
 
-  const questionCount = (
-    await supabase
-      .from("questions")
-      .select("id", { count: "exact", head: true })
-      .eq("exam_id", examId)
-  ).count;
+  const { count: questionCount, error: countError } = await supabase
+    .from("questions")
+    .select("id", { count: "exact", head: true })
+    .eq("exam_id", examId);
+  if (countError) throw new SupabaseApiError(countError.message);
 
   const hasSubmitted = Boolean(submission?.submitted_at);
   const status = throwIfError(
@@ -240,9 +248,11 @@ async function buildExamRow(
     })
   ) as Exam["status"];
 
+  const marhalahNumber = await resolveMarhalahNumberById(exam.marhalah_id as number);
+
   return {
     id: examId,
-    marhalah: exam.marhalah_id as number,
+    marhalah: marhalahNumber,
     title: exam.title as string,
     description: (exam.description as string) || undefined,
     duration_minutes: Number(exam.duration_minutes),
@@ -509,16 +519,8 @@ export const studentApi = {
         .single()
     ) as DbTopic;
 
-    const completedRows = throwIfError(
-      await supabase
-        .from("topic_completions")
-        .select("topic_id")
-        .eq("student_id", user.id)
-        .eq("topic_id", topicId)
-    );
-    const completedIds = new Set(
-      (completedRows as { topic_id: number }[]).map((r) => r.topic_id)
-    );
+    const unlocked = await isMarhalahUnlocked(user.id, topic.marhalah_id);
+    if (!unlocked) throw new Error("This Marḥalah is locked.");
 
     const marhalahTopics = throwIfError(
       await supabase
@@ -528,20 +530,42 @@ export const studentApi = {
         .eq("is_published", true)
         .order("order")
     ) as { id: number }[];
-    const activeTopic = marhalahTopics.find((t) => !completedIds.has(t.id) && t.id !== topicId);
 
-    return mapTopic(topic, completedIds, activeTopic?.id ?? topicId);
+    const topicIds = marhalahTopics.map((t) => t.id);
+    let completedIds = new Set<number>();
+    if (topicIds.length > 0) {
+      const completedRows = throwIfError(
+        await supabase
+          .from("topic_completions")
+          .select("topic_id")
+          .eq("student_id", user.id)
+          .in("topic_id", topicIds)
+      ) as { topic_id: number }[];
+      completedIds = new Set(completedRows.map((r) => r.topic_id));
+    }
+
+    const activeTopic = marhalahTopics.find((t) => !completedIds.has(t.id));
+    return mapTopic(topic, completedIds, activeTopic?.id ?? null);
   },
 
   completeTopic: async (topicId: number): Promise<Topic> => {
     const { user } = await getCurrentProfile();
     const supabase = getSupabase();
-    throwIfError(
-      await supabase.from("topic_completions").insert({
-        student_id: user.id,
-        topic_id: topicId,
-      })
-    );
+    const topic = await studentApi.getTopic(topicId);
+    if (topic.status === "locked") {
+      throw new Error("Complete the previous topics first.");
+    }
+    if (topic.is_completed) {
+      return topic;
+    }
+
+    const { error } = await supabase.from("topic_completions").insert({
+      student_id: user.id,
+      topic_id: topicId,
+    });
+    if (error && error.code !== "23505") {
+      throw new SupabaseApiError(error.message);
+    }
     return studentApi.getTopic(topicId);
   },
 

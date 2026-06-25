@@ -43,7 +43,9 @@ export default function ProfilePage() {
             ? `${dashboard.recent_results.exercises[0].score}/${dashboard.recent_results.exercises[0].max_score}`
             : "—",
         },
-        { label: "Exams", value: "—" },
+        { label: "Exams", value: dashboard?.recent_results.exam
+            ? `${dashboard.recent_results.exam.score}/${dashboard.recent_results.exam.max_score}`
+            : "—" },
         {
           label: "Halaqah",
           value: dashboard?.halaqah

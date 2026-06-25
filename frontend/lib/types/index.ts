@@ -116,6 +116,7 @@ export interface ExerciseAnswerGrade {
   question_text: string;
   question_type: QuestionType;
   answer_text: string;
+  correct_answer?: string;
   score: number | null;
   max_score: number;
   feedback?: string;

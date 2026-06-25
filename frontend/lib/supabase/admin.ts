@@ -1,5 +1,5 @@
 import { getSupabase, getSupabaseUrl } from "@/lib/supabase/client";
-import { resolveMarhalahIdByNumber } from "@/lib/supabase/marhalah";
+import { resolveMarhalahIdByNumber, resolveMarhalahNumberById } from "@/lib/supabase/marhalah";
 import {
   mapProfileRow,
   normalizePhone,
@@ -172,7 +172,9 @@ export const adminApi = {
     return (rows ?? []).map((row) => mapProfileRow(row));
   },
 
-  createStudent: async (data: CreateStudentData): Promise<User> => {
+  createStudent: async (
+    data: CreateStudentData
+  ): Promise<User & { login_email?: string; temporary_password?: string }> => {
     const supabase = getSupabase();
     const phone = normalizePhone(data.phone);
     const { data: result, error } = await supabase.functions.invoke(
@@ -187,7 +189,11 @@ export const adminApi = {
     );
     if (error) throw new SupabaseApiError(error.message);
     if (result?.error) throw new SupabaseApiError(result.error);
-    return mapProfileRow(result.profile);
+    return {
+      ...mapProfileRow(result.profile),
+      login_email: result.login_email,
+      temporary_password: result.temporary_password,
+    };
   },
 
   getStudent: async (id: string): Promise<StudentProfile> => buildStudentProfile(id),
@@ -221,35 +227,44 @@ export const adminApi = {
     return buildStudentProfile(id);
   },
 
-  getTopics: async (marhalahId?: number): Promise<Topic[]> => {
+  getTopics: async (marhalahNumber?: number): Promise<Topic[]> => {
     let query = getSupabase().from("topics").select("*").order("order");
-    if (marhalahId) query = query.eq("marhalah_id", marhalahId);
+    if (marhalahNumber != null) {
+      const marhalahId = await resolveMarhalahIdByNumber(marhalahNumber);
+      query = query.eq("marhalah_id", marhalahId);
+    }
     const rows = throwIfError(await query) as Record<string, unknown>[];
-    return rows.map((t) => ({
-      id: t.id as number,
-      marhalah: t.marhalah_id as number,
-      order: t.order as number,
-      title: t.title as string,
-      arabic_title: (t.arabic_title as string) || undefined,
-      content: t.content as string,
-      arabic_content: (t.arabic_content as string) || undefined,
-      examples: (t.examples as string) || undefined,
-      audio_url: (t.audio_url as string) ?? undefined,
-      pdf_url: (t.pdf_url as string) ?? undefined,
-      is_completed: false,
-      status: "active",
-    }));
+    const topics: Topic[] = [];
+    for (const t of rows) {
+      const marhalahNumberValue = await resolveMarhalahNumberById(t.marhalah_id as number);
+      topics.push({
+        id: t.id as number,
+        marhalah: marhalahNumberValue,
+        order: t.order as number,
+        title: t.title as string,
+        arabic_title: (t.arabic_title as string) || undefined,
+        content: t.content as string,
+        arabic_content: (t.arabic_content as string) || undefined,
+        examples: (t.examples as string) || undefined,
+        audio_url: (t.audio_url as string) ?? undefined,
+        pdf_url: (t.pdf_url as string) ?? undefined,
+        is_completed: false,
+        status: "active",
+      });
+    }
+    return topics;
   },
 
   createTopic: async (data: CreateTopicData): Promise<Topic> => {
     const supabase = getSupabase();
+    const marhalahId = await resolveMarhalahIdByNumber(data.marhalah);
 
     let audio_url: string | null = null;
     let pdf_url: string | null = null;
 
     const inserted = throwIfError(
       await supabase.rpc("admin_create_topic", {
-        p_marhalah_id: data.marhalah,
+        p_marhalah_id: marhalahId,
         p_order: data.order,
         p_title: data.title,
         p_arabic_title: data.arabic_title ?? "",
@@ -272,7 +287,7 @@ export const adminApi = {
       throwIfError(
         await supabase.rpc("admin_update_topic", {
           p_id: topicId,
-          p_marhalah_id: data.marhalah,
+          p_marhalah_id: marhalahId,
           p_order: data.order,
           p_title: data.title,
           p_arabic_title: data.arabic_title ?? "",
@@ -292,9 +307,10 @@ export const adminApi = {
     const row = throwIfError(
       await getSupabase().from("topics").select("*").eq("id", id).single()
     ) as Record<string, unknown>;
+    const marhalahNumber = await resolveMarhalahNumberById(row.marhalah_id as number);
     return {
       id: row.id as number,
-      marhalah: row.marhalah_id as number,
+      marhalah: marhalahNumber,
       order: row.order as number,
       title: row.title as string,
       arabic_title: (row.arabic_title as string) || undefined,
@@ -310,6 +326,7 @@ export const adminApi = {
 
   updateTopic: async (data: CreateTopicData & { id: number }): Promise<Topic> => {
     const supabase = getSupabase();
+    const marhalahId = await resolveMarhalahIdByNumber(data.marhalah);
     const existing = await adminApi.getTopic(data.id);
     let audio_url = existing.audio_url ?? null;
     let pdf_url = existing.pdf_url ?? null;
@@ -324,7 +341,7 @@ export const adminApi = {
     throwIfError(
       await supabase.rpc("admin_update_topic", {
         p_id: data.id,
-        p_marhalah_id: data.marhalah,
+        p_marhalah_id: marhalahId,
         p_order: data.order,
         p_title: data.title,
         p_arabic_title: data.arabic_title ?? "",
@@ -430,7 +447,9 @@ export const adminApi = {
     data: Partial<CreateExerciseData>
   ): Promise<Exercise> => {
     const payload: Record<string, unknown> = {};
-    if (data.marhalah != null) payload.marhalah_id = data.marhalah;
+    if (data.marhalah != null) {
+      payload.marhalah_id = await resolveMarhalahIdByNumber(data.marhalah);
+    }
     if (data.title != null) payload.title = data.title;
     if (data.description != null) payload.description = data.description;
     if (data.start_date != null) payload.start_date = data.start_date;
@@ -562,7 +581,7 @@ export const adminApi = {
         profiles:student_id ( first_name, last_name ),
         exercise_answer_grades (
           id, question_id, answer_text, score, max_score, feedback, graded_at,
-          questions:question_id ( text, type )
+          questions:question_id ( text, type, correct_answer )
         )
       `
       )
@@ -589,13 +608,18 @@ export const adminApi = {
         grading_status: row.grading_status as ExerciseSubmissionAdmin["grading_status"],
         submitted_at: row.submitted_at as string,
         answer_grades: grades.map((g) => {
-          const question = g.questions as { text: string; type: string };
+          const question = g.questions as {
+            text: string;
+            type: string;
+            correct_answer?: string;
+          };
           return {
             id: g.id as number,
             question_id: g.question_id as number,
             question_text: question?.text ?? "",
             question_type: question?.type as ExerciseSubmissionAdmin["answer_grades"][0]["question_type"],
             answer_text: g.answer_text as string,
+            correct_answer: question?.correct_answer || undefined,
             score: g.score != null ? Number(g.score) : null,
             max_score: Number(g.max_score),
             feedback: (g.feedback as string) || undefined,
@@ -620,30 +644,46 @@ export const adminApi = {
     return result;
   },
 
-  getExams: async (marhalahId?: number): Promise<Exam[]> => {
+  getExams: async (marhalahNumber?: number): Promise<Exam[]> => {
     let query = getSupabase().from("exams").select("*").order("start_date");
-    if (marhalahId) query = query.eq("marhalah_id", marhalahId);
+    if (marhalahNumber != null) {
+      const marhalahId = await resolveMarhalahIdByNumber(marhalahNumber);
+      query = query.eq("marhalah_id", marhalahId);
+    }
     const rows = throwIfError(await query) as Record<string, unknown>[];
-    return rows.map((e) => ({
-      id: e.id as number,
-      marhalah: e.marhalah_id as number,
-      title: e.title as string,
-      description: (e.description as string) || undefined,
-      duration_minutes: Number(e.duration_minutes),
-      start_date: e.start_date as string,
-      end_date: e.end_date as string,
-      status: "open",
-      question_count: 0,
-      has_submitted: false,
-    }));
+    const supabase = getSupabase();
+    const exams: Exam[] = [];
+    for (const e of rows) {
+      const examId = e.id as number;
+      const { count, error } = await supabase
+        .from("questions")
+        .select("id", { count: "exact", head: true })
+        .eq("exam_id", examId);
+      if (error) throw new SupabaseApiError(error.message);
+      const marhalahNumber = await resolveMarhalahNumberById(e.marhalah_id as number);
+      exams.push({
+        id: examId,
+        marhalah: marhalahNumber,
+        title: e.title as string,
+        description: (e.description as string) || undefined,
+        duration_minutes: Number(e.duration_minutes),
+        start_date: e.start_date as string,
+        end_date: e.end_date as string,
+        status: "open",
+        question_count: count ?? 0,
+        has_submitted: false,
+      });
+    }
+    return exams;
   },
 
   createExam: async (data: CreateExamData): Promise<Exam> => {
+    const marhalahId = await resolveMarhalahIdByNumber(data.marhalah);
     const row = throwIfError(
       await getSupabase()
         .from("exams")
         .insert({
-          marhalah_id: data.marhalah,
+          marhalah_id: marhalahId,
           title: data.title,
           description: data.description ?? "",
           duration_minutes: data.duration_minutes ?? 60,
@@ -672,7 +712,9 @@ export const adminApi = {
     data: Partial<CreateExamData>
   ): Promise<Exam> => {
     const payload: Record<string, unknown> = {};
-    if (data.marhalah != null) payload.marhalah_id = data.marhalah;
+    if (data.marhalah != null) {
+      payload.marhalah_id = await resolveMarhalahIdByNumber(data.marhalah);
+    }
     if (data.title != null) payload.title = data.title;
     if (data.description != null) payload.description = data.description;
     if (data.duration_minutes != null) payload.duration_minutes = data.duration_minutes;

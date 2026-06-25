@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
+import { studentApi } from "@/lib/api";
 import { getNavItems, type NavVariant } from "./nav-config";
 
 interface BottomNavProps {
@@ -13,7 +15,20 @@ interface BottomNavProps {
 
 export function BottomNav({ variant = "student", className }: BottomNavProps) {
   const pathname = usePathname();
-  const items = getNavItems(variant);
+  const { data: dashboard } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: studentApi.getDashboard,
+    enabled: variant === "student",
+  });
+  const items = getNavItems(variant).map((item) => {
+    if (variant === "student" && item.label === "Lessons" && dashboard?.current_marhalah) {
+      return {
+        ...item,
+        href: `/marhalah/${dashboard.current_marhalah.id}`,
+      };
+    }
+    return item;
+  });
 
   return (
     <nav

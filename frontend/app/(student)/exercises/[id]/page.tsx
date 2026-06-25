@@ -333,7 +333,7 @@ export default function ExercisePage({
           </div>
         )}
 
-      {canTake && question && (
+      {canTake && question && exercise && (
         <>
           <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3">
             <div className="flex items-center justify-between mb-2">
@@ -348,7 +348,9 @@ export default function ExercisePage({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 bg-gold-light rounded-full px-3 py-1">
                 <HugeiconsIcon icon={Clock01Icon} size={16} className="text-gold" />
-                <span className="text-sm font-medium text-emerald-deep">29:45</span>
+                <span className="text-sm font-medium text-emerald-deep">
+                  Due {format(new Date(exercise.end_date), "MMM d, yyyy")}
+                </span>
               </div>
               <span className="text-sm text-muted-foreground">
                 Question {currentQ + 1} of {questions!.length}

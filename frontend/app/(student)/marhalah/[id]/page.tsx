@@ -6,8 +6,10 @@ import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { TopicList } from "@/components/student/topic-list";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Home01Icon } from "@hugeicons/core-free-icons";
 
@@ -24,7 +26,7 @@ export default function MarhalahTopicsPage({
     queryFn: studentApi.getMarhalahs,
   });
 
-  const { data: topics, isLoading } = useQuery({
+  const { data: topics, isLoading, isError, error } = useQuery({
     queryKey: ["topics", marhalahId],
     queryFn: () => studentApi.getTopics(marhalahId),
   });
@@ -49,7 +51,20 @@ export default function MarhalahTopicsPage({
       </PageHeader>
 
       <div className="page-content">
-        {isLoading ? (
+        {isError ? (
+          <Card className="card-shadow">
+            <CardContent className="p-6 text-center space-y-3">
+              <p className="font-medium text-emerald-deep">Marḥalah locked</p>
+              <p className="text-sm text-muted-foreground">
+                {(error as Error).message ||
+                  "Complete the previous Marḥalah to unlock these lessons."}
+              </p>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
+                Back to Home
+              </Link>
+            </CardContent>
+          </Card>
+        ) : isLoading ? (
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-16 w-full rounded-xl" />

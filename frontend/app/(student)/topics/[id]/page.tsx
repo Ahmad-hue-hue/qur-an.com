@@ -21,8 +21,6 @@ import {
   CheckmarkCircle02Icon,
 } from "@hugeicons/core-free-icons";
 
-const throatLetters = ["ء", "ه", "ع", "ح", "غ", "خ"];
-
 export default function TopicDetailPage({
   params,
 }: {
@@ -37,6 +35,16 @@ export default function TopicDetailPage({
     queryKey: ["topic", topicId],
     queryFn: () => studentApi.getTopic(topicId),
   });
+
+  const { data: dashboard } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: studentApi.getDashboard,
+  });
+
+  const totalTopics =
+    dashboard?.marhalahs.find((m) => m.id === topic?.marhalah)?.topics_count ??
+    dashboard?.total_topics ??
+    0;
 
   const completeMutation = useMutation({
     mutationFn: () => studentApi.completeTopic(topicId),
@@ -74,7 +82,7 @@ export default function TopicDetailPage({
           </Link>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="bg-gold/20 text-gold border-0">
-              Topic {topic.order} of 9
+              Topic {topic.order} of {totalTopics || "—"}
             </Badge>
             <HugeiconsIcon
               icon={Bookmark01Icon}
@@ -109,22 +117,6 @@ export default function TopicDetailPage({
             </p>
           </CardContent>
         </Card>
-
-        <section>
-          <h3 className="section-title mb-0">The Six Throat Letters</h3>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {throatLetters.map((letter) => (
-              <div
-                key={letter}
-                className="bg-emerald-light rounded-xl p-3 text-center card-shadow"
-              >
-                <span className="font-arabic text-2xl text-emerald-deep">
-                  {letter}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {topic.examples && (
           <Card className="card-shadow">

@@ -30,12 +30,14 @@ export function buildQuestionPayload(
   };
 
   if (form.type === "mcq") {
-    payload.options = [form.option_a, form.option_b].filter(Boolean) as string[];
-    payload.correct_answer = form.correct_answer || form.option_a || "";
+    payload.options = [form.option_a, form.option_b]
+      .map((opt) => opt?.trim())
+      .filter(Boolean) as string[];
+    payload.correct_answer = (form.correct_answer || form.option_a || "").trim();
   } else if (form.type === "true_false") {
     payload.correct_answer = form.correct_answer || "true";
   } else if (form.type === "fill_blank") {
-    payload.correct_answer = form.correct_answer ?? "";
+    payload.correct_answer = (form.correct_answer ?? "").trim();
   }
 
   return payload;

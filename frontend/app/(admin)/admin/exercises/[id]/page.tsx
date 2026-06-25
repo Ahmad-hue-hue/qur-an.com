@@ -9,6 +9,10 @@ import { adminApi } from "@/lib/api";
 import type { CreateQuestionData } from "@/lib/types";
 import { buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
 import { QuestionTypePicker } from "@/components/admin/question-type-picker";
+import {
+  ExerciseGradingGuide,
+  ExerciseSubmissionsPanel,
+} from "@/components/admin/exercise-submissions-panel";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -385,6 +389,13 @@ export default function AdminExerciseDetailPage({
                 </p>
               )}
             </div>
+
+            <ExerciseGradingGuide />
+
+            <ExerciseSubmissionsPanel
+              submissions={submissions}
+              questions={exercise.questions}
+            />
 
             <div className="space-y-2 pt-2">
               <h2 className="font-semibold text-sm">
