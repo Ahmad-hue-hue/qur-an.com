@@ -129,7 +129,9 @@ export default function ExercisePage({
               <StatusBadge status="expired" />
               <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
               <p className="text-sm text-muted-foreground">
-                This exercise closed on {format(new Date(exercise.end_date), "MMM d, yyyy")}.
+                {exercise.has_submitted
+                  ? `This exercise closed on ${format(new Date(exercise.end_date), "MMM d, yyyy")}.`
+                  : `You did not submit this exercise before it closed on ${format(new Date(exercise.end_date), "MMM d, yyyy")}.`}
               </p>
               <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments

@@ -73,6 +73,11 @@ export default function AssessmentsPage() {
                       Marḥalah {ex.marhalah} · submitted exercise
                     </p>
                   )}
+                  {ex.status === "expired" && !ex.has_submitted && (
+                    <p className="text-xs text-red-700">
+                      Closed {format(new Date(ex.end_date), "MMM d, yyyy")} — not submitted in time
+                    </p>
+                  )}
                   {ex.has_submitted && ex.score !== undefined && (
                     <p className="text-sm font-medium text-emerald-deep">
                       Score: {ex.score}/{ex.max_score}
@@ -104,6 +109,13 @@ export default function AssessmentsPage() {
                         })}
                       >
                         Start exercise
+                      </Link>
+                    ) : ex.status === "expired" && !ex.has_submitted ? (
+                      <Link
+                        href={`/exercises/${ex.id}`}
+                        className={buttonVariants({ variant: "outline", className: "flex-1" })}
+                      >
+                        View details
                       </Link>
                     ) : null}
                   </div>
