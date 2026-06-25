@@ -535,6 +535,7 @@ export const studentApi = {
     return {
       ...mapProfileRow({ ...profile, email: profile.email ?? user.email ?? "" }),
       current_marhalah: profile.current_marhalah,
+      current_marhalah_title: marhalah.title,
       progress_percent: progress.percent,
       topics_completed: progress.completed,
       total_topics: progress.total,

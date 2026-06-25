@@ -30,6 +30,7 @@ export interface User {
 
 export interface StudentProfile extends User {
   current_marhalah: number;
+  current_marhalah_title?: string;
   progress_percent: number;
   topics_completed: number;
   total_topics: number;

@@ -131,6 +131,9 @@ async function buildStudentProfile(studentId: string): Promise<StudentProfile> {
   return {
     ...mapProfileRow(profile),
     current_marhalah: profile.current_marhalah,
+    current_marhalah_title: (
+      await getMarhalahByNumber(profile.current_marhalah)
+    ).title,
     progress_percent: total ? Math.round((completed / total) * 100) : 0,
     topics_completed: completed,
     total_topics: total,

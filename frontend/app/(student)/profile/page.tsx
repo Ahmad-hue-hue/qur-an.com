@@ -30,7 +30,9 @@ export default function ProfilePage() {
     ? [
         {
           label: "Current Marḥalah",
-          value: `Marḥalah ${profile.current_marhalah}`,
+          value:
+            profile.current_marhalah_title ??
+            `Marḥalah ${profile.current_marhalah}`,
         },
         { label: "Progress", value: `${profile.progress_percent}%` },
         {
@@ -139,7 +141,9 @@ export default function ProfilePage() {
                   className="h-3 bg-emerald-light [&>div]:bg-gold mb-2"
                 />
                 <p className="text-xs text-muted-foreground text-right">
-                  {profile.progress_percent}% of Marḥalah {profile.current_marhalah}
+                  {profile.progress_percent}% of{" "}
+                  {profile.current_marhalah_title ??
+                    `Marḥalah ${profile.current_marhalah}`}
                 </p>
               </CardContent>
             </Card>

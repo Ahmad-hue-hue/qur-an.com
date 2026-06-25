@@ -28,6 +28,8 @@ export default function AssessmentsPage() {
   });
 
   const marhalahNumber = dashboard?.current_marhalah.number ?? 1;
+  const marhalahTitle =
+    dashboard?.current_marhalah.title ?? `Marḥalah ${marhalahNumber}`;
   const topicsComplete =
     Boolean(dashboard?.total_topics) &&
     (dashboard?.topics_completed ?? 0) >= (dashboard?.total_topics ?? 0);
@@ -36,7 +38,7 @@ export default function AssessmentsPage() {
     <AppShell>
       <PageHeader
         title="Assessments"
-        subtitle={`Exercises & exams for Marḥalah ${marhalahNumber}`}
+        subtitle={`Exercises & exams for ${marhalahTitle}`}
       />
 
       <div className="page-content">
@@ -127,7 +129,7 @@ export default function AssessmentsPage() {
             {!loadingExercises && exercises?.length === 0 && (
               <Card className="card-shadow md:col-span-2">
                 <CardContent className="p-6 text-center text-sm text-muted-foreground space-y-1">
-                  <p>No exercises for Marḥalah {marhalahNumber} yet.</p>
+                  <p>No exercises for {marhalahTitle} yet.</p>
                   <p className="text-xs">
                     Exercises are assigned per Marḥalah. Ask your instructor to
                     create one for your current stage.
@@ -208,7 +210,7 @@ export default function AssessmentsPage() {
             {!loadingExams && exams?.length === 0 && (
               <Card className="card-shadow md:col-span-2">
                 <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                  No exams for Marḥalah {marhalahNumber} yet.
+                  No exams for {marhalahTitle} yet.
                 </CardContent>
               </Card>
             )}

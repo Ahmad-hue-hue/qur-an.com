@@ -69,7 +69,7 @@ export default function DashboardPage() {
 
             <section>
               <h2 className="section-title">
-                Assessments · Marḥalah {data.current_marhalah.number}
+                Assessments · {data.current_marhalah.title}
               </h2>
               <div className="auto-grid-cards">
                 {data.exercises.map((ex) => (
@@ -90,7 +90,7 @@ export default function DashboardPage() {
                 {data.exercises.length === 0 && (
                   <Card className="card-shadow md:col-span-2">
                     <CardContent className="p-4 text-sm text-muted-foreground">
-                      No exercises for Marḥalah {data.current_marhalah.number} yet.
+                      No exercises for {data.current_marhalah.title} yet.
                       Your instructor must create one for this stage.
                     </CardContent>
                   </Card>
