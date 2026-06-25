@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
 import { getNavItems, type NavVariant } from "./nav-config";
+import { useStudentNavItems } from "@/hooks/use-student-nav-items";
 
 interface SideNavProps {
   variant?: NavVariant;
@@ -13,7 +14,8 @@ interface SideNavProps {
 
 export function SideNav({ variant = "student", className }: SideNavProps) {
   const pathname = usePathname();
-  const items = getNavItems(variant);
+  const studentItems = useStudentNavItems();
+  const items = variant === "student" ? studentItems : getNavItems(variant);
 
   return (
     <aside
@@ -33,11 +35,13 @@ export function SideNav({ variant = "student", className }: SideNavProps) {
 
       <nav className="flex-1 space-y-1 p-4">
         {items.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+          const isLessons = item.label === "Lessons";
+          const isActive = isLessons
+            ? pathname.startsWith("/marhalah/") || pathname.startsWith("/topics/")
+            : pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",

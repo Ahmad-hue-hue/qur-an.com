@@ -41,10 +41,8 @@ export default function TopicDetailPage({
     queryFn: studentApi.getDashboard,
   });
 
-  const totalTopics =
-    dashboard?.marhalahs.find((m) => m.id === topic?.marhalah)?.topics_count ??
-    dashboard?.total_topics ??
-    0;
+  const topicMarhalah = dashboard?.marhalahs.find((m) => m.id === topic?.marhalah);
+  const totalTopics = topicMarhalah?.topics_count ?? 0;
 
   const completeMutation = useMutation({
     mutationFn: () => studentApi.completeTopic(topicId),
@@ -74,15 +72,20 @@ export default function TopicDetailPage({
       <PageHeader title={topic.title} arabicTitle={topic.arabic_title}>
         <div className="flex flex-col gap-2 mt-2 sm:flex-row sm:items-center sm:justify-between">
           <Link
-            href="/dashboard"
+            href={
+              dashboard?.current_marhalah
+                ? `/marhalah/${dashboard.current_marhalah.id}`
+                : "/dashboard"
+            }
             className="inline-flex items-center gap-1 text-cream/80 text-sm hover:text-cream"
           >
             <HugeiconsIcon icon={Home01Icon} size={16} />
-            Back to Home
+            Back to {dashboard?.current_marhalah.title ?? "Lessons"}
           </Link>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="bg-gold/20 text-gold border-0">
-              Topic {topic.order} of {totalTopics || "—"}
+              {topicMarhalah?.title ?? "Lesson"} · Topic {topic.order} of{" "}
+              {totalTopics || "—"}
             </Badge>
             <HugeiconsIcon
               icon={Bookmark01Icon}

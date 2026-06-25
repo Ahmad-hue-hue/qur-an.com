@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
-import { studentApi } from "@/lib/api";
 import { getNavItems, type NavVariant } from "./nav-config";
+import { useStudentNavItems } from "@/hooks/use-student-nav-items";
 
 interface BottomNavProps {
   variant?: NavVariant;
@@ -15,20 +14,8 @@ interface BottomNavProps {
 
 export function BottomNav({ variant = "student", className }: BottomNavProps) {
   const pathname = usePathname();
-  const { data: dashboard } = useQuery({
-    queryKey: ["dashboard"],
-    queryFn: studentApi.getDashboard,
-    enabled: variant === "student",
-  });
-  const items = getNavItems(variant).map((item) => {
-    if (variant === "student" && item.label === "Lessons" && dashboard?.current_marhalah) {
-      return {
-        ...item,
-        href: `/marhalah/${dashboard.current_marhalah.id}`,
-      };
-    }
-    return item;
-  });
+  const studentItems = useStudentNavItems();
+  const items = variant === "student" ? studentItems : getNavItems(variant);
 
   return (
     <nav
@@ -39,11 +26,13 @@ export function BottomNav({ variant = "student", className }: BottomNavProps) {
     >
       <div className="mx-auto flex w-full max-w-lg items-center justify-around px-2 py-2 sm:max-w-2xl md:max-w-2xl xl:max-w-5xl">
         {items.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+          const isLessons = item.label === "Lessons";
+          const isActive = isLessons
+            ? pathname.startsWith("/marhalah/") || pathname.startsWith("/topics/")
+            : pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className={cn(
                 "flex min-w-[56px] flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 transition-colors sm:min-w-[64px] sm:px-3",
