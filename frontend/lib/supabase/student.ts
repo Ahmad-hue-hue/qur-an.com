@@ -73,6 +73,31 @@ async function assertExerciseAccessible(
   }
 }
 
+async function assertExamAccessible(
+  exam: Record<string, unknown>,
+  marhalahId: number,
+  studentId: string
+) {
+  if ((exam.marhalah_id as number) !== marhalahId) {
+    throw new Error(
+      "This exam belongs to a different Marḥalah than your current stage."
+    );
+  }
+
+  const completed = throwIfError(
+    await getSupabase().rpc("marhalah_topics_completed", {
+      p_student_id: studentId,
+      p_marhalah_id: marhalahId,
+    })
+  ) as boolean;
+
+  if (!completed) {
+    throw new Error(
+      "Complete all topics in this Marḥalah before taking the exam."
+    );
+  }
+}
+
 async function getStudentProgress(studentId: string, marhalahId: number) {
   const supabase = getSupabase();
   const topics = throwIfError(
@@ -658,5 +683,76 @@ export const studentApi = {
       result.push(await buildExamRow(row, user.id));
     }
     return result;
+  },
+
+  getExam: async (id: number): Promise<Exam> => {
+    const { user, profile } = await getCurrentProfile();
+    const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
+    const row = throwIfError(
+      await getSupabase().from("exams").select("*").eq("id", id).single()
+    );
+    await assertExamAccessible(row, marhalahId, user.id);
+    return buildExamRow(row, user.id);
+  },
+
+  getExamQuestions: async (id: number): Promise<Question[]> => {
+    const { user, profile } = await getCurrentProfile();
+    const supabase = getSupabase();
+    const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
+    const exam = throwIfError(
+      await supabase.from("exams").select("*").eq("id", id).single()
+    );
+    await assertExamAccessible(exam, marhalahId, user.id);
+
+    const rows = throwIfError(
+      await supabase
+        .from("questions")
+        .select("*")
+        .eq("exam_id", id)
+        .order("order")
+    );
+
+    return (rows ?? []).map((q) => ({
+      id: q.id,
+      type: q.type,
+      text: q.text,
+      arabic_text: q.arabic_text || undefined,
+      options: (q.options as string[]) ?? [],
+      order: q.order,
+      max_score: q.max_score,
+    }));
+  },
+
+  startExam: async (id: number) => {
+    const result = throwIfError(
+      await getSupabase().rpc("start_exam", { p_exam_id: id })
+    ) as {
+      started_at: string;
+      deadline_at: string;
+      remaining_seconds: number;
+    };
+    return {
+      started_at: result.started_at,
+      deadline_at: result.deadline_at,
+      remaining_seconds: Number(result.remaining_seconds),
+    };
+  },
+
+  submitExam: async (id: number, answers: Record<number, string>) => {
+    const supabase = getSupabase();
+    const payload: Record<string, string> = {};
+    for (const [key, value] of Object.entries(answers)) {
+      payload[String(key)] = value;
+    }
+    const result = throwIfError(
+      await supabase.rpc("submit_exam", {
+        p_exam_id: id,
+        p_answers: payload,
+      })
+    ) as { score: number; max_score: number };
+    return {
+      score: Number(result.score),
+      max_score: Number(result.max_score),
+    };
   },
 };

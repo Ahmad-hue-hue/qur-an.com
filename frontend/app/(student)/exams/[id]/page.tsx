@@ -1,14 +1,14 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
 import { studentApi } from "@/lib/api";
-import type { Question } from "@/lib/types";
 import { QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
 import {
   AssessmentQuestionInput,
+  formatCountdown,
   renderBlankText,
 } from "@/components/student/assessment-question-input";
 import { AppShell } from "@/components/layout/app-shell";
@@ -25,53 +25,88 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { StatusBadge } from "@/components/shared/status-badge";
 
-export default function ExercisePage({
+export default function ExamPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const exerciseId = parseInt(id);
+  const examId = parseInt(id);
   const router = useRouter();
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  const autoSubmitted = useRef(false);
 
-  const { data: exercise, isLoading: loadingEx, error: exerciseError } = useQuery({
-    queryKey: ["exercise", exerciseId],
-    queryFn: () => studentApi.getExercise(exerciseId),
+  const { data: exam, isLoading: loadingEx, error: examError } = useQuery({
+    queryKey: ["exam", examId],
+    queryFn: () => studentApi.getExam(examId),
   });
 
   const canLoadQuestions =
-    Boolean(exercise) &&
-    exercise!.status === "open" &&
-    !exercise!.has_submitted &&
-    exercise!.question_count > 0;
+    Boolean(exam) &&
+    exam!.status === "open" &&
+    !exam!.has_submitted &&
+    exam!.question_count > 0;
+
+  const { data: session, isLoading: loadingSession, error: sessionError } = useQuery({
+    queryKey: ["exam-session", examId],
+    queryFn: () => studentApi.startExam(examId),
+    enabled: canLoadQuestions,
+    retry: false,
+  });
 
   const { data: questions, isLoading: loadingQ } = useQuery({
-    queryKey: ["exercise-questions", exerciseId],
-    queryFn: () => studentApi.getExerciseQuestions(exerciseId),
-    enabled: canLoadQuestions,
+    queryKey: ["exam-questions", examId],
+    queryFn: () => studentApi.getExamQuestions(examId),
+    enabled: canLoadQuestions && Boolean(session),
   });
 
   const submitMutation = useMutation({
-    mutationFn: () => studentApi.submitExercise(exerciseId, answers),
+    mutationFn: () => studentApi.submitExam(examId, answers),
     onSuccess: (result) => {
-      const pending = result.grading_status === "pending_manual";
-      toast.success(
-        pending
-          ? `Submitted! Auto score: ${result.score}/${result.max_score}. Some answers await teacher review.`
-          : `Submitted! Score: ${result.score}/${result.max_score}`
-      );
+      toast.success(`Exam submitted! Score: ${result.score}/${result.max_score}`);
       router.push("/assessments");
     },
     onError: (err: Error) => toast.error(err.message || "Submission failed"),
   });
 
-  const isLoading = loadingEx || (canLoadQuestions && loadingQ);
+  useEffect(() => {
+    if (session?.remaining_seconds != null) {
+      setRemainingSeconds(session.remaining_seconds);
+    }
+  }, [session?.remaining_seconds]);
+
+  useEffect(() => {
+    if (remainingSeconds == null || remainingSeconds <= 0) return;
+    const timer = window.setInterval(() => {
+      setRemainingSeconds((prev) => (prev == null ? prev : Math.max(0, prev - 1)));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [remainingSeconds]);
+
+  useEffect(() => {
+    if (
+      remainingSeconds === 0 &&
+      canLoadQuestions &&
+      !submitMutation.isPending &&
+      !autoSubmitted.current
+    ) {
+      autoSubmitted.current = true;
+      submitMutation.mutate();
+    }
+  }, [remainingSeconds, canLoadQuestions, submitMutation]);
+
+  const isLoading =
+    loadingEx || (canLoadQuestions && (loadingSession || loadingQ));
+  const loadError = examError || sessionError;
   const question = questions?.[currentQ] ?? null;
   const isLast = questions ? currentQ === questions.length - 1 : false;
   const hasAnswer = question ? Boolean(answers[question.id]?.trim()) : false;
-  const canTake = Boolean(exercise && questions?.length && exercise.status === "open");
+  const canTake = Boolean(
+    exam && questions?.length && exam.status === "open" && session
+  );
+  const timeExpired = remainingSeconds === 0;
 
   return (
     <AppShell variant="auth">
@@ -82,15 +117,15 @@ export default function ExercisePage({
         </div>
       )}
 
-      {!isLoading && exerciseError && (
+      {!isLoading && loadError && (
         <div className="flex items-center justify-center min-h-[60vh] p-4">
           <Card className="card-shadow w-full max-w-lg">
             <CardContent className="p-8 text-center space-y-3">
               <p className="text-xl font-semibold text-emerald-deep">
-                Exercise unavailable
+                Exam unavailable
               </p>
               <p className="text-sm text-muted-foreground">
-                {exerciseError.message}
+                {loadError.message}
               </p>
               <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
@@ -100,51 +135,50 @@ export default function ExercisePage({
         </div>
       )}
 
-      {!isLoading && !exerciseError && exercise && exercise.status === "upcoming" && (
-        <div className="flex items-center justify-center min-h-[60vh] p-4">
-          <Card className="card-shadow w-full max-w-lg">
-            <CardContent className="p-8 text-center space-y-3">
-              <StatusBadge status="upcoming" />
-              <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
-              <p className="text-sm text-muted-foreground">
-                Opens on {format(new Date(exercise.start_date), "MMM d, yyyy 'at' h:mm a")}
-              </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
-                Back to assessments
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {!isLoading && !exerciseError && exercise && exercise.status === "expired" && (
-        <div className="flex items-center justify-center min-h-[60vh] p-4">
-          <Card className="card-shadow w-full max-w-lg">
-            <CardContent className="p-8 text-center space-y-3">
-              <StatusBadge status="expired" />
-              <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
-              <p className="text-sm text-muted-foreground">
-                This exercise closed on {format(new Date(exercise.end_date), "MMM d, yyyy")}.
-              </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
-                Back to assessments
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {!isLoading && !exerciseError && exercise && exercise.has_submitted && (
+      {!isLoading && !loadError && exam && exam.has_submitted && (
         <div className="flex items-center justify-center min-h-[60vh] p-4">
           <Card className="card-shadow w-full max-w-lg">
             <CardContent className="p-8 text-center space-y-3">
               <StatusBadge status="completed" />
-              <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
+              <p className="text-xl font-semibold text-emerald-deep">{exam.title}</p>
+              {exam.score !== undefined && (
+                <p className="text-lg font-medium text-emerald-deep">
+                  Score: {exam.score}/{exam.max_score}
+                </p>
+              )}
+              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                Back to assessments
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!isLoading && !loadError && exam && exam.status === "upcoming" && (
+        <div className="flex items-center justify-center min-h-[60vh] p-4">
+          <Card className="card-shadow w-full max-w-lg">
+            <CardContent className="p-8 text-center space-y-3">
+              <StatusBadge status="upcoming" />
+              <p className="text-xl font-semibold text-emerald-deep">{exam.title}</p>
               <p className="text-sm text-muted-foreground">
-                You already submitted this exercise.
-                {exercise.score != null && (
-                  <> Score: {exercise.score}/{exercise.max_score}</>
-                )}
+                Opens on {format(new Date(exam.start_date), "MMM d, yyyy 'at' h:mm a")}
+              </p>
+              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                Back to assessments
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!isLoading && !loadError && exam && exam.status === "expired" && !exam.has_submitted && (
+        <div className="flex items-center justify-center min-h-[60vh] p-4">
+          <Card className="card-shadow w-full max-w-lg">
+            <CardContent className="p-8 text-center space-y-3">
+              <StatusBadge status="expired" />
+              <p className="text-xl font-semibold text-emerald-deep">{exam.title}</p>
+              <p className="text-sm text-muted-foreground">
+                This exam closed on {format(new Date(exam.end_date), "MMM d, yyyy")}
               </p>
               <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
@@ -155,17 +189,16 @@ export default function ExercisePage({
       )}
 
       {!isLoading &&
-        !exerciseError &&
-        exercise &&
-        exercise.status === "open" &&
-        !exercise.has_submitted &&
-        exercise.question_count === 0 && (
+        !loadError &&
+        exam &&
+        exam.status === "open" &&
+        exam.question_count === 0 && (
           <div className="flex items-center justify-center min-h-[60vh] p-4">
             <Card className="card-shadow w-full max-w-lg">
               <CardContent className="p-8 text-center space-y-3">
-                <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
+                <p className="text-xl font-semibold text-emerald-deep">{exam.title}</p>
                 <p className="text-sm text-muted-foreground">
-                  This exercise is open, but no questions have been added yet.
+                  This exam is open, but no questions have been added yet.
                 </p>
                 <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
                   Back to assessments
@@ -175,23 +208,25 @@ export default function ExercisePage({
           </div>
         )}
 
-      {canTake && question && exercise && (
+      {canTake && question && (
         <>
           <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3">
             <div className="flex items-center justify-between mb-2">
               <Link
-                href="/dashboard"
+                href="/assessments"
                 className="inline-flex items-center gap-1 text-sm text-emerald-deep hover:text-emerald-mid"
               >
                 <HugeiconsIcon icon={Home01Icon} size={16} />
-                Back to Home
+                Back to assessments
               </Link>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 bg-gold-light rounded-full px-3 py-1">
                 <HugeiconsIcon icon={Clock01Icon} size={16} className="text-gold" />
                 <span className="text-sm font-medium text-emerald-deep">
-                  Due {format(new Date(exercise.end_date), "MMM d, yyyy")}
+                  {remainingSeconds != null
+                    ? formatCountdown(remainingSeconds)
+                    : "—"}
                 </span>
               </div>
               <span className="text-sm text-muted-foreground">
@@ -227,7 +262,9 @@ export default function ExercisePage({
 
             <Button
               className="w-full h-12 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
-              disabled={!hasAnswer || submitMutation.isPending}
+              disabled={
+                !hasAnswer || submitMutation.isPending || timeExpired
+              }
               onClick={() => {
                 if (isLast) {
                   submitMutation.mutate();
@@ -239,7 +276,7 @@ export default function ExercisePage({
               {isLast
                 ? submitMutation.isPending
                   ? "Submitting..."
-                  : "Submit Exercise"
+                  : "Submit Exam"
                 : "Next Question"}
               <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
             </Button>

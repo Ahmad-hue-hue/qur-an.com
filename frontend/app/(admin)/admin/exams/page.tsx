@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import Link from "next/link";
 import { adminApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -175,27 +176,34 @@ export default function AdminExamsPage() {
         )}
 
         {exams?.map((exam) => (
-          <Card key={exam.id} className="card-shadow">
-            <CardContent className="p-4 flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm">{exam.title}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {format(new Date(exam.start_date), "MMM d")} –{" "}
-                  {format(new Date(exam.end_date), "MMM d")} · {exam.duration_minutes}{" "}
-                  min · {exam.question_count} questions · {exam.status}
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive"
-                onClick={() => setPendingDelete({ id: exam.id, title: exam.title })}
-                disabled={deleteMutation.isPending}
-              >
-                <HugeiconsIcon icon={Delete02Icon} size={16} />
-              </Button>
-            </CardContent>
-          </Card>
+          <Link key={exam.id} href={`/admin/exams/${exam.id}`}>
+            <Card className="card-shadow hover:shadow-md transition-shadow">
+              <CardContent className="p-4 flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{exam.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {format(new Date(exam.start_date), "MMM d")} –{" "}
+                    {format(new Date(exam.end_date), "MMM d")} · {exam.duration_minutes}{" "}
+                    min · {exam.question_count} questions · {exam.status}
+                  </p>
+                  <p className="text-xs text-emerald-deep mt-1">Manage questions →</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setPendingDelete({ id: exam.id, title: exam.title });
+                  }}
+                  disabled={deleteMutation.isPending}
+                >
+                  <HugeiconsIcon icon={Delete02Icon} size={16} />
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
 
         {!isLoading && exams?.length === 0 && (

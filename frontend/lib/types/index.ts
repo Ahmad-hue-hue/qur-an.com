@@ -141,6 +141,19 @@ export interface ExerciseDetail extends Exercise {
   questions?: QuestionAdmin[];
 }
 
+export interface ExamDetail extends Exam {
+  questions?: QuestionAdmin[];
+}
+
+export interface ExamSubmissionAdmin {
+  id: number;
+  student_name: string;
+  score: number;
+  max_score: number;
+  submitted_at: string;
+  answers: Record<string, string>;
+}
+
 export interface ManualScore {
   id: number;
   type: "halaqah" | "tadreeb";

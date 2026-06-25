@@ -13,6 +13,8 @@ import type {
   CreateQuestionData,
   CreateStudentData,
   Exam,
+  ExamDetail,
+  ExamSubmissionAdmin,
   Exercise,
   ExerciseDetail,
   ExerciseSubmissionAdmin,
@@ -476,10 +478,11 @@ export const adminApi = {
         .eq("exercise_id", id)
         .order("order")
     ) as Record<string, unknown>[];
+    const marhalahNumber = await resolveMarhalahNumberById(exercise.marhalah_id as number);
 
     return {
       id: exercise.id as number,
-      marhalah: exercise.marhalah_id as number,
+      marhalah: marhalahNumber,
       title: exercise.title as string,
       description: (exercise.description as string) || undefined,
       start_date: exercise.start_date as string,
@@ -693,9 +696,10 @@ export const adminApi = {
         .select("*")
         .single()
     ) as Record<string, unknown>;
+    const marhalahNumber = await resolveMarhalahNumberById(row.marhalah_id as number);
     return {
       id: row.id as number,
-      marhalah: row.marhalah_id as number,
+      marhalah: marhalahNumber,
       title: row.title as string,
       description: (row.description as string) || undefined,
       duration_minutes: Number(row.duration_minutes),
@@ -727,6 +731,136 @@ export const adminApi = {
 
   deleteExam: async (id: number): Promise<void> => {
     throwIfError(await getSupabase().from("exams").delete().eq("id", id));
+  },
+
+  getExam: async (id: number): Promise<ExamDetail> => {
+    const exam = throwIfError(
+      await getSupabase().from("exams").select("*").eq("id", id).single()
+    ) as Record<string, unknown>;
+    const questions = throwIfError(
+      await getSupabase()
+        .from("questions")
+        .select("*")
+        .eq("exam_id", id)
+        .order("order")
+    ) as Record<string, unknown>[];
+    const marhalahNumber = await resolveMarhalahNumberById(exam.marhalah_id as number);
+
+    return {
+      id: exam.id as number,
+      marhalah: marhalahNumber,
+      title: exam.title as string,
+      description: (exam.description as string) || undefined,
+      duration_minutes: Number(exam.duration_minutes),
+      start_date: exam.start_date as string,
+      end_date: exam.end_date as string,
+      status: "open",
+      question_count: questions.length,
+      has_submitted: false,
+      questions: questions.map(mapQuestionRow),
+    };
+  },
+
+  addExamQuestion: async (
+    examId: number,
+    data: CreateQuestionData
+  ): Promise<Question> => {
+    const supabase = getSupabase();
+    let order = data.order;
+    if (order == null) {
+      const last = (
+        await supabase
+          .from("questions")
+          .select("order")
+          .eq("exam_id", examId)
+          .order("order", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      ).data;
+      order = last ? Number(last.order) + 1 : 1;
+    }
+
+    const row = throwIfError(
+      await supabase
+        .from("questions")
+        .insert({
+          exam_id: examId,
+          type: data.type,
+          text: data.text,
+          arabic_text: data.arabic_text ?? "",
+          options: data.options ?? [],
+          correct_answer: data.correct_answer ?? "",
+          order,
+          max_score: data.max_score ?? 1,
+        })
+        .select("*")
+        .single()
+    );
+    return mapQuestionRow(row);
+  },
+
+  updateExamQuestion: async (
+    examId: number,
+    questionId: number,
+    data: Partial<CreateQuestionData>
+  ): Promise<Question> => {
+    const payload: Record<string, unknown> = {};
+    if (data.type != null) payload.type = data.type;
+    if (data.text != null) payload.text = data.text;
+    if (data.arabic_text != null) payload.arabic_text = data.arabic_text;
+    if (data.options != null) payload.options = data.options;
+    if (data.correct_answer != null) payload.correct_answer = data.correct_answer;
+    if (data.order != null) payload.order = data.order;
+    if (data.max_score != null) payload.max_score = data.max_score;
+
+    const row = throwIfError(
+      await getSupabase()
+        .from("questions")
+        .update(payload)
+        .eq("id", questionId)
+        .eq("exam_id", examId)
+        .select("*")
+        .single()
+    );
+    return mapQuestionRow(row);
+  },
+
+  deleteExamQuestion: async (examId: number, questionId: number): Promise<void> => {
+    throwIfError(
+      await getSupabase()
+        .from("questions")
+        .delete()
+        .eq("id", questionId)
+        .eq("exam_id", examId)
+    );
+  },
+
+  getExamSubmissions: async (examId: number): Promise<ExamSubmissionAdmin[]> => {
+    const rows = throwIfError(
+      await getSupabase()
+        .from("exam_submissions")
+        .select(
+          `
+          *,
+          profiles:student_id ( first_name, last_name )
+        `
+        )
+        .eq("exam_id", examId)
+        .not("submitted_at", "is", null)
+        .order("submitted_at", { ascending: false })
+    ) as Record<string, unknown>[];
+
+    return rows.map((row) => {
+      const profile = row.profiles as { first_name: string; last_name: string };
+      return {
+        id: row.id as number,
+        student_name: `${profile.first_name} ${profile.last_name}`,
+        score: Number(row.score),
+        max_score: Number(row.max_score),
+        submitted_at: row.submitted_at as string,
+        answers: (row.answers as Record<string, string>) ?? {},
+      };
+    });
   },
 };
 

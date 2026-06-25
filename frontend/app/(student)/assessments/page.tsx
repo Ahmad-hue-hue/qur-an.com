@@ -27,6 +27,9 @@ export default function AssessmentsPage() {
   });
 
   const marhalahNumber = dashboard?.current_marhalah.number ?? 1;
+  const topicsComplete =
+    Boolean(dashboard?.total_topics) &&
+    (dashboard?.topics_completed ?? 0) >= (dashboard?.total_topics ?? 0);
 
   return (
     <AppShell>
@@ -88,37 +91,64 @@ export default function AssessmentsPage() {
           </TabsContent>
 
           <TabsContent value="exams" className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-            {exams?.map((exam) => (
-              <Card key={exam.id} className="card-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">{exam.title}</h3>
-                    <StatusBadge status={exam.status} />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {exam.duration_minutes} min · {exam.question_count}{" "}
-                    questions ·{" "}
-                    {format(new Date(exam.start_date), "MMM d")} –{" "}
-                    {format(new Date(exam.end_date), "MMM d, yyyy")}
-                  </p>
-                  {exam.has_submitted && exam.score !== undefined && (
-                    <p className="text-sm font-medium text-emerald-deep mt-2">
-                      Score: {exam.score}/{exam.max_score}
+            {exams?.map((exam) => {
+              const canTake =
+                exam.status === "open" &&
+                exam.question_count > 0 &&
+                topicsComplete &&
+                !exam.has_submitted;
+              const card = (
+                <Card
+                  className={`card-shadow ${canTake ? "hover:shadow-md transition-shadow" : ""}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium">{exam.title}</h3>
+                      <StatusBadge status={exam.status} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {exam.duration_minutes} min · {exam.question_count}{" "}
+                      questions ·{" "}
+                      {format(new Date(exam.start_date), "MMM d")} –{" "}
+                      {format(new Date(exam.end_date), "MMM d, yyyy")}
                     </p>
-                  )}
-                  {exam.status === "open" && exam.question_count === 0 && (
-                    <p className="text-xs text-amber-700 mt-2">
-                      Waiting for your instructor to add exam questions.
-                    </p>
-                  )}
-                  {exam.status === "upcoming" && (
-                    <p className="text-xs text-amber-700 mt-2">
-                      Opens {format(new Date(exam.start_date), "MMM d, yyyy")}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    {exam.has_submitted && exam.score !== undefined && (
+                      <p className="text-sm font-medium text-emerald-deep mt-2">
+                        Score: {exam.score}/{exam.max_score}
+                      </p>
+                    )}
+                    {exam.status === "open" && !topicsComplete && (
+                      <p className="text-xs text-amber-700 mt-2">
+                        Complete all topics in this Marḥalah to unlock this exam.
+                      </p>
+                    )}
+                    {exam.status === "open" && exam.question_count === 0 && (
+                      <p className="text-xs text-amber-700 mt-2">
+                        Waiting for your instructor to add exam questions.
+                      </p>
+                    )}
+                    {exam.status === "upcoming" && (
+                      <p className="text-xs text-amber-700 mt-2">
+                        Opens {format(new Date(exam.start_date), "MMM d, yyyy")}
+                      </p>
+                    )}
+                    {canTake && (
+                      <p className="text-xs text-emerald-deep mt-2 font-medium">
+                        Tap to start exam
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+
+              return canTake ? (
+                <Link key={exam.id} href={`/exams/${exam.id}`}>
+                  {card}
+                </Link>
+              ) : (
+                card
+              );
+            })}
             {!loadingExams && exams?.length === 0 && (
               <Card className="card-shadow md:col-span-2">
                 <CardContent className="p-6 text-center text-sm text-muted-foreground">
