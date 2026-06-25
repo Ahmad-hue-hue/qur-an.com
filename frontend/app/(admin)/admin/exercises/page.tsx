@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { AdminExerciseWorkflowGuide } from "@/components/admin/admin-exercise-workflow-guide";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete02Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
@@ -119,18 +120,18 @@ export default function AdminExercisesPage() {
         </Select>
       </PageHeader>
 
-      <div className="page-content">
+      <div className="page-content space-y-4">
+        <AdminExerciseWorkflowGuide />
+
         <Card className="card-shadow border-emerald-deep/20 bg-emerald-light/30">
           <CardContent className="p-4 text-sm space-y-1">
-            <p className="font-medium text-emerald-deep">
-              Exercises are shown to students by Marḥalah
-            </p>
+            <p className="font-medium text-emerald-deep">Quick tips</p>
             <p className="text-muted-foreground">
               Students only see exercises for their current Marḥalah. If a student
               cannot see an exercise, check their Marḥalah in Admin → Students.
             </p>
             <p className="text-muted-foreground text-xs">
-              MCQ · Fill in the blank · True/False · Fill the gap
+              Auto-graded: MCQ · Fill in the blank · True/False · Manual: Fill the gap · Written
             </p>
           </CardContent>
         </Card>
@@ -300,7 +301,7 @@ export default function AdminExercisesPage() {
                   size="sm"
                   className="shrink-0 gap-1 border-emerald-deep/30 text-emerald-deep"
                 >
-                  Submissions
+                  Grade & results
                   <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
                 </Button>
               </Link>
@@ -310,7 +311,7 @@ export default function AdminExercisesPage() {
                   size="sm"
                   className="shrink-0 gap-1 border-emerald-deep/30 text-emerald-deep"
                 >
-                  Manage
+                  Questions
                   <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
                 </Button>
               </Link>

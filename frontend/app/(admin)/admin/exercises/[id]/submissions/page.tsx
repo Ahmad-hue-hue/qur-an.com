@@ -25,7 +25,7 @@ export default function AdminExerciseSubmissionsPage({
 
   return (
     <AppShell variant="admin">
-      <PageHeader title="Exercise submissions">
+      <PageHeader title="Grade & results">
         <Link
           href={`/admin/exercises/${exerciseId}`}
           className="inline-flex items-center gap-1 text-sm text-cream/80 hover:text-cream mt-2"

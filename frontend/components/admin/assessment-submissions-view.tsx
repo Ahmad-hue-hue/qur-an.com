@@ -74,11 +74,16 @@ export function AssessmentSubmissionsView({
   return (
     <div className="space-y-4">
       <Card className="card-shadow border-emerald-deep/20 bg-emerald-light/10">
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-2">
           <p className="font-medium text-emerald-deep">{title}</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Review each student&apos;s submitted answers, scores, and add feedback for
-            written or fill-the-gap questions.
+          <p className="text-sm text-muted-foreground">
+            MCQ, True/False, and Fill blank are graded automatically when a student
+            submits. Results appear on the student app right away — no publish button.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            For Fill the gap and Written questions, enter a score and optional feedback
+            in Manual grading below, then tap Save grade. The student&apos;s total score
+            updates immediately.
           </p>
         </CardContent>
       </Card>

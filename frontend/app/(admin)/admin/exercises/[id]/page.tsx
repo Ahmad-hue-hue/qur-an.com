@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { AdminExerciseWorkflowGuide } from "@/components/admin/admin-exercise-workflow-guide";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
@@ -121,6 +122,11 @@ export default function AdminExerciseDetailPage({
     onError: (err: Error) => toast.error(err.message || "Delete failed"),
   });
 
+  const pendingManualGrades =
+    submissions?.flatMap((sub) =>
+      sub.answer_grades.filter((g) => g.score === null)
+    ).length ?? 0;
+
   return (
     <AppShell variant="admin">
       <PageHeader title={exercise?.title ?? "Exercise"}>
@@ -140,6 +146,11 @@ export default function AdminExerciseDetailPage({
 
         {exercise && (
           <>
+            <AdminExerciseWorkflowGuide
+              submissionsHref={`/admin/exercises/${exerciseId}/submissions`}
+              pendingCount={pendingManualGrades}
+            />
+
             <Card className="card-shadow">
               <CardContent className="p-4 space-y-1">
                 <p className="text-sm text-muted-foreground">
@@ -159,14 +170,23 @@ export default function AdminExerciseDetailPage({
               <Card className="card-shadow border-emerald-deep/30 bg-emerald-light/20 hover:shadow-md transition-shadow">
                 <CardContent className="p-4 flex items-center justify-between gap-3">
                   <div>
-                    <p className="font-medium text-emerald-deep">Student submissions</p>
+                    <p className="font-medium text-emerald-deep">Grade & post results</p>
                     <p className="text-sm text-muted-foreground">
-                      View answers, scores, and add feedback
+                      View student answers. Auto-graded scores appear on submit; grade
+                      manual answers below to finish results.
                     </p>
                   </div>
-                  <p className="text-sm font-semibold text-emerald-deep shrink-0">
-                    {submissions?.length ?? 0} submitted →
-                  </p>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-semibold text-emerald-deep">
+                      {submissions?.length ?? 0} submitted →
+                    </p>
+                    {pendingManualGrades > 0 && (
+                      <p className="text-xs text-amber-700">
+                        {pendingManualGrades} pending grade
+                        {pendingManualGrades === 1 ? "" : "s"}
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </Link>
