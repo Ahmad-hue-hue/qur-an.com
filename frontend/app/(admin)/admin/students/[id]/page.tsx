@@ -19,6 +19,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
@@ -39,11 +46,17 @@ export default function AdminStudentDetailPage({
     last_name: "",
     phone: "",
     registration_number: "",
+    current_marhalah: "1",
   });
 
   const { data: student, isLoading } = useQuery({
     queryKey: ["admin-student", id],
     queryFn: () => adminApi.getStudent(studentId),
+  });
+
+  const { data: marhalahs } = useQuery({
+    queryKey: ["admin-marhalahs"],
+    queryFn: adminApi.getMarhalahs,
   });
 
   const invalidate = () => {
@@ -58,6 +71,7 @@ export default function AdminStudentDetailPage({
         last_name: form.last_name,
         phone: form.phone,
         registration_number: form.registration_number.trim() || null,
+        current_marhalah: parseInt(form.current_marhalah) || 1,
       }),
     onSuccess: () => {
       invalidate();
@@ -121,9 +135,14 @@ export default function AdminStudentDetailPage({
       last_name: student.last_name,
       phone: student.phone || "",
       registration_number: student.registration_number || "",
+      current_marhalah: String(student.current_marhalah ?? 1),
     });
     setEditOpen(true);
   };
+
+  const currentMarhalahLabel =
+    marhalahs?.find((m) => m.number === student?.current_marhalah)?.title ??
+    (student ? `Marḥalah ${student.current_marhalah}` : "");
 
   return (
     <AppShell variant="admin">
@@ -162,7 +181,7 @@ export default function AdminStudentDetailPage({
               ["Email", student.email],
               ["Phone", student.phone || "—"],
               ["Registration", student.registration_number || "Pending"],
-              ["Current Marḥalah", `Marḥalah ${student.current_marhalah}`],
+              ["Current Marḥalah", currentMarhalahLabel],
               ["Progress", `${student.progress_percent}%`],
               ["Topics", `${student.topics_completed}/${student.total_topics}`],
               ["Overall Average", `${student.overall_average}%`],
@@ -240,6 +259,38 @@ export default function AdminStudentDetailPage({
                   setForm((prev) => ({ ...prev, phone: e.target.value }))
                 }
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Current Marḥalah</Label>
+              <Select
+                value={form.current_marhalah}
+                onValueChange={(v) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    current_marhalah: v ?? prev.current_marhalah,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(marhalahs?.length
+                    ? marhalahs
+                    : [1, 2, 3, 4].map((n) => ({
+                        number: n,
+                        title: `Marḥalah ${n}`,
+                      }))
+                  ).map((m) => (
+                    <SelectItem key={m.number} value={String(m.number)}>
+                      {m.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Controls which lessons and assessments this student sees.
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Registration Number</Label>
