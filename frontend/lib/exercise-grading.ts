@@ -2,7 +2,7 @@ import type { ExerciseAnswerGrade, QuestionType } from "@/lib/types";
 import { QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
 
 export function isManualQuestionType(type: QuestionType): boolean {
-  return type === "fill_gap" || type === "written";
+  return type === "fill_blank" || type === "fill_gap" || type === "written";
 }
 
 export function isAutoGradedGrade(grade: ExerciseAnswerGrade): boolean {

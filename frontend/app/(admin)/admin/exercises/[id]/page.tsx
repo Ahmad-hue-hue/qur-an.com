@@ -274,16 +274,21 @@ export default function AdminExerciseDetailPage({
                   )}
 
                   {questionForm.type === "fill_blank" && (
-                    <Input
-                      placeholder="Correct answer"
-                      value={questionForm.correct_answer}
-                      onChange={(e) =>
-                        setQuestionForm((p) => ({
-                          ...p,
-                          correct_answer: e.target.value,
-                        }))
-                      }
-                    />
+                    <>
+                      <Input
+                        placeholder="Reference answer (optional, for your notes)"
+                        value={questionForm.correct_answer}
+                        onChange={(e) =>
+                          setQuestionForm((p) => ({
+                            ...p,
+                            correct_answer: e.target.value,
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Fill in the blank is graded manually after students submit.
+                      </p>
+                    </>
                   )}
 
                   {questionForm.type === "true_false" && (

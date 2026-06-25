@@ -168,12 +168,12 @@ export function ExerciseGradingGuide() {
         <p className="font-medium text-emerald-deep">How grading works</p>
         <ul className="text-muted-foreground text-xs space-y-1 list-disc pl-4">
           <li>
-            <strong>MCQ, True/False, Fill blank</strong> are auto-graded instantly when
-            a student submits.
+            <strong>MCQ and True/False</strong> are auto-graded instantly when a
+            student submits.
           </li>
           <li>
-            <strong>Fill the gap</strong> answers stay pending until you enter a score
-            in Manual grading below.
+            <strong>Fill in the blank, Fill the gap, and Written</strong> answers stay
+            pending until you enter a score in Manual grading below.
           </li>
           <li>
             Set the correct answer when creating auto-graded questions so the system

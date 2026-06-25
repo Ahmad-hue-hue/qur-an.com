@@ -77,12 +77,12 @@ export function AssessmentSubmissionsView({
         <CardContent className="p-4 space-y-2">
           <p className="font-medium text-emerald-deep">{title}</p>
           <p className="text-sm text-muted-foreground">
-            MCQ, True/False, and Fill blank are graded automatically when a student
-            submits. Results appear on the student app right away — no publish button.
+            MCQ and True/False are graded automatically when a student submits.
+            Results appear on the student app right away for those types — no publish button.
           </p>
           <p className="text-sm text-muted-foreground">
-            For Fill the gap and Written questions, enter a score and optional feedback
-            in Manual grading below, then tap Save grade. The student&apos;s total score
+            For Fill in the blank, Fill the gap, and Written questions, enter a score
+            and optional feedback in Manual grading below, then tap Save grade. The student&apos;s total score
             updates immediately.
           </p>
         </CardContent>

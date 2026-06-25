@@ -10,7 +10,7 @@ const STEPS = [
   },
   {
     title: "Add questions",
-    body: "Open Manage and add questions. For MCQ, True/False, and Fill blank, set the correct answer so the system can auto-grade.",
+    body: "Open Manage and add questions. MCQ and True/False are auto-graded when you set the correct answer. Fill blank, fill the gap, and written need manual grading.",
   },
   {
     title: "Students complete it",
@@ -22,7 +22,7 @@ const STEPS = [
   },
   {
     title: "Grade manual answers (if any)",
-    body: "Open Submissions → Manual grading for Fill the gap or Written questions. Enter score + feedback and tap Save grade.",
+    body: "Open Submissions → Manual grading for Fill in the blank, Fill the gap, or Written questions. Enter score + feedback and tap Save grade.",
   },
   {
     title: "Students view feedback",

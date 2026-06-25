@@ -131,7 +131,7 @@ export default function AdminExercisesPage() {
               cannot see an exercise, check their Marḥalah in Admin → Students.
             </p>
             <p className="text-muted-foreground text-xs">
-              Auto-graded: MCQ · Fill in the blank · True/False · Manual: Fill the gap · Written
+              Auto-graded: MCQ · True/False · Manual: Fill in the blank · Fill the gap · Written
             </p>
           </CardContent>
         </Card>
@@ -235,13 +235,18 @@ export default function AdminExercisesPage() {
                   </>
                 )}
                 {form.question_type === "fill_blank" && (
-                  <Input
-                    placeholder="Correct answer"
-                    value={form.correct_answer}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, correct_answer: e.target.value }))
-                    }
-                  />
+                  <>
+                    <Input
+                      placeholder="Reference answer (optional, for your notes)"
+                      value={form.correct_answer}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, correct_answer: e.target.value }))
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Fill in the blank is graded manually after students submit.
+                    </p>
+                  </>
                 )}
                 {form.question_type === "true_false" && (
                   <Select
