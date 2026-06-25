@@ -133,9 +133,21 @@ export default function ExercisePage({
                   ? `This exercise closed on ${format(new Date(exercise.end_date), "MMM d, yyyy")}.`
                   : `You did not submit this exercise before it closed on ${format(new Date(exercise.end_date), "MMM d, yyyy")}.`}
               </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
-                Back to assessments
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                {exercise.question_count > 0 && (
+                  <Link
+                    href={`/exercises/${exerciseId}/review`}
+                    className={buttonVariants({
+                      className: "bg-emerald-deep hover:bg-emerald-mid text-cream",
+                    })}
+                  >
+                    {exercise.has_submitted ? "Review exercise" : "Review questions"}
+                  </Link>
+                )}
+                <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                  Back to assessments
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>

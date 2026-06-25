@@ -112,10 +112,12 @@ export default function AssessmentsPage() {
                       </Link>
                     ) : ex.status === "expired" && !ex.has_submitted ? (
                       <Link
-                        href={`/exercises/${ex.id}`}
-                        className={buttonVariants({ variant: "outline", className: "flex-1" })}
+                        href={`/exercises/${ex.id}/review`}
+                        className={buttonVariants({
+                          className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                        })}
                       >
-                        View details
+                        Review questions
                       </Link>
                     ) : null}
                   </div>
