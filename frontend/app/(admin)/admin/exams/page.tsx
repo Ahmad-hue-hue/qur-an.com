@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Delete02Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 
 function toLocalInputValue(date: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -189,36 +189,38 @@ export default function AdminExamsPage() {
                       ` · ${exam.submission_count} submission${exam.submission_count === 1 ? "" : "s"}`}
                   </p>
                 </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Link href={`/admin/exams/${exam.id}`}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Edit questions"
+                    >
+                      <HugeiconsIcon icon={Edit02Icon} size={16} />
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive"
+                    onClick={() =>
+                      setPendingDelete({ id: exam.id, title: exam.title })
+                    }
+                    disabled={deleteMutation.isPending}
+                    aria-label="Delete exam"
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={16} />
+                  </Button>
+                </div>
+              </div>
+              <Link href={`/admin/exams/${exam.id}/submissions`}>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 text-destructive"
-                  onClick={() =>
-                    setPendingDelete({ id: exam.id, title: exam.title })
-                  }
-                  disabled={deleteMutation.isPending}
+                  variant="outline"
+                  className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
                 >
-                  <HugeiconsIcon icon={Delete02Icon} size={16} />
+                  Grade & results
                 </Button>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Link href={`/admin/exams/${exam.id}/submissions`} className="flex-1">
-                  <Button
-                    variant="outline"
-                    className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
-                  >
-                    Grade & results
-                  </Button>
-                </Link>
-                <Link href={`/admin/exams/${exam.id}`} className="flex-1">
-                  <Button
-                    variant="outline"
-                    className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
-                  >
-                    Questions
-                  </Button>
-                </Link>
-              </div>
+              </Link>
             </CardContent>
           </Card>
         ))}

@@ -26,7 +26,7 @@ import Link from "next/link";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { AdminExerciseWorkflowGuide } from "@/components/admin/admin-exercise-workflow-guide";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Delete02Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Delete02Icon, ArrowRight01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 
 function toLocalInputValue(date: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -299,38 +299,39 @@ export default function AdminExercisesPage() {
                       ` · ${exercise.submission_count} submission${exercise.submission_count === 1 ? "" : "s"}`}
                   </p>
                 </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Link href={`/admin/exercises/${exercise.id}`}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Edit questions"
+                    >
+                      <HugeiconsIcon icon={Edit02Icon} size={16} />
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive"
+                    onClick={() =>
+                      setPendingDelete({ id: exercise.id, title: exercise.title })
+                    }
+                    disabled={deleteMutation.isPending}
+                    aria-label="Delete exercise"
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={16} />
+                  </Button>
+                </div>
+              </div>
+              <Link href={`/admin/exercises/${exercise.id}/submissions`}>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 text-destructive"
-                  onClick={() =>
-                    setPendingDelete({ id: exercise.id, title: exercise.title })
-                  }
-                  disabled={deleteMutation.isPending}
+                  variant="outline"
+                  className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
                 >
-                  <HugeiconsIcon icon={Delete02Icon} size={16} />
+                  Grade & results
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
                 </Button>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Link href={`/admin/exercises/${exercise.id}/submissions`} className="flex-1">
-                  <Button
-                    variant="outline"
-                    className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
-                  >
-                    Grade & results
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
-                  </Button>
-                </Link>
-                <Link href={`/admin/exercises/${exercise.id}`} className="flex-1">
-                  <Button
-                    variant="outline"
-                    className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
-                  >
-                    Questions
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
-                  </Button>
-                </Link>
-              </div>
+              </Link>
             </CardContent>
           </Card>
         ))}
