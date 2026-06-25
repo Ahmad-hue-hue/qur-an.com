@@ -56,9 +56,16 @@ set role = 'admin'
 where email = 'your-admin@email.com';
 ```
 
-3. Sign in at **`/login`** with that same email and password (no separate admin page, no sign up needed for existing admins).
+3. Sign in at `/login` with your admin email (no sign up needed for existing admins)
 
-Change the admin password after first login via Supabase Dashboard → Authentication → Users.
+**Demo admin (production Supabase):**
+
+| Email | Password |
+|-------|----------|
+| `admin@tajweed.academy` | `admin12345` |
+| `admin@gmail.com` | `admin12345` |
+
+Change passwords after first login in Supabase Dashboard → Authentication → Users.
 
 ## 6. Run the frontend
 
