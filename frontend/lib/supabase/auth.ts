@@ -35,11 +35,18 @@ export const authApi = {
 
   login: async ({ email, password }: { email: string; password: string }) => {
     const supabase = getSupabase();
+    const normalizedEmail = email.trim().toLowerCase();
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: normalizedEmail,
       password,
     });
-    if (error) throw new SupabaseApiError(error.message);
+    if (error) {
+      const message =
+        error.message === "Invalid login credentials"
+          ? "Invalid email or password. Admins sign in here — no sign up needed."
+          : error.message;
+      throw new SupabaseApiError(message);
+    }
 
     const role = await fetchUserRole(supabase, data.user.id);
     if (!role) {

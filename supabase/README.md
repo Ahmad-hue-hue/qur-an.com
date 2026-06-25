@@ -47,14 +47,18 @@ supabase functions deploy delete-student
 
 ## 5. Create the first admin user
 
-1. Sign up a user via `/register` (or Supabase Auth dashboard)
-2. In SQL Editor, promote them to admin:
+1. Register at `/register` with your email and password (or create the user in Supabase Auth).
+2. Promote to admin in SQL Editor:
 
 ```sql
 update public.profiles
 set role = 'admin'
 where email = 'your-admin@email.com';
 ```
+
+3. Sign in at **`/login`** with that same email and password (no separate admin page, no sign up needed for existing admins).
+
+Change the admin password after first login via Supabase Dashboard → Authentication → Users.
 
 ## 6. Run the frontend
 

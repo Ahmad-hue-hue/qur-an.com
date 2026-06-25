@@ -36,7 +36,8 @@ export default function LoginPage() {
   }, [loggingOut, logout, refreshAuth, router, wantsAdmin]);
 
   const loginMutation = useMutation({
-    mutationFn: () => authApi.login({ email, password }),
+    mutationFn: () =>
+      authApi.login({ email: email.trim().toLowerCase(), password }),
     onSuccess: async ({ role: loginRole }) => {
       if (wantsAdmin && loginRole !== "admin") {
         await authApi.logout();
@@ -88,6 +89,11 @@ export default function LoginPage() {
                   {wantsAdmin ? "Admin Sign In" : "Welcome Back"}
                 </h1>
                 <p className="text-muted-foreground text-sm mt-2">{formSubtitle}</p>
+                {!wantsAdmin && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Admin? Use your admin email and password — no sign up required.
+                  </p>
+                )}
               </div>
 
               <Card className="w-full border-0 card-shadow rounded-2xl bg-white">
