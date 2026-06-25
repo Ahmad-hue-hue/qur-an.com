@@ -290,7 +290,19 @@ export default function AdminExercisesPage() {
                   {format(new Date(exercise.start_date), "MMM d")} –{" "}
                   {format(new Date(exercise.end_date), "MMM d")} ·{" "}
                   {exercise.question_count} questions · {exercise.status}
+                  {(exercise.submission_count ?? 0) > 0 &&
+                    ` · ${exercise.submission_count} submission${exercise.submission_count === 1 ? "" : "s"}`}
                 </p>
+              </Link>
+              <Link href={`/admin/exercises/${exercise.id}/submissions`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1 border-emerald-deep/30 text-emerald-deep"
+                >
+                  Submissions
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                </Button>
               </Link>
               <Link href={`/admin/exercises/${exercise.id}`}>
                 <Button

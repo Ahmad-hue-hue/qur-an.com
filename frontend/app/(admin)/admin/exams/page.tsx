@@ -181,14 +181,26 @@ export default function AdminExamsPage() {
               <CardContent className="p-4 flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm">{exam.title}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {format(new Date(exam.start_date), "MMM d")} –{" "}
-                    {format(new Date(exam.end_date), "MMM d")} · {exam.duration_minutes}{" "}
-                    min · {exam.question_count} questions · {exam.status}
-                  </p>
-                  <p className="text-xs text-emerald-deep mt-1">Manage questions →</p>
-                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {format(new Date(exam.start_date), "MMM d")} –{" "}
+                  {format(new Date(exam.end_date), "MMM d")} · {exam.duration_minutes}{" "}
+                  min · {exam.question_count} questions · {exam.status}
+                  {(exam.submission_count ?? 0) > 0 &&
+                    ` · ${exam.submission_count} submission${exam.submission_count === 1 ? "" : "s"}`}
+                </p>
+                <p className="text-xs text-emerald-deep mt-1">Manage questions →</p>
+              </div>
+              <Link href={`/admin/exams/${exam.id}/submissions`}>
                 <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1 border-emerald-deep/30 text-emerald-deep"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Submissions
+                </Button>
+              </Link>
+              <Button
                   variant="ghost"
                   size="icon"
                   className="text-destructive"

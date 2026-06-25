@@ -317,6 +317,34 @@ function mapAnswerGrades(
   });
 }
 
+async function buildFallbackAnswerGrades(
+  supabase: ReturnType<typeof getSupabase>,
+  assessmentKind: "exercise" | "exam",
+  assessmentId: number,
+  answers: Record<string, string>
+): Promise<AssessmentSubmissionResults["answer_grades"]> {
+  const column = assessmentKind === "exercise" ? "exercise_id" : "exam_id";
+  const questions = throwIfError(
+    await supabase
+      .from("questions")
+      .select("*")
+      .eq(column, assessmentId)
+      .order("order")
+  );
+
+  return (questions ?? []).map((q) => ({
+    id: q.id as number,
+    question_id: q.id as number,
+    question_text: q.text as string,
+    question_type: q.type as AssessmentSubmissionResults["answer_grades"][0]["question_type"],
+    answer_text: answers[String(q.id)] ?? "",
+    correct_answer: (q.correct_answer as string) || undefined,
+    score: null,
+    max_score: Number(q.max_score ?? 1),
+    graded_at: null,
+  }));
+}
+
 export const studentApi = {
   getDashboard: async (): Promise<DashboardData> => {
     const { user, profile } = await getCurrentProfile();
@@ -716,13 +744,18 @@ export const studentApi = {
 
     const grades =
       (submission.exercise_answer_grades as Record<string, unknown>[]) ?? [];
+    const answers = (submission.answers as Record<string, string>) ?? {};
+    let answer_grades = mapAnswerGrades(grades);
+    if (answer_grades.length === 0) {
+      answer_grades = await buildFallbackAnswerGrades(supabase, "exercise", id, answers);
+    }
 
     return {
       score: Number(submission.score),
       max_score: Number(submission.max_score),
       grading_status: submission.grading_status as AssessmentSubmissionResults["grading_status"],
       submitted_at: submission.submitted_at as string,
-      answer_grades: mapAnswerGrades(grades),
+      answer_grades,
     };
   },
 

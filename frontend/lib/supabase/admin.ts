@@ -380,6 +380,12 @@ export const adminApi = {
           .select("id", { count: "exact", head: true })
           .eq("exercise_id", exerciseId)
       ).count;
+      const submissionCount = (
+        await supabase
+          .from("exercise_submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("exercise_id", exerciseId)
+      ).count;
 
       exercises.push({
         id: exerciseId,
@@ -391,6 +397,7 @@ export const adminApi = {
         status: "open",
         question_count: questionCount ?? 0,
         has_submitted: false,
+        submission_count: submissionCount ?? 0,
       });
     }
     return exercises;
@@ -663,6 +670,13 @@ export const adminApi = {
         .select("id", { count: "exact", head: true })
         .eq("exam_id", examId);
       if (error) throw new SupabaseApiError(error.message);
+      const submissionCount = (
+        await supabase
+          .from("exam_submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("exam_id", examId)
+          .not("submitted_at", "is", null)
+      ).count;
       const marhalahNumber = await resolveMarhalahNumberById(e.marhalah_id as number);
       exams.push({
         id: examId,
@@ -675,6 +689,7 @@ export const adminApi = {
         status: "open",
         question_count: count ?? 0,
         has_submitted: false,
+        submission_count: submissionCount ?? 0,
       });
     }
     return exams;

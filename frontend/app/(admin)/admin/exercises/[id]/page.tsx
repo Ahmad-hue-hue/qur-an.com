@@ -9,10 +9,6 @@ import { adminApi } from "@/lib/api";
 import type { CreateQuestionData } from "@/lib/types";
 import { buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
 import { QuestionTypePicker } from "@/components/admin/question-type-picker";
-import {
-  ExerciseGradingGuide,
-  ExerciseSubmissionsPanel,
-} from "@/components/admin/exercise-submissions-panel";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,9 +69,6 @@ export default function AdminExerciseDetailPage({
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
   const [questionForm, setQuestionForm] = useState(emptyQuestionForm);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
-  const [gradeDrafts, setGradeDrafts] = useState<
-    Record<number, { score: string; feedback: string }>
-  >({});
 
   const { data: exercise, isLoading } = useQuery({
     queryKey: ["admin-exercise", exerciseId],
@@ -128,30 +121,6 @@ export default function AdminExerciseDetailPage({
     onError: (err: Error) => toast.error(err.message || "Delete failed"),
   });
 
-  const gradeMutation = useMutation({
-    mutationFn: ({
-      gradeId,
-      score,
-      feedback,
-    }: {
-      gradeId: number;
-      score: number;
-      feedback: string;
-    }) => adminApi.gradeExerciseAnswer(gradeId, { score, feedback }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-exercise-submissions", exerciseId] });
-      toast.success("Answer graded");
-    },
-    onError: (err: Error) => toast.error(err.message || "Grading failed"),
-  });
-
-  const pendingGrades =
-    submissions?.flatMap((sub) =>
-      sub.answer_grades
-        .filter((g) => g.score === null)
-        .map((g) => ({ ...g, submission: sub }))
-    ) ?? [];
-
   return (
     <AppShell variant="admin">
       <PageHeader title={exercise?.title ?? "Exercise"}>
@@ -185,6 +154,22 @@ export default function AdminExerciseDetailPage({
                 </p>
               </CardContent>
             </Card>
+
+            <Link href={`/admin/exercises/${exerciseId}/submissions`}>
+              <Card className="card-shadow border-emerald-deep/30 bg-emerald-light/20 hover:shadow-md transition-shadow">
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-emerald-deep">Student submissions</p>
+                    <p className="text-sm text-muted-foreground">
+                      View answers, scores, and add feedback
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold text-emerald-deep shrink-0">
+                    {submissions?.length ?? 0} submitted →
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
 
             <Button
               className="w-full sm:w-auto bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
@@ -386,95 +371,6 @@ export default function AdminExerciseDetailPage({
               {!exercise.questions?.length && (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No questions yet.
-                </p>
-              )}
-            </div>
-
-            <ExerciseGradingGuide />
-
-            <ExerciseSubmissionsPanel
-              submissions={submissions}
-              questions={exercise.questions}
-            />
-
-            <div className="space-y-2 pt-2">
-              <h2 className="font-semibold text-sm">
-                Manual grading
-                {pendingGrades.length > 0 && (
-                  <span className="ml-2 text-xs font-normal text-amber-600">
-                    {pendingGrades.length} pending
-                  </span>
-                )}
-              </h2>
-
-              {pendingGrades.map((grade) => {
-                const draft = gradeDrafts[grade.id] ?? { score: "", feedback: "" };
-                return (
-                  <Card key={grade.id} className="card-shadow border-amber-200/60">
-                    <CardContent className="p-4 space-y-3">
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          {grade.submission.student_name} ·{" "}
-                          {format(new Date(grade.submission.submitted_at), "MMM d, h:mm a")}
-                        </p>
-                        <p className="text-sm font-medium mt-1">{grade.question_text}</p>
-                        <p className="text-sm mt-2 bg-muted/50 rounded-lg p-3">
-                          {grade.answer_text || "(no answer)"}
-                        </p>
-                      </div>
-                      <div className="form-grid-2">
-                        <div className="space-y-1">
-                          <Label className="text-xs">
-                            Score (max {grade.max_score})
-                          </Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            max={grade.max_score}
-                            value={draft.score}
-                            onChange={(e) =>
-                              setGradeDrafts((prev) => ({
-                                ...prev,
-                                [grade.id]: { ...draft, score: e.target.value },
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Feedback (optional)</Label>
-                          <Input
-                            value={draft.feedback}
-                            onChange={(e) =>
-                              setGradeDrafts((prev) => ({
-                                ...prev,
-                                [grade.id]: { ...draft, feedback: e.target.value },
-                              }))
-                            }
-                          />
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        className="bg-emerald-deep hover:bg-emerald-mid text-cream"
-                        disabled={draft.score === "" || gradeMutation.isPending}
-                        onClick={() =>
-                          gradeMutation.mutate({
-                            gradeId: grade.id,
-                            score: parseFloat(draft.score),
-                            feedback: draft.feedback,
-                          })
-                        }
-                      >
-                        Save grade
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-
-              {pendingGrades.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No answers waiting for manual grading.
                 </p>
               )}
             </div>

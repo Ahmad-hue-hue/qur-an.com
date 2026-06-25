@@ -23,7 +23,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { AssessmentResultsPanel } from "@/components/student/assessment-results-panel";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useCountdown } from "@/lib/hooks/use-countdown";
 
@@ -44,11 +43,11 @@ export default function ExamPage({
     queryFn: () => studentApi.getExam(examId),
   });
 
-  const { data: results, isLoading: loadingResults } = useQuery({
-    queryKey: ["exam-results", examId],
-    queryFn: () => studentApi.getExamResults(examId),
-    enabled: Boolean(exam?.has_submitted),
-  });
+  useEffect(() => {
+    if (exam?.has_submitted) {
+      router.replace(`/exams/${examId}/results`);
+    }
+  }, [exam?.has_submitted, examId, router]);
 
   const canLoadQuestions =
     Boolean(exam) &&
@@ -78,7 +77,7 @@ export default function ExamPage({
           ? `Submitted! Auto score: ${result.score}/${result.max_score}. Some answers await teacher review.`
           : `Exam submitted! Score: ${result.score}/${result.max_score}`
       );
-      router.push("/assessments");
+      router.push(`/exams/${examId}/results`);
     },
     onError: (err: Error) => toast.error(err.message || "Submission failed"),
   });
@@ -98,9 +97,7 @@ export default function ExamPage({
   }, [remainingSeconds, canLoadQuestions, submitMutation]);
 
   const isLoading =
-    loadingEx ||
-    (canLoadQuestions && (loadingSession || loadingQ)) ||
-    (exam?.has_submitted && loadingResults);
+    loadingEx || (canLoadQuestions && (loadingSession || loadingQ));
   const loadError = examError || sessionError;
   const question = questions?.[currentQ] ?? null;
   const isLast = questions ? currentQ === questions.length - 1 : false;
@@ -129,45 +126,6 @@ export default function ExamPage({
               <p className="text-sm text-muted-foreground">
                 {loadError.message}
               </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
-                Back to assessments
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {!isLoading && !loadError && exam && exam.has_submitted && results && (
-        <>
-          <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3">
-            <Link
-              href="/assessments"
-              className="inline-flex items-center gap-1 text-sm text-emerald-deep hover:text-emerald-mid"
-            >
-              Back to assessments
-            </Link>
-          </div>
-          <AssessmentResultsPanel
-            title={exam.title}
-            score={results.score}
-            maxScore={results.max_score}
-            gradingStatus={results.grading_status}
-            answerGrades={results.answer_grades}
-          />
-        </>
-      )}
-
-      {!isLoading && !loadError && exam && exam.has_submitted && !results && (
-        <div className="flex items-center justify-center min-h-[60vh] p-4">
-          <Card className="card-shadow w-full max-w-lg">
-            <CardContent className="p-8 text-center space-y-3">
-              <StatusBadge status="completed" />
-              <p className="text-xl font-semibold text-emerald-deep">{exam.title}</p>
-              {exam.score !== undefined && (
-                <p className="text-lg font-medium text-emerald-deep">
-                  Score: {exam.score}/{exam.max_score}
-                </p>
-              )}
               <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
               </Link>

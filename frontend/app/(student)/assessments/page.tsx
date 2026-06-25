@@ -7,6 +7,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 
@@ -51,38 +52,50 @@ export default function AssessmentsPage() {
 
           <TabsContent value="exercises" className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             {exercises?.map((ex) => (
-              <Link key={ex.id} href={`/exercises/${ex.id}`}>
-                <Card className="card-shadow hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium">{ex.title}</h3>
-                      <StatusBadge status={ex.status} />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {ex.question_count} questions ·{" "}
-                      {format(new Date(ex.start_date), "MMM d")} –{" "}
-                      {format(new Date(ex.end_date), "MMM d, yyyy")}
+              <Card key={ex.id} className="card-shadow">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">{ex.title}</h3>
+                    <StatusBadge status={ex.status} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {ex.question_count} questions ·{" "}
+                    {format(new Date(ex.start_date), "MMM d")} –{" "}
+                    {format(new Date(ex.end_date), "MMM d, yyyy")}
+                  </p>
+                  {ex.status === "upcoming" && (
+                    <p className="text-xs text-amber-700">
+                      Opens {format(new Date(ex.start_date), "MMM d, yyyy")}
                     </p>
-                    {ex.status === "upcoming" && (
-                      <p className="text-xs text-amber-700 mt-2">
-                        Opens {format(new Date(ex.start_date), "MMM d, yyyy")}
-                      </p>
-                    )}
-                    {ex.has_submitted && (
-                      <>
-                        {ex.score !== undefined && (
-                          <p className="text-sm font-medium text-emerald-deep mt-2">
-                            Score: {ex.score}/{ex.max_score}
-                          </p>
-                        )}
-                        <p className="text-xs text-emerald-deep mt-1">
-                          Tap to view your answers and feedback
-                        </p>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
+                  )}
+                  {ex.has_submitted && ex.score !== undefined && (
+                    <p className="text-sm font-medium text-emerald-deep">
+                      Score: {ex.score}/{ex.max_score}
+                    </p>
+                  )}
+                  <div className="flex gap-2 pt-1">
+                    {ex.has_submitted ? (
+                      <Link
+                        href={`/exercises/${ex.id}/results`}
+                        className={buttonVariants({
+                          className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                        })}
+                      >
+                        View results
+                      </Link>
+                    ) : ex.status === "open" && ex.question_count > 0 ? (
+                      <Link
+                        href={`/exercises/${ex.id}`}
+                        className={buttonVariants({
+                          className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                        })}
+                      >
+                        Start exercise
+                      </Link>
+                    ) : null}
+                  </div>
+                </CardContent>
+              </Card>
             ))}
             {!loadingExercises && exercises?.length === 0 && (
               <Card className="card-shadow md:col-span-2">
@@ -105,13 +118,10 @@ export default function AssessmentsPage() {
                 topicsComplete &&
                 !exam.has_submitted;
               const canViewResults = exam.has_submitted;
-              const isClickable = canTake || canViewResults;
               const card = (
-                <Card
-                  className={`card-shadow ${isClickable ? "hover:shadow-md transition-shadow" : ""}`}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
+                <Card className="card-shadow">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
                       <h3 className="font-medium">{exam.title}</h3>
                       <StatusBadge status={exam.status} />
                     </div>
@@ -121,49 +131,52 @@ export default function AssessmentsPage() {
                       {format(new Date(exam.start_date), "MMM d")} –{" "}
                       {format(new Date(exam.end_date), "MMM d, yyyy")}
                     </p>
-                    {exam.has_submitted && (
-                      <>
-                        {exam.score !== undefined && (
-                          <p className="text-sm font-medium text-emerald-deep mt-2">
-                            Score: {exam.score}/{exam.max_score}
-                          </p>
-                        )}
-                        <p className="text-xs text-emerald-deep mt-1">
-                          Tap to view your answers and feedback
-                        </p>
-                      </>
+                    {exam.has_submitted && exam.score !== undefined && (
+                      <p className="text-sm font-medium text-emerald-deep">
+                        Score: {exam.score}/{exam.max_score}
+                      </p>
                     )}
                     {exam.status === "open" && !topicsComplete && (
-                      <p className="text-xs text-amber-700 mt-2">
+                      <p className="text-xs text-amber-700">
                         Complete all topics in this Marḥalah to unlock this exam.
                       </p>
                     )}
                     {exam.status === "open" && exam.question_count === 0 && (
-                      <p className="text-xs text-amber-700 mt-2">
+                      <p className="text-xs text-amber-700">
                         Waiting for your instructor to add exam questions.
                       </p>
                     )}
                     {exam.status === "upcoming" && (
-                      <p className="text-xs text-amber-700 mt-2">
+                      <p className="text-xs text-amber-700">
                         Opens {format(new Date(exam.start_date), "MMM d, yyyy")}
                       </p>
                     )}
-                    {canTake && (
-                      <p className="text-xs text-emerald-deep mt-2 font-medium">
-                        Tap to start exam
-                      </p>
-                    )}
+                    <div className="flex gap-2 pt-1">
+                      {canViewResults ? (
+                        <Link
+                          href={`/exams/${exam.id}/results`}
+                          className={buttonVariants({
+                            className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                          })}
+                        >
+                          View results
+                        </Link>
+                      ) : canTake ? (
+                        <Link
+                          href={`/exams/${exam.id}`}
+                          className={buttonVariants({
+                            className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                          })}
+                        >
+                          Start exam
+                        </Link>
+                      ) : null}
+                    </div>
                   </CardContent>
                 </Card>
               );
 
-              return isClickable ? (
-                <Link key={exam.id} href={`/exams/${exam.id}`}>
-                  {card}
-                </Link>
-              ) : (
-                card
-              );
+              return <div key={exam.id}>{card}</div>;
             })}
             {!loadingExams && exams?.length === 0 && (
               <Card className="card-shadow md:col-span-2">

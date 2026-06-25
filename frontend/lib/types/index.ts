@@ -77,6 +77,7 @@ export interface Exercise {
   max_score?: number;
   has_submitted: boolean;
   grading_status?: GradingStatus;
+  submission_count?: number;
 }
 
 export interface Exam {
@@ -93,6 +94,7 @@ export interface Exam {
   max_score?: number;
   has_submitted: boolean;
   grading_status?: GradingStatus;
+  submission_count?: number;
 }
 
 export interface Question {
