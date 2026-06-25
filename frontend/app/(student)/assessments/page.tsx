@@ -11,12 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 
 export default function AssessmentsPage() {
-  const { data: exercises } = useQuery({
+  const { data: exercises, isLoading: loadingExercises } = useQuery({
     queryKey: ["exercises"],
     queryFn: studentApi.getExercises,
   });
 
-  const { data: exams } = useQuery({
+  const { data: exams, isLoading: loadingExams } = useQuery({
     queryKey: ["exams"],
     queryFn: studentApi.getExams,
   });
@@ -26,9 +26,14 @@ export default function AssessmentsPage() {
     queryFn: studentApi.getDashboard,
   });
 
+  const marhalahNumber = dashboard?.current_marhalah.number ?? 1;
+
   return (
     <AppShell>
-      <PageHeader title="Assessments" subtitle="Exercises & Exams" />
+      <PageHeader
+        title="Assessments"
+        subtitle={`Exercises & exams for Marḥalah ${marhalahNumber}`}
+      />
 
       <div className="page-content">
         <Tabs defaultValue="exercises">
@@ -43,13 +48,8 @@ export default function AssessmentsPage() {
 
           <TabsContent value="exercises" className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             {exercises?.map((ex) => (
-              <Link
-                key={ex.id}
-                href={ex.status === "open" ? `/exercises/${ex.id}` : "#"}
-              >
-                <Card
-                  className={`card-shadow ${ex.status === "open" ? "hover:shadow-md" : ""}`}
-                >
+              <Link key={ex.id} href={`/exercises/${ex.id}`}>
+                <Card className="card-shadow hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium">{ex.title}</h3>
@@ -60,6 +60,11 @@ export default function AssessmentsPage() {
                       {format(new Date(ex.start_date), "MMM d")} –{" "}
                       {format(new Date(ex.end_date), "MMM d, yyyy")}
                     </p>
+                    {ex.status === "upcoming" && (
+                      <p className="text-xs text-amber-700 mt-2">
+                        Opens {format(new Date(ex.start_date), "MMM d, yyyy")}
+                      </p>
+                    )}
                     {ex.score !== undefined && (
                       <p className="text-sm font-medium text-emerald-deep mt-2">
                         Score: {ex.score}/{ex.max_score}
@@ -69,6 +74,17 @@ export default function AssessmentsPage() {
                 </Card>
               </Link>
             ))}
+            {!loadingExercises && exercises?.length === 0 && (
+              <Card className="card-shadow md:col-span-2">
+                <CardContent className="p-6 text-center text-sm text-muted-foreground space-y-1">
+                  <p>No exercises for Marḥalah {marhalahNumber} yet.</p>
+                  <p className="text-xs">
+                    Exercises are assigned per Marḥalah. Ask your instructor to
+                    create one for your current stage.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="exams" className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -88,6 +104,13 @@ export default function AssessmentsPage() {
                 </CardContent>
               </Card>
             ))}
+            {!loadingExams && exams?.length === 0 && (
+              <Card className="card-shadow md:col-span-2">
+                <CardContent className="p-6 text-center text-sm text-muted-foreground">
+                  No exams for Marḥalah {marhalahNumber} yet.
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
 

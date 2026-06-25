@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { format } from "date-fns";
 import { adminApi } from "@/lib/api";
-import type { CreateQuestionData, QuestionType } from "@/lib/types";
+import type { CreateQuestionData } from "@/lib/types";
+import { buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
+import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,21 +33,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { QuestionAdmin } from "@/lib/types";
 
-const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
-  { value: "mcq", label: "Multiple Choice" },
-  { value: "fill_blank", label: "Fill in the Blank" },
-  { value: "true_false", label: "True / False" },
-  { value: "fill_gap", label: "Fill the Gap (manual)" },
-];
-
-const TYPE_LABELS: Record<QuestionType, string> = {
-  mcq: "MCQ",
-  fill_blank: "Fill Blank",
-  true_false: "True/False",
-  fill_gap: "Fill Gap",
-  written: "Written",
-};
-
 const emptyQuestionForm = (): CreateQuestionData & { option_a: string; option_b: string } => ({
   type: "mcq",
   text: "",
@@ -67,20 +54,7 @@ function questionToForm(q: QuestionAdmin) {
 }
 
 function formToPayload(form: ReturnType<typeof emptyQuestionForm>): CreateQuestionData {
-  const payload: CreateQuestionData = {
-    type: form.type,
-    text: form.text,
-    max_score: form.max_score,
-  };
-  if (form.type === "mcq") {
-    payload.options = [form.option_a, form.option_b].filter(Boolean);
-    payload.correct_answer = form.correct_answer || form.option_a;
-  } else if (form.type === "true_false") {
-    payload.correct_answer = form.correct_answer || "true";
-  } else if (form.type === "fill_blank") {
-    payload.correct_answer = form.correct_answer;
-  }
-  return payload;
+  return buildQuestionPayload(form);
 }
 
 export default function AdminExerciseDetailPage({
@@ -232,26 +206,16 @@ export default function AdminExerciseDetailPage({
                   </p>
                   <div className="space-y-2">
                     <Label>Question type</Label>
-                    <Select
+                    <QuestionTypePicker
                       value={questionForm.type}
-                      onValueChange={(v) =>
+                      onChange={(type) =>
                         setQuestionForm((p) => ({
                           ...p,
-                          type: (v ?? "mcq") as QuestionType,
+                          type,
+                          correct_answer: type === "true_false" ? "true" : "",
                         }))
                       }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {QUESTION_TYPES.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -380,7 +344,7 @@ export default function AdminExerciseDetailPage({
                   <CardContent className="p-4 flex items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground mb-1">
-                        {TYPE_LABELS[q.type]} · {q.max_score ?? 1} pt
+                        {QUESTION_TYPE_LABELS[q.type]} · {q.max_score ?? 1} pt
                         {(q.max_score ?? 1) !== 1 ? "s" : ""}
                       </p>
                       <p className="text-sm font-medium">{q.text}</p>

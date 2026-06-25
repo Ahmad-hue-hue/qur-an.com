@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/api";
+import type { QuestionType } from "@/lib/types";
+import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,6 +34,7 @@ function toLocalInputValue(date: Date) {
 
 export default function AdminExercisesPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [marhalahId, setMarhalahId] = useState("1");
   const [showForm, setShowForm] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{
@@ -45,6 +49,7 @@ export default function AdminExercisesPage() {
     description: "",
     start_date: toLocalInputValue(now),
     end_date: toLocalInputValue(weekLater),
+    question_type: "mcq" as QuestionType,
     question_text: "",
     option_a: "",
     option_b: "",
@@ -64,15 +69,25 @@ export default function AdminExercisesPage() {
         description: form.description,
         start_date: new Date(form.start_date).toISOString(),
         end_date: new Date(form.end_date).toISOString(),
+        question_type: form.question_text.trim() ? form.question_type : undefined,
         question_text: form.question_text,
         question_options: [form.option_a, form.option_b].filter(Boolean),
         correct_answer: form.correct_answer || form.option_a,
       }),
-    onSuccess: () => {
+    onSuccess: (exercise) => {
       queryClient.invalidateQueries({ queryKey: ["admin-exercises"] });
       toast.success("Exercise created");
       setShowForm(false);
-      setForm((prev) => ({ ...prev, title: "", description: "", question_text: "" }));
+      setForm((prev) => ({
+        ...prev,
+        title: "",
+        description: "",
+        question_text: "",
+        option_a: "",
+        option_b: "",
+        correct_answer: "",
+      }));
+      router.push(`/admin/exercises/${exercise.id}`);
     },
     onError: (err: Error) => toast.error(err.message || "Create failed"),
   });
@@ -107,12 +122,15 @@ export default function AdminExercisesPage() {
       <div className="page-content">
         <Card className="card-shadow border-emerald-deep/20 bg-emerald-light/30">
           <CardContent className="p-4 text-sm space-y-1">
-            <p className="font-medium text-emerald-deep">Question types supported</p>
+            <p className="font-medium text-emerald-deep">
+              Exercises are shown to students by Marḥalah
+            </p>
             <p className="text-muted-foreground">
-              MCQ · Fill in the blank · True/False (auto-graded) · Fill the gap (manual grading)
+              Students only see exercises for their current Marḥalah. If a student
+              cannot see an exercise, check their Marḥalah in Admin → Students.
             </p>
             <p className="text-muted-foreground text-xs">
-              Create an exercise, then open it to add questions of each type.
+              MCQ · Fill in the blank · True/False · Fill the gap
             </p>
           </CardContent>
         </Card>
@@ -166,11 +184,21 @@ export default function AdminExercisesPage() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>First question (optional MCQ)</Label>
+              <div className="space-y-3">
+                <Label>First question (optional)</Label>
                 <p className="text-xs text-muted-foreground">
-                  You can add fill-blank, true/false, and fill-the-gap questions after saving.
+                  Pick a question type below, or leave blank and add questions on the next screen.
                 </p>
+                <QuestionTypePicker
+                  value={form.question_type}
+                  onChange={(question_type) =>
+                    setForm((p) => ({
+                      ...p,
+                      question_type,
+                      correct_answer: question_type === "true_false" ? "true" : "",
+                    }))
+                  }
+                />
                 <Input
                   placeholder="Question text"
                   value={form.question_text}
@@ -178,29 +206,63 @@ export default function AdminExercisesPage() {
                     setForm((p) => ({ ...p, question_text: e.target.value }))
                   }
                 />
-                <div className="form-grid-2">
+                {form.question_type === "mcq" && (
+                  <>
+                    <div className="form-grid-2">
+                      <Input
+                        placeholder="Option A"
+                        value={form.option_a}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, option_a: e.target.value }))
+                        }
+                      />
+                      <Input
+                        placeholder="Option B"
+                        value={form.option_b}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, option_b: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <Input
+                      placeholder="Correct answer (match option text)"
+                      value={form.correct_answer}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, correct_answer: e.target.value }))
+                      }
+                    />
+                  </>
+                )}
+                {form.question_type === "fill_blank" && (
                   <Input
-                    placeholder="Option A"
-                    value={form.option_a}
+                    placeholder="Correct answer"
+                    value={form.correct_answer}
                     onChange={(e) =>
-                      setForm((p) => ({ ...p, option_a: e.target.value }))
+                      setForm((p) => ({ ...p, correct_answer: e.target.value }))
                     }
                   />
-                  <Input
-                    placeholder="Option B"
-                    value={form.option_b}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, option_b: e.target.value }))
+                )}
+                {form.question_type === "true_false" && (
+                  <Select
+                    value={form.correct_answer || "true"}
+                    onValueChange={(v) =>
+                      setForm((p) => ({ ...p, correct_answer: v ?? "true" }))
                     }
-                  />
-                </div>
-                <Input
-                  placeholder="Correct answer (match option text)"
-                  value={form.correct_answer}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, correct_answer: e.target.value }))
-                  }
-                />
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">True</SelectItem>
+                      <SelectItem value="false">False</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                {form.question_type === "fill_gap" && (
+                  <p className="text-xs text-muted-foreground">
+                    Fill-the-gap answers are graded manually after students submit.
+                  </p>
+                )}
               </div>
               <Button
                 className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"

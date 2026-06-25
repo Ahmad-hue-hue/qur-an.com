@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase/client";
+import { resolveMarhalahIdByNumber } from "@/lib/supabase/marhalah";
 import { mapProfileRow, throwIfError } from "@/lib/supabase/utils";
 import type {
   DashboardData,
@@ -51,6 +52,17 @@ async function getMarhalahByNumber(number: number) {
   return throwIfError(
     await supabase.from("marhalahs").select("*").eq("number", number).single()
   ) as DbMarhalah;
+}
+
+async function assertExerciseAccessible(
+  exercise: Record<string, unknown>,
+  marhalahId: number
+) {
+  if ((exercise.marhalah_id as number) !== marhalahId) {
+    throw new Error(
+      "This exercise belongs to a different Marḥalah than your current stage."
+    );
+  }
 }
 
 async function getStudentProgress(studentId: string, marhalahId: number) {
@@ -551,26 +563,23 @@ export const studentApi = {
   },
 
   getExercise: async (id: number): Promise<Exercise> => {
-    const { user } = await getCurrentProfile();
+    const { user, profile } = await getCurrentProfile();
+    const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
     const row = throwIfError(
       await getSupabase().from("exercises").select("*").eq("id", id).single()
     );
+    await assertExerciseAccessible(row, marhalahId);
     return buildExerciseRow(row, user.id);
   },
 
   getExerciseQuestions: async (id: number): Promise<Question[]> => {
+    const { profile } = await getCurrentProfile();
     const supabase = getSupabase();
+    const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
     const exercise = throwIfError(
       await supabase.from("exercises").select("*").eq("id", id).single()
     );
-    const status = throwIfError(
-      await supabase.rpc("get_assessment_status", {
-        p_start: exercise.start_date,
-        p_end: exercise.end_date,
-        p_has_submitted: false,
-      })
-    );
-    if (status !== "open") throw new Error(`Exercise is ${status}.`);
+    await assertExerciseAccessible(exercise, marhalahId);
 
     const rows = throwIfError(
       await supabase

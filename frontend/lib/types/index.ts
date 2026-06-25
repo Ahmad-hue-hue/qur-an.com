@@ -226,6 +226,7 @@ export interface CreateExerciseData {
   description?: string;
   start_date: string;
   end_date: string;
+  question_type?: QuestionType;
   question_text?: string;
   question_options?: string[];
   correct_answer?: string;

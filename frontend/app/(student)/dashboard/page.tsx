@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 
 export default function DashboardPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["dashboard"],
     queryFn: studentApi.getDashboard,
   });
@@ -27,6 +27,19 @@ export default function DashboardPage() {
             <Skeleton className="h-48 w-full rounded-2xl" />
           </div>
         </>
+      )}
+
+      {isError && (
+        <div className="page-content">
+          <Card className="card-shadow">
+            <CardContent className="p-6 text-center space-y-2">
+              <p className="font-medium text-emerald-deep">Could not load dashboard</p>
+              <p className="text-sm text-muted-foreground">
+                {(error as Error)?.message || "Please try again."}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {!isLoading && data && (
@@ -55,7 +68,9 @@ export default function DashboardPage() {
             </section>
 
             <section>
-              <h2 className="section-title">Assessments</h2>
+              <h2 className="section-title">
+                Assessments · Marḥalah {data.current_marhalah.number}
+              </h2>
               <div className="auto-grid-cards">
                 {data.exercises.map((ex) => (
                   <Link key={ex.id} href={`/exercises/${ex.id}`}>
@@ -72,6 +87,14 @@ export default function DashboardPage() {
                     </Card>
                   </Link>
                 ))}
+                {data.exercises.length === 0 && (
+                  <Card className="card-shadow md:col-span-2">
+                    <CardContent className="p-4 text-sm text-muted-foreground">
+                      No exercises for Marḥalah {data.current_marhalah.number} yet.
+                      Your instructor must create one for this stage.
+                    </CardContent>
+                  </Card>
+                )}
                 {data.exams.map((exam) => (
                   <Card key={exam.id} className="card-shadow">
                     <CardContent className="p-4 flex items-center justify-between">

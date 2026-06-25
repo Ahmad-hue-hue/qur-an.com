@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { studentApi } from "@/lib/api";
 import type { Question, QuestionType } from "@/lib/types";
+import { QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
 import { AppShell } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { StatusBadge } from "@/components/shared/status-badge";
 
 function renderBlankText(text: string) {
   const parts = text.split(/_{2,}/);
@@ -47,7 +50,15 @@ function QuestionInput({
 }) {
   const type = question.type as QuestionType;
 
-  if (type === "mcq" && question.options) {
+  if (type === "mcq") {
+    if (!question.options?.length) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          This question has no answer options yet.
+        </p>
+      );
+    }
+
     return (
       <RadioGroup value={value} onValueChange={onChange} className="space-y-2">
         {question.options.map((opt, i) => {
@@ -97,23 +108,26 @@ function QuestionInput({
   if (type === "true_false") {
     return (
       <RadioGroup value={value} onValueChange={onChange} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {["true", "false"].map((opt) => {
-          const selected = value === opt;
+        {[
+          { value: "true", label: "True" },
+          { value: "false", label: "False" },
+        ].map((opt) => {
+          const selected = value === opt.value;
           return (
             <Label
-              key={opt}
-              htmlFor={`tf-${question.id}-${opt}`}
+              key={opt.value}
+              htmlFor={`tf-${question.id}-${opt.value}`}
               className={cn(
-                "flex items-center justify-center p-4 rounded-xl border card-shadow cursor-pointer font-medium capitalize transition-all",
+                "flex items-center justify-center p-4 rounded-xl border card-shadow cursor-pointer font-medium transition-all",
                 selected
                   ? "border-emerald-deep bg-emerald-light text-emerald-deep"
                   : "border-border hover:border-emerald-mid/30"
               )}
             >
-              {opt}
+              {opt.label}
               <RadioGroupItem
-                value={opt}
-                id={`tf-${question.id}-${opt}`}
+                value={opt.value}
+                id={`tf-${question.id}-${opt.value}`}
                 className="sr-only"
               />
             </Label>
@@ -125,12 +139,30 @@ function QuestionInput({
 
   if (type === "fill_blank") {
     return (
-      <Input
-        placeholder="Type your answer..."
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-12 text-base"
-      />
+      <div className="space-y-2">
+        <Input
+          placeholder="Type your answer..."
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-12 text-base"
+        />
+      </div>
+    );
+  }
+
+  if (type === "fill_gap") {
+    return (
+      <div className="space-y-2">
+        <Textarea
+          placeholder="Type your answer..."
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="min-h-32"
+        />
+        <p className="text-xs text-muted-foreground">
+          This answer will be reviewed by your teacher.
+        </p>
+      </div>
     );
   }
 
@@ -142,7 +174,7 @@ function QuestionInput({
         onChange={(e) => onChange(e.target.value)}
         className="min-h-32"
       />
-      {(type === "fill_gap" || type === "written") && (
+      {type === "written" && (
         <p className="text-xs text-muted-foreground">
           This answer will be reviewed by your teacher.
         </p>
@@ -162,14 +194,21 @@ export default function ExercisePage({
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
 
-  const { data: exercise, isLoading: loadingEx } = useQuery({
+  const { data: exercise, isLoading: loadingEx, error: exerciseError } = useQuery({
     queryKey: ["exercise", exerciseId],
     queryFn: () => studentApi.getExercise(exerciseId),
   });
 
+  const canLoadQuestions =
+    Boolean(exercise) &&
+    exercise!.status === "open" &&
+    !exercise!.has_submitted &&
+    exercise!.question_count > 0;
+
   const { data: questions, isLoading: loadingQ } = useQuery({
     queryKey: ["exercise-questions", exerciseId],
     queryFn: () => studentApi.getExerciseQuestions(exerciseId),
+    enabled: canLoadQuestions,
   });
 
   const submitMutation = useMutation({
@@ -183,15 +222,14 @@ export default function ExercisePage({
       );
       router.push("/assessments");
     },
+    onError: (err: Error) => toast.error(err.message || "Submission failed"),
   });
 
-  const isLoading = loadingEx || loadingQ;
-  const hasData = Boolean(exercise && questions?.length);
-  const isExpired = hasData && exercise!.status === "expired";
-  const canTake = hasData && !isExpired;
-  const question = canTake ? questions![currentQ] : null;
-  const isLast = canTake ? currentQ === questions!.length - 1 : false;
+  const isLoading = loadingEx || (canLoadQuestions && loadingQ);
+  const question = questions?.[currentQ] ?? null;
+  const isLast = questions ? currentQ === questions.length - 1 : false;
   const hasAnswer = question ? Boolean(answers[question.id]?.trim()) : false;
+  const canTake = Boolean(exercise && questions?.length && exercise.status === "open");
 
   return (
     <AppShell variant="auth">
@@ -202,18 +240,98 @@ export default function ExercisePage({
         </div>
       )}
 
-      {!isLoading && hasData && isExpired && (
+      {!isLoading && exerciseError && (
         <div className="flex items-center justify-center min-h-[60vh] p-4">
-          <Card className="card-shadow w-full">
-            <CardContent className="p-8 text-center">
-              <p className="text-xl font-semibold text-muted-foreground">Expired</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                This exercise is no longer available.
+          <Card className="card-shadow w-full max-w-lg">
+            <CardContent className="p-8 text-center space-y-3">
+              <p className="text-xl font-semibold text-emerald-deep">
+                Exercise unavailable
               </p>
+              <p className="text-sm text-muted-foreground">
+                {exerciseError.message}
+              </p>
+              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                Back to assessments
+              </Link>
             </CardContent>
           </Card>
         </div>
       )}
+
+      {!isLoading && !exerciseError && exercise && exercise.status === "upcoming" && (
+        <div className="flex items-center justify-center min-h-[60vh] p-4">
+          <Card className="card-shadow w-full max-w-lg">
+            <CardContent className="p-8 text-center space-y-3">
+              <StatusBadge status="upcoming" />
+              <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
+              <p className="text-sm text-muted-foreground">
+                Opens on {format(new Date(exercise.start_date), "MMM d, yyyy 'at' h:mm a")}
+              </p>
+              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                Back to assessments
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!isLoading && !exerciseError && exercise && exercise.status === "expired" && (
+        <div className="flex items-center justify-center min-h-[60vh] p-4">
+          <Card className="card-shadow w-full max-w-lg">
+            <CardContent className="p-8 text-center space-y-3">
+              <StatusBadge status="expired" />
+              <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
+              <p className="text-sm text-muted-foreground">
+                This exercise closed on {format(new Date(exercise.end_date), "MMM d, yyyy")}.
+              </p>
+              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                Back to assessments
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!isLoading && !exerciseError && exercise && exercise.has_submitted && (
+        <div className="flex items-center justify-center min-h-[60vh] p-4">
+          <Card className="card-shadow w-full max-w-lg">
+            <CardContent className="p-8 text-center space-y-3">
+              <StatusBadge status="completed" />
+              <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
+              <p className="text-sm text-muted-foreground">
+                You already submitted this exercise.
+                {exercise.score != null && (
+                  <> Score: {exercise.score}/{exercise.max_score}</>
+                )}
+              </p>
+              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                Back to assessments
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!isLoading &&
+        !exerciseError &&
+        exercise &&
+        exercise.status === "open" &&
+        !exercise.has_submitted &&
+        exercise.question_count === 0 && (
+          <div className="flex items-center justify-center min-h-[60vh] p-4">
+            <Card className="card-shadow w-full max-w-lg">
+              <CardContent className="p-8 text-center space-y-3">
+                <p className="text-xl font-semibold text-emerald-deep">{exercise.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  This exercise is open, but no questions have been added yet.
+                </p>
+                <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                  Back to assessments
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
       {canTake && question && (
         <>
@@ -240,7 +358,10 @@ export default function ExercisePage({
 
           <div className="page-content max-w-3xl mx-auto">
             <Card className="card-shadow">
-              <CardContent className="p-5">
+              <CardContent className="p-5 space-y-3">
+                <span className="inline-flex rounded-full bg-emerald-light px-3 py-1 text-xs font-medium text-emerald-deep">
+                  {QUESTION_TYPE_LABELS[question.type]}
+                </span>
                 <p className="font-medium leading-relaxed">
                   {question.type === "fill_blank"
                     ? renderBlankText(question.text)

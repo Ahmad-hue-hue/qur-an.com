@@ -1,4 +1,5 @@
 import { getSupabase, getSupabaseUrl } from "@/lib/supabase/client";
+import { resolveMarhalahIdByNumber } from "@/lib/supabase/marhalah";
 import {
   mapProfileRow,
   normalizePhone,
@@ -342,30 +343,48 @@ export const adminApi = {
     throwIfError(await getSupabase().rpc("admin_delete_topic", { p_id: id }));
   },
 
-  getExercises: async (marhalahId?: number): Promise<Exercise[]> => {
-    let query = getSupabase().from("exercises").select("*").order("start_date");
-    if (marhalahId) query = query.eq("marhalah_id", marhalahId);
+  getExercises: async (marhalahNumber?: number): Promise<Exercise[]> => {
+    const supabase = getSupabase();
+    let query = supabase.from("exercises").select("*").order("start_date");
+    if (marhalahNumber != null) {
+      const marhalahId = await resolveMarhalahIdByNumber(marhalahNumber);
+      query = query.eq("marhalah_id", marhalahId);
+    }
     const rows = throwIfError(await query) as Record<string, unknown>[];
-    return rows.map((e) => ({
-      id: e.id as number,
-      marhalah: e.marhalah_id as number,
-      title: e.title as string,
-      description: (e.description as string) || undefined,
-      start_date: e.start_date as string,
-      end_date: e.end_date as string,
-      status: "open",
-      question_count: 0,
-      has_submitted: false,
-    }));
+
+    const exercises: Exercise[] = [];
+    for (const e of rows) {
+      const exerciseId = e.id as number;
+      const questionCount = (
+        await supabase
+          .from("questions")
+          .select("id", { count: "exact", head: true })
+          .eq("exercise_id", exerciseId)
+      ).count;
+
+      exercises.push({
+        id: exerciseId,
+        marhalah: e.marhalah_id as number,
+        title: e.title as string,
+        description: (e.description as string) || undefined,
+        start_date: e.start_date as string,
+        end_date: e.end_date as string,
+        status: "open",
+        question_count: questionCount ?? 0,
+        has_submitted: false,
+      });
+    }
+    return exercises;
   },
 
   createExercise: async (data: CreateExerciseData): Promise<Exercise> => {
     const supabase = getSupabase();
+    const marhalahId = await resolveMarhalahIdByNumber(data.marhalah);
     const inserted = throwIfError(
       await supabase
         .from("exercises")
         .insert({
-          marhalah_id: data.marhalah,
+          marhalah_id: marhalahId,
           title: data.title,
           description: data.description ?? "",
           start_date: data.start_date,
@@ -375,16 +394,22 @@ export const adminApi = {
         .single()
     ) as Record<string, unknown>;
 
-    if (data.question_text) {
-      await supabase.from("questions").insert({
-        exercise_id: inserted.id,
-        type: "mcq",
-        text: data.question_text,
-        options: data.question_options ?? [],
-        correct_answer: data.correct_answer ?? data.question_options?.[0] ?? "",
-        order: 1,
-        max_score: 1,
-      });
+    if (data.question_text?.trim()) {
+      const qType = data.question_type ?? "mcq";
+      throwIfError(
+        await supabase.from("questions").insert({
+          exercise_id: inserted.id,
+          type: qType,
+          text: data.question_text.trim(),
+          options: qType === "mcq" ? (data.question_options ?? []) : [],
+          correct_answer:
+            qType === "true_false"
+              ? data.correct_answer || "true"
+              : (data.correct_answer ?? data.question_options?.[0] ?? ""),
+          order: 1,
+          max_score: 1,
+        })
+      );
     }
 
     return {
@@ -451,8 +476,23 @@ export const adminApi = {
     exerciseId: number,
     data: CreateQuestionData
   ): Promise<Question> => {
+    const supabase = getSupabase();
+    let order = data.order;
+    if (order == null) {
+      const last = (
+        await supabase
+          .from("questions")
+          .select("order")
+          .eq("exercise_id", exerciseId)
+          .order("order", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      ).data;
+      order = last ? Number(last.order) + 1 : 1;
+    }
+
     const row = throwIfError(
-      await getSupabase()
+      await supabase
         .from("questions")
         .insert({
           exercise_id: exerciseId,
@@ -461,7 +501,7 @@ export const adminApi = {
           arabic_text: data.arabic_text ?? "",
           options: data.options ?? [],
           correct_answer: data.correct_answer ?? "",
-          order: data.order ?? 1,
+          order,
           max_score: data.max_score ?? 1,
         })
         .select("*")
