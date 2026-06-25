@@ -287,50 +287,50 @@ export default function AdminExercisesPage() {
 
         {exercises?.map((exercise) => (
           <Card key={exercise.id} className="card-shadow">
-            <CardContent className="p-4 flex items-start gap-3">
-              <Link href={`/admin/exercises/${exercise.id}`} className="flex-1 min-w-0">
-                <p className="font-medium text-sm hover:text-emerald-deep">
-                  {exercise.title}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {format(new Date(exercise.start_date), "MMM d")} –{" "}
-                  {format(new Date(exercise.end_date), "MMM d")} ·{" "}
-                  {exercise.question_count} questions · {exercise.status}
-                  {(exercise.submission_count ?? 0) > 0 &&
-                    ` · ${exercise.submission_count} submission${exercise.submission_count === 1 ? "" : "s"}`}
-                </p>
-              </Link>
-              <Link href={`/admin/exercises/${exercise.id}/submissions`}>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{exercise.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {format(new Date(exercise.start_date), "MMM d")} –{" "}
+                    {format(new Date(exercise.end_date), "MMM d")} ·{" "}
+                    {exercise.question_count} questions · {exercise.status}
+                    {(exercise.submission_count ?? 0) > 0 &&
+                      ` · ${exercise.submission_count} submission${exercise.submission_count === 1 ? "" : "s"}`}
+                  </p>
+                </div>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0 gap-1 border-emerald-deep/30 text-emerald-deep"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-destructive"
+                  onClick={() =>
+                    setPendingDelete({ id: exercise.id, title: exercise.title })
+                  }
+                  disabled={deleteMutation.isPending}
                 >
-                  Grade & results
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                  <HugeiconsIcon icon={Delete02Icon} size={16} />
                 </Button>
-              </Link>
-              <Link href={`/admin/exercises/${exercise.id}`}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0 gap-1 border-emerald-deep/30 text-emerald-deep"
-                >
-                  Questions
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive"
-                onClick={() =>
-                  setPendingDelete({ id: exercise.id, title: exercise.title })
-                }
-                disabled={deleteMutation.isPending}
-              >
-                <HugeiconsIcon icon={Delete02Icon} size={16} />
-              </Button>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Link href={`/admin/exercises/${exercise.id}/submissions`} className="flex-1">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
+                  >
+                    Grade & results
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+                  </Button>
+                </Link>
+                <Link href={`/admin/exercises/${exercise.id}`} className="flex-1">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
+                  >
+                    Questions
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         ))}

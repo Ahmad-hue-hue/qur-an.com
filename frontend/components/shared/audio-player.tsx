@@ -214,18 +214,6 @@ export function AudioPlayer({ src, title, className, downloadFilename }: AudioPl
         >
           <HugeiconsIcon icon={Forward01Icon} size={20} />
         </Button>
-        {downloadHref && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-cream hover:bg-emerald-mid/50 ml-2"
-            aria-label="Download audio"
-            disabled={downloading}
-            onClick={() => void handleDownload()}
-          >
-            <HugeiconsIcon icon={Download01Icon} size={20} />
-          </Button>
-        )}
       </div>
 
       {downloadHref && (

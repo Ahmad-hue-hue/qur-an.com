@@ -166,46 +166,38 @@ export default function AdminExerciseDetailPage({
               </CardContent>
             </Card>
 
-            <Link href={`/admin/exercises/${exerciseId}/submissions`}>
-              <Card className="card-shadow border-emerald-deep/30 bg-emerald-light/20 hover:shadow-md transition-shadow">
-                <CardContent className="p-4 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-emerald-deep">Grade & post results</p>
-                    <p className="text-sm text-muted-foreground">
-                      View student answers. Auto-graded scores appear on submit; grade
-                      manual answers below to finish results.
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-semibold text-emerald-deep">
-                      {submissions?.length ?? 0} submitted →
-                    </p>
-                    {pendingManualGrades > 0 && (
-                      <p className="text-xs text-amber-700">
-                        {pendingManualGrades} pending grade
-                        {pendingManualGrades === 1 ? "" : "s"}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Button
-              className="w-full sm:w-auto bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
-              onClick={() => {
-                if (showQuestionForm && !editingQuestionId) {
-                  resetQuestionForm();
-                } else {
-                  setEditingQuestionId(null);
-                  setQuestionForm(emptyQuestionForm());
-                  setShowQuestionForm(true);
-                }
-              }}
-            >
-              <HugeiconsIcon icon={Add01Icon} size={18} />
-              {showQuestionForm && !editingQuestionId ? "Cancel" : "Add Question"}
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Link href={`/admin/exercises/${exerciseId}/submissions`}>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
+                >
+                  Grade & results
+                  {(submissions?.length ?? 0) > 0 && (
+                    <span className="text-muted-foreground font-normal">
+                      · {submissions!.length} submitted
+                      {pendingManualGrades > 0 &&
+                        ` · ${pendingManualGrades} pending`}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+              <Button
+                className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+                onClick={() => {
+                  if (showQuestionForm && !editingQuestionId) {
+                    resetQuestionForm();
+                  } else {
+                    setEditingQuestionId(null);
+                    setQuestionForm(emptyQuestionForm());
+                    setShowQuestionForm(true);
+                  }
+                }}
+              >
+                <HugeiconsIcon icon={Add01Icon} size={18} />
+                {showQuestionForm && !editingQuestionId ? "Cancel" : "Add Question"}
+              </Button>
+            </div>
 
             {showQuestionForm && (
               <Card className="card-shadow">

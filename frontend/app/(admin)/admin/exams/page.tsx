@@ -176,46 +176,51 @@ export default function AdminExamsPage() {
         )}
 
         {exams?.map((exam) => (
-          <Link key={exam.id} href={`/admin/exams/${exam.id}`}>
-            <Card className="card-shadow hover:shadow-md transition-shadow">
-              <CardContent className="p-4 flex items-start gap-3">
+          <Card key={exam.id} className="card-shadow">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm">{exam.title}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {format(new Date(exam.start_date), "MMM d")} –{" "}
-                  {format(new Date(exam.end_date), "MMM d")} · {exam.duration_minutes}{" "}
-                  min · {exam.question_count} questions · {exam.status}
-                  {(exam.submission_count ?? 0) > 0 &&
-                    ` · ${exam.submission_count} submission${exam.submission_count === 1 ? "" : "s"}`}
-                </p>
-                <p className="text-xs text-emerald-deep mt-1">Manage questions →</p>
-              </div>
-              <Link href={`/admin/exams/${exam.id}/submissions`}>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {format(new Date(exam.start_date), "MMM d")} –{" "}
+                    {format(new Date(exam.end_date), "MMM d")} · {exam.duration_minutes}{" "}
+                    min · {exam.question_count} questions · {exam.status}
+                    {(exam.submission_count ?? 0) > 0 &&
+                      ` · ${exam.submission_count} submission${exam.submission_count === 1 ? "" : "s"}`}
+                  </p>
+                </div>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0 gap-1 border-emerald-deep/30 text-emerald-deep"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Submissions
-                </Button>
-              </Link>
-              <Button
                   variant="ghost"
                   size="icon"
-                  className="text-destructive"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setPendingDelete({ id: exam.id, title: exam.title });
-                  }}
+                  className="shrink-0 text-destructive"
+                  onClick={() =>
+                    setPendingDelete({ id: exam.id, title: exam.title })
+                  }
                   disabled={deleteMutation.isPending}
                 >
                   <HugeiconsIcon icon={Delete02Icon} size={16} />
                 </Button>
-              </CardContent>
-            </Card>
-          </Link>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Link href={`/admin/exams/${exam.id}/submissions`} className="flex-1">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
+                  >
+                    Grade & results
+                  </Button>
+                </Link>
+                <Link href={`/admin/exams/${exam.id}`} className="flex-1">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 border-emerald-deep/30 text-emerald-deep"
+                  >
+                    Questions
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         ))}
 
         {!isLoading && exams?.length === 0 && (
