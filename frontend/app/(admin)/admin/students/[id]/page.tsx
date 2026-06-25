@@ -295,7 +295,7 @@ export default function AdminStudentDetailPage({
             <div className="space-y-2">
               <Label>Registration Number</Label>
               <Input
-                placeholder="e.g. TJW-2026-001"
+                placeholder="e.g. 1.5.18A"
                 value={form.registration_number}
                 onChange={(e) =>
                   setForm((prev) => ({

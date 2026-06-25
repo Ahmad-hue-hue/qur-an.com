@@ -308,7 +308,7 @@ export const adminApi = {
 
   assignRegistrationNumber: async (id: string): Promise<StudentProfile> => {
     throwIfError(
-      await getSupabase().rpc("assign_registration_number", {
+      await getSupabase().rpc("admin_assign_registration_number", {
         p_student_id: id,
       })
     );
