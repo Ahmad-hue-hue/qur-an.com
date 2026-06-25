@@ -39,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${amiri.variable} ${playfair.variable} h-full`}>
-      <body className="min-h-full flex flex-col islamic-pattern">
+      <body className="min-h-full flex flex-col islamic-pattern overflow-x-hidden">
         <Providers>{children}</Providers>
       </body>
     </html>

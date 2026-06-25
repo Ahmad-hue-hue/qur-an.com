@@ -55,7 +55,7 @@ export default function TopicDetailPage({
       {isLoading && (
         <>
           <Skeleton className="h-32 w-full rounded-none" />
-          <div className="p-4 space-y-4">
+          <div className="page-loading">
             <Skeleton className="h-48 w-full" />
           </div>
         </>
@@ -64,7 +64,7 @@ export default function TopicDetailPage({
       {!isLoading && topic && (
         <>
       <PageHeader title={topic.title} arabicTitle={topic.arabic_title}>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-col gap-2 mt-2 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1 text-cream/80 text-sm hover:text-cream"
@@ -111,9 +111,7 @@ export default function TopicDetailPage({
         </Card>
 
         <section>
-          <h3 className="text-sm font-semibold text-emerald-deep mb-3">
-            The Six Throat Letters
-          </h3>
+          <h3 className="section-title mb-0">The Six Throat Letters</h3>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
             {throatLetters.map((letter) => (
               <div
@@ -163,7 +161,7 @@ export default function TopicDetailPage({
         />
 
         <Button
-          className="w-full h-12 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+          className="w-full h-11 sm:h-10 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
           disabled={isDone || completeMutation.isPending}
           onClick={() => completeMutation.mutate()}
         >

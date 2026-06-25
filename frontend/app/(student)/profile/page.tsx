@@ -69,7 +69,7 @@ export default function ProfilePage() {
       {isLoading && (
         <>
           <Skeleton className="h-40 w-full rounded-none" />
-          <div className="p-4 space-y-4">
+          <div className="page-loading">
             <Skeleton className="h-48 w-full" />
           </div>
         </>

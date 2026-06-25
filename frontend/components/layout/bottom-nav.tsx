@@ -22,7 +22,7 @@ export function BottomNav({ variant = "student", className }: BottomNavProps) {
         className
       )}
     >
-      <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2 sm:max-w-2xl">
+      <div className="mx-auto flex w-full max-w-lg items-center justify-around px-2 py-2 sm:max-w-2xl md:max-w-2xl xl:max-w-5xl">
         {items.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");

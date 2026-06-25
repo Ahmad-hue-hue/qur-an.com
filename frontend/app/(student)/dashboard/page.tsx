@@ -22,7 +22,7 @@ export default function DashboardPage() {
       {isLoading && (
         <>
           <Skeleton className="h-40 w-full rounded-none" />
-          <div className="p-4 space-y-4">
+          <div className="page-loading">
             <Skeleton className="h-32 w-full rounded-2xl" />
             <Skeleton className="h-48 w-full rounded-2xl" />
           </div>
@@ -50,17 +50,13 @@ export default function DashboardPage() {
 
           <div className="page-content">
             <section>
-              <h2 className="text-sm font-semibold text-emerald-deep mb-3">
-                Marḥalah Stages
-              </h2>
+              <h2 className="section-title">Marḥalah Stages</h2>
               <MarhalahList marhalahs={data.marhalahs} />
             </section>
 
             <section>
-              <h2 className="text-sm font-semibold text-emerald-deep mb-3">
-                Assessments
-              </h2>
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <h2 className="section-title">Assessments</h2>
+              <div className="auto-grid-cards">
                 {data.exercises.map((ex) => (
                   <Link key={ex.id} href={`/exercises/${ex.id}`}>
                     <Card className="card-shadow hover:shadow-md transition-shadow">
@@ -113,9 +109,7 @@ export default function DashboardPage() {
             </section>
 
             <section>
-              <h2 className="text-sm font-semibold text-emerald-deep mb-3">
-                Recent Results
-              </h2>
+              <h2 className="section-title">Recent Results</h2>
               <Card className="card-shadow">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Performance Summary</CardTitle>

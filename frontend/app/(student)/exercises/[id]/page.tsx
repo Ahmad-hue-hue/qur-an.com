@@ -196,7 +196,7 @@ export default function ExercisePage({
   return (
     <AppShell variant="auth">
       {isLoading && (
-        <div className="p-4 space-y-4">
+        <div className="page-loading">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-48 w-full" />
         </div>
@@ -217,7 +217,7 @@ export default function ExercisePage({
 
       {canTake && question && (
         <>
-          <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border px-4 py-3 sm:px-6 md:px-8">
+          <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3">
             <div className="flex items-center justify-between mb-2">
               <Link
                 href="/dashboard"

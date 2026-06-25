@@ -19,7 +19,7 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "mosque-header relative px-4 pt-6 pb-10 sm:px-6 sm:pb-12 md:px-8 md:pt-8 lg:rounded-b-2xl",
+        "mosque-header relative page-inset-x pt-6 pb-10 sm:pb-12 md:pt-8 lg:rounded-b-2xl",
         className
       )}
     >

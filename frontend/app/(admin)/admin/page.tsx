@@ -95,10 +95,8 @@ export default function AdminDashboardPage() {
         )}
 
         <section>
-          <h2 className="text-sm font-semibold text-emerald-deep mb-3">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="section-title">Quick Actions</h2>
+          <div className="auto-grid-cards">
             {quickActions.map((action) => (
               <Link key={action.label} href={action.href}>
                 <Card className="card-shadow hover:shadow-md transition-shadow">

@@ -199,7 +199,7 @@ export function AudioPlayer({ src, title, className, downloadFilename }: AudioPl
         </Button>
         <Button
           size="icon"
-          className="h-12 w-12 rounded-full bg-gold text-emerald-deep hover:bg-gold/90"
+          className="h-12 w-12 rounded-full bg-gold text-emerald-deep hover:bg-gold/90 btn-shadow sm:h-11 sm:w-11"
           onClick={() => void togglePlay()}
           aria-label={isPlaying ? "Pause" : "Play"}
         >
