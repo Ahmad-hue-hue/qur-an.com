@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ExerciseAnswerGrade, GradingStatus } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -59,12 +60,14 @@ export function AssessmentResultsPanel({
   maxScore,
   gradingStatus,
   answerGrades,
+  reviewHref,
 }: {
   title: string;
   score: number;
   maxScore: number;
   gradingStatus?: GradingStatus;
   answerGrades: ExerciseAnswerGrade[];
+  reviewHref?: string;
 }) {
   return (
     <div className="page-content max-w-3xl mx-auto space-y-4">
@@ -86,7 +89,17 @@ export function AssessmentResultsPanel({
       </Card>
 
       <div className="space-y-2">
-        <h2 className="font-semibold text-sm">Your answers</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="font-semibold text-sm">Your answers</h2>
+          {reviewHref && (
+            <Link
+              href={reviewHref}
+              className="text-xs text-emerald-deep hover:text-emerald-mid"
+            >
+              Review questions
+            </Link>
+          )}
+        </div>
         {answerGrades.map((grade) => (
           <AnswerResultRow key={grade.question_id} grade={grade} />
         ))}

@@ -63,15 +63,36 @@ async function getMarhalahByNumber(number: number) {
   ) as DbMarhalah;
 }
 
+async function hasExerciseSubmission(studentId: string, exerciseId: number) {
+  const row = throwIfError(
+    await getSupabase()
+      .from("exercise_submissions")
+      .select("id")
+      .eq("student_id", studentId)
+      .eq("exercise_id", exerciseId)
+      .not("submitted_at", "is", null)
+      .maybeSingle()
+  );
+  return Boolean(row);
+}
+
 async function assertExerciseAccessible(
   exercise: Record<string, unknown>,
-  marhalahId: number
+  marhalahId: number,
+  studentId?: string
 ) {
-  if ((exercise.marhalah_id as number) !== marhalahId) {
-    throw new Error(
-      "This exercise belongs to a different Marḥalah than your current stage."
-    );
+  if ((exercise.marhalah_id as number) === marhalahId) return;
+
+  if (
+    studentId &&
+    (await hasExerciseSubmission(studentId, exercise.id as number))
+  ) {
+    return;
   }
+
+  throw new Error(
+    "This exercise belongs to a different Marḥalah than your current stage."
+  );
 }
 
 async function assertExamAccessible(
@@ -650,19 +671,43 @@ export const studentApi = {
 
   getExercises: async (): Promise<Exercise[]> => {
     const { user, profile } = await getCurrentProfile();
+    const supabase = getSupabase();
     const marhalah = await getMarhalahByNumber(profile.current_marhalah);
     const rows = throwIfError(
-      await getSupabase()
+      await supabase
         .from("exercises")
         .select("*")
         .eq("marhalah_id", marhalah.id)
         .order("start_date")
     );
     const result: Exercise[] = [];
+    const seen = new Set<number>();
     for (const row of rows ?? []) {
       result.push(await buildExerciseRow(row, user.id));
+      seen.add(row.id as number);
     }
-    return result;
+
+    const pastRows = throwIfError(
+      await supabase
+        .from("exercise_submissions")
+        .select("exercise_id, exercises(*)")
+        .eq("student_id", user.id)
+        .not("submitted_at", "is", null)
+    ) as unknown as {
+      exercise_id: number;
+      exercises: Record<string, unknown> | null;
+    }[];
+
+    for (const entry of pastRows ?? []) {
+      const exercise = entry.exercises;
+      if (!exercise || seen.has(exercise.id as number)) continue;
+      seen.add(exercise.id as number);
+      result.push(await buildExerciseRow(exercise, user.id));
+    }
+
+    return result.sort(
+      (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+    );
   },
 
   getExercise: async (id: number): Promise<Exercise> => {
@@ -671,18 +716,18 @@ export const studentApi = {
     const row = throwIfError(
       await getSupabase().from("exercises").select("*").eq("id", id).single()
     );
-    await assertExerciseAccessible(row, marhalahId);
+    await assertExerciseAccessible(row, marhalahId, user.id);
     return buildExerciseRow(row, user.id);
   },
 
   getExerciseQuestions: async (id: number): Promise<Question[]> => {
-    const { profile } = await getCurrentProfile();
+    const { user, profile } = await getCurrentProfile();
     const supabase = getSupabase();
     const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
     const exercise = throwIfError(
       await supabase.from("exercises").select("*").eq("id", id).single()
     );
-    await assertExerciseAccessible(exercise, marhalahId);
+    await assertExerciseAccessible(exercise, marhalahId, user.id);
 
     const rows = throwIfError(
       await supabase

@@ -68,6 +68,11 @@ export default function AssessmentsPage() {
                       Opens {format(new Date(ex.start_date), "MMM d, yyyy")}
                     </p>
                   )}
+                  {ex.has_submitted && ex.marhalah !== marhalahNumber && (
+                    <p className="text-xs text-muted-foreground">
+                      Marḥalah {ex.marhalah} · submitted exercise
+                    </p>
+                  )}
                   {ex.has_submitted && ex.score !== undefined && (
                     <p className="text-sm font-medium text-emerald-deep">
                       Score: {ex.score}/{ex.max_score}
@@ -75,14 +80,22 @@ export default function AssessmentsPage() {
                   )}
                   <div className="flex gap-2 pt-1">
                     {ex.has_submitted ? (
-                      <Link
-                        href={`/exercises/${ex.id}/results`}
-                        className={buttonVariants({
-                          className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
-                        })}
-                      >
-                        View results
-                      </Link>
+                      <>
+                        <Link
+                          href={`/exercises/${ex.id}/review`}
+                          className={buttonVariants({
+                            className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                          })}
+                        >
+                          Review exercise
+                        </Link>
+                        <Link
+                          href={`/exercises/${ex.id}/results`}
+                          className={buttonVariants({ variant: "outline", className: "flex-1" })}
+                        >
+                          Results
+                        </Link>
+                      </>
                     ) : ex.status === "open" && ex.question_count > 0 ? (
                       <Link
                         href={`/exercises/${ex.id}`}

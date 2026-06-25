@@ -24,10 +24,12 @@ export function AssessmentQuestionInput({
   question,
   value,
   onChange,
+  readOnly = false,
 }: {
   question: Question;
   value: string;
   onChange: (value: string) => void;
+  readOnly?: boolean;
 }) {
   const type = question.type as QuestionType;
 
@@ -41,7 +43,11 @@ export function AssessmentQuestionInput({
     }
 
     return (
-      <RadioGroup value={value} onValueChange={onChange} className="space-y-2">
+      <RadioGroup
+        value={value}
+        onValueChange={readOnly ? undefined : onChange}
+        className={cn("space-y-2", readOnly && "pointer-events-none opacity-90")}
+      >
         {question.options.map((opt, i) => {
           const letter = String.fromCharCode(65 + i);
           const selected = value === opt;
@@ -50,7 +56,8 @@ export function AssessmentQuestionInput({
               key={i}
               htmlFor={`opt-${question.id}-${i}`}
               className={cn(
-                "flex items-center gap-3 p-4 rounded-xl border card-shadow cursor-pointer transition-all",
+                "flex items-center gap-3 p-4 rounded-xl border card-shadow transition-all",
+                readOnly ? "cursor-default" : "cursor-pointer",
                 selected
                   ? "border-emerald-deep bg-emerald-light"
                   : "border-border hover:border-emerald-mid/30"
@@ -90,8 +97,11 @@ export function AssessmentQuestionInput({
     return (
       <RadioGroup
         value={value}
-        onValueChange={onChange}
-        className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+        onValueChange={readOnly ? undefined : onChange}
+        className={cn(
+          "grid grid-cols-1 gap-3 sm:grid-cols-2",
+          readOnly && "pointer-events-none opacity-90"
+        )}
       >
         {[
           { value: "true", label: "True" },
@@ -103,7 +113,8 @@ export function AssessmentQuestionInput({
               key={opt.value}
               htmlFor={`tf-${question.id}-${opt.value}`}
               className={cn(
-                "flex items-center justify-center p-4 rounded-xl border card-shadow cursor-pointer font-medium transition-all",
+                "flex items-center justify-center p-4 rounded-xl border card-shadow font-medium transition-all",
+                readOnly ? "cursor-default" : "cursor-pointer",
                 selected
                   ? "border-emerald-deep bg-emerald-light text-emerald-deep"
                   : "border-border hover:border-emerald-mid/30"
@@ -129,7 +140,8 @@ export function AssessmentQuestionInput({
           placeholder="Type your answer..."
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-12 text-base"
+          readOnly={readOnly}
+          className={cn("h-12 text-base", readOnly && "bg-muted/40 cursor-default")}
         />
       </div>
     );
@@ -142,11 +154,14 @@ export function AssessmentQuestionInput({
           placeholder="Type your answer..."
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-32"
+          readOnly={readOnly}
+          className={cn("min-h-32", readOnly && "bg-muted/40 cursor-default resize-none")}
         />
-        <p className="text-xs text-muted-foreground">
-          This answer will be reviewed by your teacher.
-        </p>
+        {!readOnly && (
+          <p className="text-xs text-muted-foreground">
+            This answer will be reviewed by your teacher.
+          </p>
+        )}
       </div>
     );
   }
@@ -157,9 +172,10 @@ export function AssessmentQuestionInput({
         placeholder="Type your answer..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-32"
+        readOnly={readOnly}
+        className={cn("min-h-32", readOnly && "bg-muted/40 cursor-default resize-none")}
       />
-      {type === "written" && (
+      {type === "written" && !readOnly && (
         <p className="text-xs text-muted-foreground">
           This answer will be reviewed by your teacher.
         </p>
