@@ -83,7 +83,7 @@ begin
   status_val := public.get_assessment_status(
     ex.start_date,
     ex.end_date,
-    submission.submitted_at is not null
+    coalesce(submission.submitted_at is not null, false)
   );
   if status_val <> 'open' then
     raise exception 'Exam is %', status_val;
