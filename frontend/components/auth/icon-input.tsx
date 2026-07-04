@@ -36,15 +36,15 @@ export function IconInput({
   const inputType = isPassword ? (showPassword ? "text" : "password") : type;
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <Label htmlFor={id} className="text-sm font-medium text-foreground/80">
+    <div className={cn("space-y-1.5", className)}>
+      <Label htmlFor={id} className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
         {label}
       </Label>
       <div className="relative">
         <HugeiconsIcon
           icon={icon}
-          size={18}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-deep pointer-events-none"
+          size={17}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-deep/70 pointer-events-none"
         />
         <Input
           id={id}
@@ -54,7 +54,8 @@ export function IconInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            "pl-10 h-12 rounded-xl bg-white border-border/80",
+            "h-11 rounded-xl border-border/60 bg-cream/30 pl-10 shadow-none transition-colors",
+            "placeholder:text-muted-foreground/50 focus-visible:border-emerald-deep/30 focus-visible:ring-emerald-deep/15",
             isPassword && "pr-11"
           )}
         />

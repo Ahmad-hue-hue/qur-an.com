@@ -14,8 +14,6 @@ import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { LoginLogo } from "@/components/auth/login-logo";
 import { IconInput } from "@/components/auth/icon-input";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
@@ -73,14 +71,15 @@ export default function LoginPage() {
   const brandSubtitle = wantsAdmin
     ? "Enter your admin email and password to open the panel."
     : "Continue your Tajweed learning journey with structured lessons and assessments.";
+  const formTitle = wantsAdmin ? "Admin Sign In" : "Sign in";
   const formSubtitle = wantsAdmin
     ? "Admin email and password"
-    : "Sign in with your email and password";
+    : "Use your email and password to continue";
 
   return (
     <>
       {!isReady && (
-        <div className="min-h-screen bg-cream flex items-center justify-center">
+        <div className="flex min-h-screen items-center justify-center bg-cream">
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       )}
@@ -88,142 +87,131 @@ export default function LoginPage() {
       {isReady && (
         <div className="min-h-screen bg-cream lg:grid lg:grid-cols-2">
           <AuthBrandPanel title={brandTitle} subtitle={brandSubtitle} />
-          <div className="flex min-h-screen flex-col safe-area-top">
-            <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 sm:px-8 max-w-md mx-auto w-full lg:max-w-lg">
-              <LoginLogo className="mb-6 lg:hidden" size={128} priority />
 
-              <div className="text-center mb-8">
-                <h1 className="font-serif text-3xl font-bold text-emerald-deep tracking-tight">
-                  {wantsAdmin ? "Admin Sign In" : "Welcome Back"}
+          <div className="flex min-h-screen flex-col safe-area-top">
+            <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center px-6 py-12 sm:px-8">
+              <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
+                <LoginLogo className="mb-5 lg:hidden" size={96} priority />
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-mid">
+                  Tajweed Classes
+                </p>
+                <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-emerald-deep sm:text-3xl">
+                  {formTitle}
                 </h1>
-                <p className="text-muted-foreground text-sm mt-2">{formSubtitle}</p>
-                {!wantsAdmin && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Admin or teacher? Use your assigned email and password — no sign
-                    up required.
-                  </p>
+                <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                  {formSubtitle}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border/40 bg-white/70 p-6 shadow-[0_8px_40px_rgba(6,78,59,0.06)] backdrop-blur-sm sm:p-7">
+                {showSignedInPrompt ? (
+                  <div className="space-y-3 py-1 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      You are already signed in{role === "admin" ? " as admin" : ""}.
+                    </p>
+                    <Button
+                      className="h-11 w-full rounded-xl bg-emerald-deep text-cream hover:bg-emerald-mid"
+                      onClick={() => router.push(getDefaultRoute(role))}
+                    >
+                      Continue
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-11 w-full rounded-xl text-emerald-deep hover:bg-emerald-light/50"
+                      onClick={() => {
+                        logout();
+                        refreshAuth();
+                      }}
+                    >
+                      Sign out
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {switchingToAdmin && (
+                      <p className="rounded-xl bg-emerald-light/40 px-3 py-2.5 text-center text-sm text-muted-foreground">
+                        Signed in as a student. Enter admin credentials below.
+                      </p>
+                    )}
+
+                    <IconInput
+                      id="email"
+                      label="Email"
+                      icon={Mail01Icon}
+                      placeholder={wantsAdmin ? "admin@gmail.com" : "you@example.com"}
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={setEmail}
+                    />
+                    <IconInput
+                      id="password"
+                      label="Password"
+                      icon={LockIcon}
+                      placeholder="Enter your password"
+                      type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={setPassword}
+                    />
+
+                    <Button
+                      className="mt-1 h-11 w-full rounded-xl bg-emerald-deep text-cream hover:bg-emerald-mid"
+                      disabled={
+                        loginMutation.isPending || !email.trim() || !password.trim()
+                      }
+                      onClick={() => loginMutation.mutate()}
+                    >
+                      {loginMutation.isPending
+                        ? "Signing in..."
+                        : wantsAdmin
+                          ? "Sign in to admin"
+                          : "Sign in"}
+                    </Button>
+
+                    {!wantsAdmin && (
+                      <Link
+                        href="/register"
+                        className={cn(
+                          buttonVariants({ variant: "outline" }),
+                          "h-11 w-full rounded-xl border-border/70 bg-transparent text-emerald-deep hover:bg-emerald-light/40"
+                        )}
+                      >
+                        Create account
+                      </Link>
+                    )}
+
+                    {wantsAdmin && (
+                      <Link
+                        href="/login"
+                        className={cn(
+                          buttonVariants({ variant: "ghost" }),
+                          "h-11 w-full rounded-xl text-muted-foreground hover:text-emerald-deep"
+                        )}
+                      >
+                        Student sign in
+                      </Link>
+                    )}
+                  </div>
                 )}
               </div>
 
-              <Card className="w-full border-0 card-shadow rounded-2xl bg-white">
-                <CardContent className="p-6 pt-7">
-                  {showSignedInPrompt ? (
-                    <div className="space-y-4 text-center py-2">
-                      <p className="text-sm text-muted-foreground">
-                        You are already signed in{role === "admin" ? " as admin" : ""}.
-                      </p>
-                      <Button
-                        className="w-full h-12 rounded-xl bg-emerald-deep hover:bg-emerald-mid text-cream text-base font-medium"
-                        onClick={() => router.push(getDefaultRoute(role))}
-                      >
-                        Continue
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full h-12 rounded-xl border-emerald-deep text-emerald-deep"
-                        onClick={() => {
-                          logout();
-                          refreshAuth();
-                        }}
-                      >
-                        Sign out
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-5">
-                      {switchingToAdmin && (
-                        <p className="text-sm text-muted-foreground text-center rounded-lg bg-muted/50 px-3 py-2">
-                          You are signed in as a student. Enter your admin credentials
-                          below to open the admin panel.
-                        </p>
-                      )}
-
-                      <IconInput
-                        id="email"
-                        label="Email"
-                        icon={Mail01Icon}
-                        placeholder={wantsAdmin ? "admin@gmail.com" : "you@example.com"}
-                        type="email"
-                        autoComplete="email"
-                        value={email}
-                        onChange={setEmail}
-                      />
-                      <IconInput
-                        id="password"
-                        label="Password"
-                        icon={LockIcon}
-                        placeholder="Enter your password"
-                        type="password"
-                        autoComplete="current-password"
-                        value={password}
-                        onChange={setPassword}
-                      />
-
-                      <Button
-                        className="w-full h-12 rounded-xl bg-emerald-deep hover:bg-emerald-mid text-cream text-base font-medium mt-2"
-                        disabled={
-                          loginMutation.isPending || !email.trim() || !password.trim()
-                        }
-                        onClick={() => loginMutation.mutate()}
-                      >
-                        {loginMutation.isPending
-                          ? "Signing in..."
-                          : wantsAdmin
-                            ? "Sign in to admin"
-                            : "Login"}
-                      </Button>
-
-                      {!wantsAdmin && (
-                        <>
-                          <div className="relative py-1">
-                            <Separator />
-                            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-muted-foreground">
-                              or
-                            </span>
-                          </div>
-
-                          <Link
-                            href="/register"
-                            className={cn(
-                              buttonVariants({ variant: "outline" }),
-                              "w-full h-12 rounded-xl border-2 border-emerald-deep text-emerald-deep hover:bg-emerald-light/50 text-base font-medium"
-                            )}
-                          >
-                            Sign Up
-                          </Link>
-                        </>
-                      )}
-
-                      {wantsAdmin && (
-                        <Link
-                          href="/login"
-                          className={cn(
-                            buttonVariants({ variant: "outline" }),
-                            "w-full h-12 rounded-xl border-emerald-deep text-emerald-deep"
-                          )}
-                        >
-                          Student sign in
-                        </Link>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {!showSignedInPrompt && !wantsAdmin && (
-                <p className="text-center text-sm text-muted-foreground mt-8">
-                  New here?{" "}
-                  <Link href="/register" className="font-semibold text-emerald-deep">
-                    Sign up
-                  </Link>{" "}
-                  to get started.
+                <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground lg:text-left">
+                  Admin or teacher? Use your assigned credentials — no sign up
+                  required.{" "}
+                  <Link
+                    href="/login?next=/admin"
+                    className="font-medium text-emerald-deep hover:underline"
+                  >
+                    Admin sign in
+                  </Link>
                 </p>
               )}
 
               {!showSignedInPrompt && wantsAdmin && (
-                <p className="text-center text-sm text-muted-foreground mt-8">
-                  Admins and students use the same login page — only admin accounts
-                  can access the panel.
+                <p className="mt-6 text-center text-xs text-muted-foreground lg:text-left">
+                  Only admin accounts can access the admin panel.
                 </p>
               )}
             </div>

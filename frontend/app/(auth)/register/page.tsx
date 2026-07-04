@@ -17,8 +17,6 @@ import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { LoginLogo } from "@/components/auth/login-logo";
 import { IconInput } from "@/components/auth/icon-input";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -59,21 +57,22 @@ export default function RegisterPage() {
         subtitle="Start your structured Tajweed journey with lessons, exercises, and guided assessments."
       />
       <div className="flex min-h-screen flex-col safe-area-top">
-        <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 sm:px-8 max-w-md mx-auto w-full lg:max-w-lg">
-          <LoginLogo className="mb-6 lg:hidden" size={128} priority />
-
-          <div className="text-center mb-8">
-            <h1 className="font-serif text-3xl font-bold text-emerald-deep tracking-tight">
-              Join Tajweed Classes
+        <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center px-6 py-12 sm:px-8">
+          <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
+            <LoginLogo className="mb-5 lg:hidden" size={96} priority />
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-mid">
+              Tajweed Classes
+            </p>
+            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-emerald-deep sm:text-3xl">
+              Create account
             </h1>
-            <p className="text-muted-foreground text-sm mt-2">
-              Create your student account
+            <p className="mt-2 text-sm text-muted-foreground">
+              Start your student journey
             </p>
           </div>
 
-          <Card className="w-full border-0 card-shadow rounded-2xl bg-white">
-            <CardContent className="p-6 pt-7">
-              <div className="space-y-5">
+          <div className="rounded-2xl border border-border/40 bg-white/70 p-6 shadow-[0_8px_40px_rgba(6,78,59,0.06)] backdrop-blur-sm sm:p-7">
+            <div className="space-y-4">
                 <IconInput
                   id="name"
                   label="Full Name"
@@ -114,13 +113,15 @@ export default function RegisterPage() {
                   onChange={setPassword}
                 />
 
-                <div className="space-y-2">
-                  <Label>Gender</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                    Gender
+                  </Label>
                   <Select
                     value={gender}
                     onValueChange={(v) => setGender((v as "male" | "female") ?? "male")}
                   >
-                    <SelectTrigger className="h-12 rounded-xl">
+                    <SelectTrigger className="h-11 rounded-xl border-border/60 bg-cream/30">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -131,37 +132,29 @@ export default function RegisterPage() {
                 </div>
 
                 <Button
-                  className="w-full h-12 rounded-xl bg-emerald-deep hover:bg-emerald-mid text-cream text-base font-medium mt-2"
+                  className="mt-1 h-11 w-full rounded-xl bg-emerald-deep text-cream hover:bg-emerald-mid"
                   disabled={registerMutation.isPending || !canSubmit}
                   onClick={() => registerMutation.mutate()}
                 >
-                  {registerMutation.isPending ? "Creating account..." : "Sign Up"}
+                  {registerMutation.isPending ? "Creating account..." : "Sign up"}
                 </Button>
-
-                <div className="relative py-1">
-                  <Separator />
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-muted-foreground">
-                    or
-                  </span>
-                </div>
 
                 <Link
                   href="/login"
                   className={cn(
                     buttonVariants({ variant: "outline" }),
-                    "w-full h-12 rounded-xl border-2 border-emerald-deep text-emerald-deep hover:bg-emerald-light/50 text-base font-medium"
+                    "h-11 w-full rounded-xl border-border/70 bg-transparent text-emerald-deep hover:bg-emerald-light/40"
                   )}
                 >
-                  Login
+                  Sign in instead
                 </Link>
               </div>
-            </CardContent>
-          </Card>
+          </div>
 
-          <p className="text-center text-sm text-muted-foreground mt-8">
+          <p className="mt-6 text-center text-xs text-muted-foreground lg:text-left">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-emerald-deep">
-              Login
+            <Link href="/login" className="font-medium text-emerald-deep hover:underline">
+              Sign in
             </Link>
           </p>
         </div>
