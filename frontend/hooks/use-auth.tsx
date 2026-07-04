@@ -12,9 +12,13 @@ import {
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { authApi } from "@/lib/api";
+import {
+  clearBrowserSessionMarker,
+  ensureActiveBrowserSession,
+} from "@/lib/auth/browser-session";
+import { getDefaultRoute } from "@/lib/auth/token";
 import { getSupabase } from "@/lib/supabase/client";
 import { fetchUserRole } from "@/lib/supabase/role";
-import { getDefaultRoute } from "@/lib/auth/token";
 
 type AppRole = "student" | "admin" | "teacher" | null;
 
@@ -63,10 +67,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const supabase = getSupabase();
+    let mounted = true;
 
-    void supabase.auth.getSession().then(({ data }) => {
-      void syncSession(data.session);
-    });
+    const init = async () => {
+      await ensureActiveBrowserSession();
+      if (!mounted) return;
+
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      await syncSession(data.session);
+    };
+
+    void init();
 
     const {
       data: { subscription },
@@ -74,10 +86,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void syncSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [syncSession]);
 
   const logout = useCallback(() => {
+    clearBrowserSessionMarker();
     void authApi.logout().finally(() => {
       setIsLoggedIn(false);
       setRole(null);

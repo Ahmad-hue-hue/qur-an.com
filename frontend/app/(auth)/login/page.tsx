@@ -7,8 +7,9 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Mail01Icon, LockIcon } from "@hugeicons/core-free-icons";
 import { authApi } from "@/lib/api";
-import { useAuth } from "@/hooks/use-auth";
+import { markBrowserSessionActive } from "@/lib/auth/browser-session";
 import { getDefaultRoute } from "@/lib/auth/token";
+import { useAuth } from "@/hooks/use-auth";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { LoginLogo } from "@/components/auth/login-logo";
 import { IconInput } from "@/components/auth/icon-input";
@@ -46,6 +47,7 @@ export default function LoginPage() {
         return;
       }
 
+      markBrowserSessionActive();
       setRole(loginRole);
       await refreshAuth();
       toast.success(

@@ -1,3 +1,7 @@
+import {
+  clearBrowserSessionMarker,
+  markBrowserSessionActive,
+} from "@/lib/auth/browser-session";
 import { getSupabase } from "@/lib/supabase/client";
 import { fetchUserRole } from "@/lib/supabase/role";
 import { normalizePhone, splitFullName, SupabaseApiError } from "@/lib/supabase/utils";
@@ -32,6 +36,7 @@ export const authApi = {
         "Registration succeeded. Check your email to confirm your account."
       );
     }
+    markBrowserSessionActive();
     return data.session;
   },
 
@@ -56,6 +61,7 @@ export const authApi = {
     }
 
     await supabase.auth.refreshSession();
+    markBrowserSessionActive();
 
     return { session: data.session, role };
   },
@@ -78,6 +84,7 @@ export const authApi = {
   },
 
   logout: async () => {
+    clearBrowserSessionMarker();
     const supabase = getSupabase();
     await supabase.auth.signOut();
   },
