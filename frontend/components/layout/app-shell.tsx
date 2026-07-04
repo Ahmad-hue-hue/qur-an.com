@@ -1,11 +1,15 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SideNav } from "./side-nav";
-import { BottomNav } from "./bottom-nav";
-import { MobileSignOutBar } from "./mobile-sign-out-bar";
+import { MobileSidebar } from "./mobile-sidebar";
+import { AppHeader } from "./app-header";
+import type { NavVariant } from "./nav-config";
 
 interface AppShellProps {
   children: React.ReactNode;
-  variant?: "student" | "admin" | "teacher" | "auth";
+  variant?: NavVariant | "auth";
   className?: string;
 }
 
@@ -24,31 +28,41 @@ export function AppShell({
   variant = "student",
   className,
 }: AppShellProps) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const hasNav = variant !== "auth";
 
   if (!hasNav) {
     return (
-      <div className={cn("flex flex-col min-h-screen", className)}>
+      <div className={cn("flex min-h-screen flex-col", className)}>
         <main className={cn("flex-1", mainWidth.auth)}>{children}</main>
       </div>
     );
   }
 
+  const navVariant = variant as NavVariant;
+
   return (
     <div className={cn("flex min-h-screen", className)}>
-      <SideNav variant={variant} />
-      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
-        <MobileSignOutBar variant={variant} />
+      <SideNav variant={navVariant} />
+      <MobileSidebar
+        variant={navVariant}
+        open={mobileNavOpen}
+        onOpenChange={setMobileNavOpen}
+      />
+      <div className="relative flex min-w-0 flex-1 flex-col overflow-x-hidden">
+        <AppHeader
+          variant={navVariant}
+          onMenuOpen={() => setMobileNavOpen(true)}
+        />
         <main
           className={cn(
-            "flex-1 w-full",
-            mainWidth[variant],
-            "pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:pb-8"
+            "w-full flex-1",
+            mainWidth[navVariant],
+            "pb-6 lg:pb-8 safe-area-bottom"
           )}
         >
           {children}
         </main>
-        <BottomNav variant={variant} />
       </div>
     </div>
   );
