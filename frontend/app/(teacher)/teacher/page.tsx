@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { teacherApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -17,12 +16,12 @@ import {
 } from "@hugeicons/core-free-icons";
 
 export default function TeacherDashboardPage() {
-  const [marhalahId, setMarhalahId] = useState("1");
-
   const { data: profile } = useQuery({
     queryKey: ["teacher-profile"],
     queryFn: teacherApi.getProfile,
   });
+
+  const marhalahId = String(profile?.managed_marhalah ?? 1);
 
   const { data: students } = useQuery({
     queryKey: ["teacher-students", marhalahId],
@@ -38,12 +37,6 @@ export default function TeacherDashboardPage() {
     queryKey: ["teacher-exams", marhalahId],
     queryFn: () => teacherApi.getExams(parseInt(marhalahId)),
   });
-
-  useEffect(() => {
-    if (profile?.managed_marhalah) {
-      setMarhalahId(String(profile.managed_marhalah));
-    }
-  }, [profile?.managed_marhalah]);
 
   const quickActions = [
     { label: "Manage exercises", href: "/teacher/exercises", icon: Task01Icon },
@@ -67,7 +60,7 @@ export default function TeacherDashboardPage() {
           <CardContent className="p-4">
             <TeacherMarhalahSelect
               value={marhalahId}
-              onValueChange={(v) => setMarhalahId(v ?? "1")}
+              onValueChange={() => {}}
             />
           </CardContent>
         </Card>
