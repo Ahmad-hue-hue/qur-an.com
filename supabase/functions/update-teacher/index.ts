@@ -62,25 +62,39 @@ Deno.serve(async (req) => {
   try {
     const supabase = await requireAdmin(req);
     const {
+      teacher_id,
+      email,
+      password,
       first_name,
       last_name,
-      phone,
       gender,
-      current_marhalah,
-      login_email,
-      password,
+      managed_marhalah,
     } = await req.json();
 
-    if (!first_name?.trim() || !phone?.trim()) {
-      return new Response(JSON.stringify({ error: "Name and phone are required" }), {
+    if (!teacher_id) {
+      return new Response(JSON.stringify({ error: "teacher_id is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (!password?.trim() || password.trim().length < 6) {
+    const { data: existing, error: fetchError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", teacher_id)
+      .eq("role", "teacher")
+      .maybeSingle();
+
+    if (fetchError || !existing) {
+      return new Response(JSON.stringify({ error: "Teacher not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (gender && gender !== "male" && gender !== "female") {
       return new Response(
-        JSON.stringify({ error: "Password must be at least 6 characters" }),
+        JSON.stringify({ error: "Gender must be male or female" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -88,17 +102,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (gender !== "male" && gender !== "female") {
-      return new Response(JSON.stringify({ error: "Gender must be male or female" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const marhalah = Number(current_marhalah) || 1;
-    if (marhalah < 1 || marhalah > 4) {
+    const marhalah =
+      managed_marhalah != null ? Number(managed_marhalah) : existing.managed_marhalah;
+    if (marhalah != null && (marhalah < 1 || marhalah > 4)) {
       return new Response(
-        JSON.stringify({ error: "Marḥalah must be between 1 and 4" }),
+        JSON.stringify({ error: "Managed marhalah must be between 1 and 4" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -106,25 +114,40 @@ Deno.serve(async (req) => {
       );
     }
 
-    const normalizedPhone = phone.replace(/\D/g, "");
-    const email =
-      login_email?.trim().toLowerCase() ||
-      `${normalizedPhone}@students.tajweed.local`;
+    const normalizedEmail = email?.trim().toLowerCase();
 
-    const { data: authData, error: authError } =
-      await supabase.auth.admin.createUser({
-        email,
-        password: password.trim(),
-        email_confirm: true,
-        user_metadata: {
-          first_name: first_name.trim(),
-          last_name: (last_name ?? "").trim(),
-          phone: normalizedPhone,
-          role: "student",
-          gender,
-        },
-      });
+    const authPayload: {
+      email?: string;
+      password?: string;
+      user_metadata?: Record<string, unknown>;
+    } = {};
 
+    if (normalizedEmail) authPayload.email = normalizedEmail;
+    if (password?.trim()) {
+      if (password.trim().length < 6) {
+        return new Response(
+          JSON.stringify({ error: "Password must be at least 6 characters" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      authPayload.password = password.trim();
+    }
+
+    authPayload.user_metadata = {
+      first_name: first_name?.trim() ?? existing.first_name,
+      last_name: last_name?.trim() ?? existing.last_name ?? "",
+      role: "teacher",
+      gender: gender ?? existing.gender,
+      managed_marhalah: marhalah ?? existing.managed_marhalah,
+    };
+
+    const { error: authError } = await supabase.auth.admin.updateUserById(
+      teacher_id,
+      authPayload
+    );
     if (authError) {
       return new Response(JSON.stringify({ error: authError.message }), {
         status: 400,
@@ -132,47 +155,48 @@ Deno.serve(async (req) => {
       });
     }
 
-    const studentId = authData.user.id;
+    const profileUpdate: Record<string, unknown> = {
+      first_name: first_name?.trim() ?? existing.first_name,
+      last_name: last_name?.trim() ?? existing.last_name ?? "",
+      gender: gender ?? existing.gender,
+      managed_marhalah: marhalah ?? existing.managed_marhalah,
+    };
+    if (normalizedEmail) profileUpdate.email = normalizedEmail;
 
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({
-        gender,
-        current_marhalah: marhalah,
-        email,
-        phone: normalizedPhone,
-        first_name: first_name.trim(),
-        last_name: (last_name ?? "").trim(),
-      })
-      .eq("id", studentId);
+      .update(profileUpdate)
+      .eq("id", teacher_id);
 
     if (profileError) {
-      await supabase.auth.admin.deleteUser(studentId);
       return new Response(JSON.stringify({ error: profileError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { error: regError } = await supabase.rpc("assign_registration_number", {
-      p_student_id: studentId,
-    });
-
-    if (regError) {
-      console.error("assign_registration_number failed:", regError.message);
-    }
-
-    const { data: profile } = await supabase
+    const { data: profile, error: profileFetchError } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", studentId)
+      .eq("id", teacher_id)
       .single();
+
+    if (profileFetchError || !profile) {
+      return new Response(
+        JSON.stringify({
+          error: profileFetchError?.message ?? "Teacher profile not found",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     return new Response(
       JSON.stringify({
         profile,
-        login_email: email,
-        temporary_password: password.trim(),
+        login_email: profile.email ?? normalizedEmail,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

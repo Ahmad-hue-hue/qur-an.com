@@ -84,8 +84,8 @@ export default function AdminStudentsPage() {
           </Link>
         </div>
         <p className="text-xs text-muted-foreground">
-          Login email and a temporary password are generated when you register a
-          student — copy and share them securely with the student.
+          Login email and password are set when you register a student — share
+          them securely with the student.
         </p>
 
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">

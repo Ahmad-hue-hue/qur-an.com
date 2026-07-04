@@ -31,7 +31,8 @@ export default function AdminTeachersPage() {
 
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 mt-4">
           {teachers?.map((teacher) => (
-            <Card key={teacher.id} className="card-shadow">
+            <Link key={teacher.id} href={`/admin/teachers/${teacher.id}`}>
+            <Card className="card-shadow hover:shadow-md transition-shadow">
               <CardContent className="p-4 flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-emerald-light text-emerald-deep text-sm">
@@ -51,10 +52,11 @@ export default function AdminTeachersPage() {
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
                   size={18}
-                  className="text-muted-foreground opacity-40"
+                  className="text-muted-foreground"
                 />
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
 

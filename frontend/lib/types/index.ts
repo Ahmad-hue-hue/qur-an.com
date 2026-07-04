@@ -263,6 +263,8 @@ export interface CreateStudentData {
   phone: string;
   gender: Gender;
   current_marhalah: number;
+  login_email?: string;
+  password: string;
 }
 
 export interface CreateTeacherData {
@@ -272,6 +274,15 @@ export interface CreateTeacherData {
   last_name: string;
   gender: Gender;
   managed_marhalah: number;
+}
+
+export interface UpdateTeacherData {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  password?: string;
+  gender?: Gender;
+  managed_marhalah?: number;
 }
 
 export interface TeacherProfile extends User {

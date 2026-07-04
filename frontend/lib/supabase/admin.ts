@@ -14,6 +14,7 @@ import type {
   CreateQuestionData,
   CreateStudentData,
   CreateTeacherData,
+  UpdateTeacherData,
   Exam,
   ExamDetail,
   ExamSubmissionAdmin,
@@ -276,6 +277,8 @@ export const adminApi = {
       phone,
       gender: data.gender,
       current_marhalah: data.current_marhalah,
+      login_email: data.login_email?.trim().toLowerCase(),
+      password: data.password,
     });
     return {
       ...mapProfileRow(result.profile),
@@ -295,6 +298,19 @@ export const adminApi = {
     return (rows ?? []).map((row) => mapProfileRow(row));
   },
 
+  getTeacher: async (id: string): Promise<User> => {
+    const row = throwIfError(
+      await getSupabase()
+        .from("profiles")
+        .select("*")
+        .eq("id", id)
+        .eq("role", "teacher")
+        .maybeSingle()
+    );
+    if (!row) throw new SupabaseApiError("Teacher not found", 404);
+    return mapProfileRow(row);
+  },
+
   createTeacher: async (
     data: CreateTeacherData
   ): Promise<User & { login_email?: string }> => {
@@ -303,6 +319,28 @@ export const adminApi = {
       login_email?: string;
     }>("create-teacher", {
       email: data.email.trim().toLowerCase(),
+      password: data.password,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      gender: data.gender,
+      managed_marhalah: data.managed_marhalah,
+    });
+    return {
+      ...mapProfileRow(result.profile),
+      login_email: result.login_email,
+    };
+  },
+
+  updateTeacher: async (
+    id: string,
+    data: UpdateTeacherData
+  ): Promise<User & { login_email?: string }> => {
+    const result = await invokeEdgeFunction<{
+      profile: Record<string, unknown>;
+      login_email?: string;
+    }>("update-teacher", {
+      teacher_id: id,
+      email: data.email?.trim().toLowerCase(),
       password: data.password,
       first_name: data.first_name,
       last_name: data.last_name,

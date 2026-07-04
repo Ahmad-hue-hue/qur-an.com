@@ -53,6 +53,8 @@ export default function AdminCreateStudentPage() {
     first_name: "",
     last_name: "",
     phone: "",
+    login_email: "",
+    password: "",
     gender: "male" as "male" | "female",
     current_marhalah: "1",
   });
@@ -64,6 +66,8 @@ export default function AdminCreateStudentPage() {
       adminApi.createStudent({
         ...form,
         current_marhalah: parseInt(form.current_marhalah, 10) || 1,
+        login_email: form.login_email.trim() || undefined,
+        password: form.password,
       }),
     onSuccess: (student) => {
       queryClient.invalidateQueries({ queryKey: ["admin-students"] });
@@ -88,7 +92,10 @@ export default function AdminCreateStudentPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const canSubmit =
-    form.first_name.trim() && form.last_name.trim() && form.phone.trim();
+    form.first_name.trim() &&
+    form.last_name.trim() &&
+    form.phone.trim() &&
+    form.password.trim().length >= 6;
 
   const credentialsBlock = createdStudent
     ? [
@@ -123,8 +130,8 @@ export default function AdminCreateStudentPage() {
           <Card className="card-shadow">
             <CardContent className="p-5 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Create a student account, assign their starting Marḥalah, and share
-                the generated login credentials securely.
+                Create a student account, assign their starting Marḥalah, and set
+                the login email and password to share with them.
               </p>
               <div className="form-grid-2">
                 <div className="space-y-2">
@@ -151,8 +158,27 @@ export default function AdminCreateStudentPage() {
                   onChange={(e) => update("phone", e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Used to generate the student login email.
+                  Used for registration records. Login email can be set separately
+                  below.
                 </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Login email</Label>
+                <Input
+                  type="email"
+                  placeholder="student@example.com (optional — auto from phone if empty)"
+                  value={form.login_email}
+                  onChange={(e) => update("login_email", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Login password</Label>
+                <Input
+                  type="password"
+                  placeholder="At least 6 characters"
+                  value={form.password}
+                  onChange={(e) => update("password", e.target.value)}
+                />
               </div>
               <div className="form-grid-2">
                 <div className="space-y-2">
