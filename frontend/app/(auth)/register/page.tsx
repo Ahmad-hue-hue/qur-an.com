@@ -43,7 +43,7 @@ export default function RegisterPage() {
       authApi.registerStudent({ email, password, name, phone, gender }),
     onSuccess: async () => {
       await refreshAuth();
-      toast.success("Account created! Welcome to Tajweed Academy.");
+      toast.success("Account created! Welcome to Tajweed Classes.");
       router.push("/dashboard");
     },
     onError: (err: Error) => toast.error(err.message || "Registration failed"),
@@ -55,7 +55,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-cream lg:grid lg:grid-cols-2">
       <AuthBrandPanel
-        title="Join Tajweed Academy"
+        title="Join Tajweed Classes"
         subtitle="Start your structured Tajweed journey with lessons, exercises, and guided assessments."
       />
       <div className="flex min-h-screen flex-col safe-area-top">
@@ -64,7 +64,7 @@ export default function RegisterPage() {
 
           <div className="text-center mb-8">
             <h1 className="font-serif text-3xl font-bold text-emerald-deep tracking-tight">
-              Join Tajweed Academy
+              Join Tajweed Classes
             </h1>
             <p className="text-muted-foreground text-sm mt-2">
               Create your student account

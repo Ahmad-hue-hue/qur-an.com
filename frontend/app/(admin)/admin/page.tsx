@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
 
   return (
     <AppShell variant="admin">
-      <PageHeader title="Admin Dashboard" subtitle="Tajweed Academy" />
+      <PageHeader title="Admin Dashboard" subtitle="Tajweed Classes" />
 
       <div className="page-content">
         {isError && (

@@ -58,7 +58,7 @@ export default function TeacherDashboardPage() {
         subtitle={
           profile
             ? `${profile.first_name} ${profile.last_name} · ${profile.gender === "female" ? "Female" : "Male"} students`
-            : "Tajweed Academy"
+            : "Tajweed Classes"
         }
       />
 
