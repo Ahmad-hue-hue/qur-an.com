@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -15,45 +16,56 @@ import { authApi } from "@/lib/api";
 import {
   clearBrowserSessionMarker,
   ensureActiveBrowserSession,
+  markBrowserSessionActive,
 } from "@/lib/auth/browser-session";
 import { getDefaultRoute } from "@/lib/auth/token";
 import { getSupabase } from "@/lib/supabase/client";
-import { fetchUserRole } from "@/lib/supabase/role";
-
-type AppRole = "student" | "admin" | "teacher" | null;
+import { fetchUserRole, roleFromUser, type AppRole } from "@/lib/supabase/role";
 
 interface AuthContextValue {
   isReady: boolean;
   isLoggedIn: boolean;
-  role: AppRole;
+  role: AppRole | null;
   logout: () => void;
-  refreshAuth: () => void;
-  setRole: (role: AppRole) => void;
+  refreshAuth: () => Promise<void>;
+  completeLogin: (role: AppRole, userId?: string) => void;
+  setRole: (role: AppRole | null) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-async function resolveRole(session: Session | null): Promise<AppRole> {
-  if (!session?.user) return null;
-
-  const supabase = getSupabase();
-  const role = await fetchUserRole(supabase, session.user.id);
-  return role;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isReady, setIsReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState<AppRole>(null);
+  const [role, setRole] = useState<AppRole | null>(null);
+  const sessionUserIdRef = useRef<string | null>(null);
+  const recentLoginAtRef = useRef(0);
 
   const syncSession = useCallback(async (session: Session | null) => {
-    if (!session) {
+    if (!session?.user) {
+      sessionUserIdRef.current = null;
       setIsLoggedIn(false);
       setRole(null);
       setIsReady(true);
       return;
     }
-    const nextRole = await resolveRole(session);
+
+    const userId = session.user.id;
+    const quickRole = roleFromUser(session.user);
+
+    if (sessionUserIdRef.current === userId && quickRole) {
+      setIsLoggedIn(true);
+      setRole(quickRole);
+      setIsReady(true);
+      return;
+    }
+
+    sessionUserIdRef.current = userId;
+
+    const supabase = getSupabase();
+    const nextRole =
+      quickRole ?? (await fetchUserRole(supabase, userId, session.user));
+
     setIsLoggedIn(true);
     setRole(nextRole);
     setIsReady(true);
@@ -64,6 +76,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await supabase.auth.getSession();
     await syncSession(data.session);
   }, [syncSession]);
+
+  const completeLogin = useCallback((nextRole: AppRole, userId?: string) => {
+    markBrowserSessionActive();
+    if (userId) sessionUserIdRef.current = userId;
+    recentLoginAtRef.current = Date.now();
+    setIsLoggedIn(true);
+    setRole(nextRole);
+    setIsReady(true);
+  }, []);
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -82,7 +103,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && Date.now() - recentLoginAtRef.current < 5000) {
+        return;
+      }
       void syncSession(session);
     });
 
@@ -94,13 +118,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearBrowserSessionMarker();
+    sessionUserIdRef.current = null;
+    recentLoginAtRef.current = 0;
     void authApi.logout().finally(() => {
       setIsLoggedIn(false);
       setRole(null);
     });
   }, []);
 
-  const setRoleDirect = useCallback((nextRole: AppRole) => {
+  const setRoleDirect = useCallback((nextRole: AppRole | null) => {
     setRole(nextRole);
   }, []);
 
@@ -111,9 +137,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       logout,
       refreshAuth,
+      completeLogin,
       setRole: setRoleDirect,
     }),
-    [isReady, isLoggedIn, role, logout, refreshAuth, setRoleDirect]
+    [isReady, isLoggedIn, role, logout, refreshAuth, completeLogin, setRoleDirect]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -125,7 +152,7 @@ export function useAuth() {
   return ctx;
 }
 
-export function useRequireAuth(requiredRole?: "student" | "admin" | "teacher") {
+export function useRequireAuth(requiredRole?: AppRole) {
   const router = useRouter();
   const auth = useAuth();
 

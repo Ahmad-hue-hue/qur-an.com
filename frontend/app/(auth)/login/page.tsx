@@ -7,7 +7,6 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Mail01Icon, LockIcon } from "@hugeicons/core-free-icons";
 import { authApi } from "@/lib/api";
-import { markBrowserSessionActive } from "@/lib/auth/browser-session";
 import { getDefaultRoute } from "@/lib/auth/token";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
@@ -21,7 +20,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
   const wantsAdmin = Boolean(nextPath?.startsWith("/admin"));
-  const { refreshAuth, logout, isLoggedIn, role, isReady, setRole } = useAuth();
+  const { refreshAuth, logout, isLoggedIn, role, isReady, completeLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const loggingOut = searchParams.get("logout") === "1";
@@ -37,17 +36,17 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: () =>
       authApi.login({ email: email.trim().toLowerCase(), password }),
-    onSuccess: async ({ role: loginRole }) => {
+    onSuccess: ({ role: loginRole, session }) => {
       if (wantsAdmin && loginRole !== "admin") {
-        await authApi.logout();
-        await refreshAuth();
+        void authApi.logout().then(() => refreshAuth());
         toast.error("This account is not an admin. Use an admin email and password.");
         return;
       }
 
-      markBrowserSessionActive();
-      setRole(loginRole);
-      await refreshAuth();
+      completeLogin(loginRole, session.user.id);
+      const destination =
+        nextPath && nextPath.startsWith("/") ? nextPath : getDefaultRoute(loginRole);
+      router.replace(destination);
       toast.success(
         loginRole === "admin"
           ? "Welcome, admin!"
@@ -55,9 +54,6 @@ export default function LoginPage() {
             ? "Welcome, teacher!"
             : "Welcome back!"
       );
-      const destination =
-        nextPath && nextPath.startsWith("/") ? nextPath : getDefaultRoute(loginRole);
-      router.push(destination);
     },
     onError: (err: Error) => toast.error(err.message || "Invalid credentials"),
   });

@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { refreshAuth } = useAuth();
+  const { completeLogin } = useAuth();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -39,10 +39,10 @@ export default function RegisterPage() {
   const registerMutation = useMutation({
     mutationFn: () =>
       authApi.registerStudent({ email, password, name, phone, gender }),
-    onSuccess: async () => {
-      await refreshAuth();
+    onSuccess: (session) => {
+      completeLogin("student", session.user.id);
       toast.success("Account created! Welcome to Tajweed Classes.");
-      router.push("/dashboard");
+      router.replace("/dashboard");
     },
     onError: (err: Error) => toast.error(err.message || "Registration failed"),
   });

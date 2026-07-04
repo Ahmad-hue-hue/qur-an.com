@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 export type AppRole = "student" | "admin" | "teacher";
 
@@ -11,10 +11,25 @@ function normalizeRole(value: unknown): AppRole | null {
   return null;
 }
 
+/** Read role from JWT user metadata when present (no network). */
+export function roleFromUser(user: User | null | undefined): AppRole | null {
+  if (!user) return null;
+  return (
+    normalizeRole(user.user_metadata?.role) ??
+    normalizeRole(user.app_metadata?.role)
+  );
+}
+
 export async function fetchUserRole(
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
+  user?: User | null
 ): Promise<AppRole | null> {
+  const fromMetadata = roleFromUser(user ?? undefined);
+  if (fromMetadata) {
+    return fromMetadata;
+  }
+
   const { data: rpcRole, error: rpcError } = await supabase.rpc("get_my_role");
 
   const fromRpc = normalizeRole(rpcRole);

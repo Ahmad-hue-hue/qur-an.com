@@ -55,12 +55,11 @@ export const authApi = {
       throw new SupabaseApiError(message);
     }
 
-    const role = await fetchUserRole(supabase, data.user.id);
+    const role = await fetchUserRole(supabase, data.user.id, data.user);
     if (!role) {
       throw new SupabaseApiError("Could not load your account profile. Try again.");
     }
 
-    await supabase.auth.refreshSession();
     markBrowserSessionActive();
 
     return { session: data.session, role };
