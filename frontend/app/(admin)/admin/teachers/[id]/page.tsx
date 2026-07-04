@@ -37,6 +37,7 @@ export default function AdminTeacherDetailPage({
   const { id } = use(params);
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -62,13 +63,15 @@ export default function AdminTeacherDetailPage({
         first_name: form.first_name,
         last_name: form.last_name,
         email: form.email,
-        password: form.password.trim() || undefined,
+        change_password: changePassword,
+        password: changePassword ? form.password : undefined,
         gender: form.gender,
         managed_marhalah: parseInt(form.managed_marhalah, 10) || 1,
       }),
     onSuccess: () => {
       invalidate();
       setEditOpen(false);
+      setChangePassword(false);
       setForm((prev) => ({ ...prev, password: "" }));
       toast.success("Teacher updated");
     },
@@ -77,6 +80,7 @@ export default function AdminTeacherDetailPage({
 
   const openEdit = () => {
     if (!teacher) return;
+    setChangePassword(false);
     setForm({
       first_name: teacher.first_name,
       last_name: teacher.last_name,
@@ -123,9 +127,13 @@ export default function AdminTeacherDetailPage({
               </CardContent>
             </Card>
 
-            <Button variant="outline" className="w-full" onClick={openEdit}>
-              Edit Teacher
-            </Button>
+                <p className="text-xs text-muted-foreground rounded-xl bg-emerald-light/30 px-3 py-2">
+                  Teachers sign in at the main login page — not the admin sign-in
+                  link. Share the exact email and password below with them.
+                </p>
+                <Button variant="outline" className="w-full" onClick={openEdit}>
+                  Edit Teacher / Reset Password
+                </Button>
           </div>
 
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -158,23 +166,41 @@ export default function AdminTeacherDetailPage({
                   <Label>Login email</Label>
                   <Input
                     type="email"
+                    autoComplete="off"
                     value={form.email}
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, email: e.target.value }))
                     }
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>New password</Label>
-                  <Input
-                    type="password"
-                    placeholder="Leave blank to keep current password"
-                    value={form.password}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, password: e.target.value }))
-                    }
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={changePassword}
+                    onChange={(e) => {
+                      setChangePassword(e.target.checked);
+                      if (!e.target.checked) {
+                        setForm((prev) => ({ ...prev, password: "" }));
+                      }
+                    }}
+                    className="rounded border-border"
                   />
-                </div>
+                  Change login password
+                </label>
+                {changePassword && (
+                  <div className="space-y-2">
+                    <Label>New password</Label>
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="At least 6 characters"
+                      value={form.password}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, password: e.target.value }))
+                      }
+                    />
+                  </div>
+                )}
                 <div className="form-grid-2">
                   <div className="space-y-2">
                     <Label>Gender</Label>
@@ -224,7 +250,10 @@ export default function AdminTeacherDetailPage({
                     !form.first_name.trim() ||
                     !form.last_name.trim() ||
                     !form.email.trim() ||
-                    (form.password.trim().length > 0 && form.password.trim().length < 6)
+                    (changePassword &&
+                      form.password.trim().length > 0 &&
+                      form.password.trim().length < 6) ||
+                    (changePassword && !form.password.trim())
                   }
                   onClick={() => updateMutation.mutate()}
                 >

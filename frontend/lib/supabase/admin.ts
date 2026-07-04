@@ -313,13 +313,14 @@ export const adminApi = {
 
   createTeacher: async (
     data: CreateTeacherData
-  ): Promise<User & { login_email?: string }> => {
+  ): Promise<User & { login_email?: string; temporary_password?: string }> => {
     const result = await invokeEdgeFunction<{
       profile: Record<string, unknown>;
       login_email?: string;
+      temporary_password?: string;
     }>("create-teacher", {
       email: data.email.trim().toLowerCase(),
-      password: data.password,
+      password: data.password.trim(),
       first_name: data.first_name,
       last_name: data.last_name,
       gender: data.gender,
@@ -328,6 +329,7 @@ export const adminApi = {
     return {
       ...mapProfileRow(result.profile),
       login_email: result.login_email,
+      temporary_password: result.temporary_password,
     };
   },
 
@@ -341,7 +343,7 @@ export const adminApi = {
     }>("update-teacher", {
       teacher_id: id,
       email: data.email?.trim().toLowerCase(),
-      password: data.password,
+      password: data.change_password ? data.password?.trim() : undefined,
       first_name: data.first_name,
       last_name: data.last_name,
       gender: data.gender,

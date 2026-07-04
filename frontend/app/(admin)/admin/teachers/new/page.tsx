@@ -21,7 +21,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft01Icon, Copy01Icon } from "@hugeicons/core-free-icons";
+
+async function copyText(value: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(value);
+    toast.success(`${label} copied`);
+  } catch {
+    toast.error(`Could not copy ${label.toLowerCase()}`);
+  }
+}
 
 export default function AdminCreateTeacherPage() {
   const router = useRouter();
@@ -37,6 +46,7 @@ export default function AdminCreateTeacherPage() {
 
   const [createdCredentials, setCreatedCredentials] = useState<{
     login_email: string;
+    password: string;
     name: string;
   } | null>(null);
 
@@ -48,13 +58,16 @@ export default function AdminCreateTeacherPage() {
         first_name: form.first_name,
         last_name: form.last_name,
         gender: form.gender,
-        managed_marhalah: parseInt(form.managed_marhalah) || 1,
+        managed_marhalah: parseInt(form.managed_marhalah, 10) || 1,
       }),
     onSuccess: (teacher) => {
       queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });
-      if (teacher.login_email) {
+      const password =
+        teacher.temporary_password?.trim() || form.password.trim();
+      if (teacher.login_email && password) {
         setCreatedCredentials({
           login_email: teacher.login_email,
+          password,
           name: `${teacher.first_name} ${teacher.last_name}`,
         });
         toast.success("Teacher account created");
@@ -75,6 +88,16 @@ export default function AdminCreateTeacherPage() {
     form.first_name.trim() &&
     form.last_name.trim();
 
+  const credentialsBlock = createdCredentials
+    ? [
+        `Teacher: ${createdCredentials.name}`,
+        `Login email: ${createdCredentials.login_email}`,
+        `Password: ${createdCredentials.password}`,
+        "",
+        "Sign in at the main login page (/login) — not the admin sign-in link.",
+      ].join("\n")
+    : "";
+
   return (
     <AppShell variant="admin">
       <PageHeader title="Add Teacher">
@@ -87,13 +110,13 @@ export default function AdminCreateTeacherPage() {
         </Link>
       </PageHeader>
 
-      <div className="page-content max-w-2xl">
+      <div className="page-content max-w-2xl space-y-4">
+        {!createdCredentials && (
         <Card className="card-shadow">
           <CardContent className="p-5 space-y-4">
             <p className="text-sm text-muted-foreground">
-              Create a teacher account. Share the email and password so they can
-              sign in at the login page. Female teachers only see female students;
-              male teachers only see male students.
+              Create a teacher account. Share the exact email and password below
+              so they can sign in at the main login page (not the admin sign-in).
             </p>
             <div className="form-grid-2">
               <div className="space-y-2">
@@ -115,6 +138,7 @@ export default function AdminCreateTeacherPage() {
               <Label>Login email</Label>
               <Input
                 type="email"
+                autoComplete="off"
                 placeholder="teacher@example.com"
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
@@ -124,6 +148,7 @@ export default function AdminCreateTeacherPage() {
               <Label>Password</Label>
               <Input
                 type="password"
+                autoComplete="new-password"
                 placeholder="At least 6 characters"
                 value={form.password}
                 onChange={(e) => update("password", e.target.value)}
@@ -173,30 +198,71 @@ export default function AdminCreateTeacherPage() {
             </Button>
           </CardContent>
         </Card>
+        )}
 
         {createdCredentials && (
-          <Card className="card-shadow border-gold/40 mt-4">
+          <Card className="card-shadow border-gold/40">
             <CardContent className="p-5 space-y-4">
               <p className="font-medium text-emerald-deep">
                 Account created for {createdCredentials.name}
               </p>
               <p className="text-sm text-muted-foreground">
-                Share these credentials securely with the teacher.
+                Share these credentials securely. They must use the regular{" "}
+                <span className="font-medium text-emerald-deep">/login</span> page,
+                not admin sign-in.
               </p>
-              <div className="space-y-2">
-                <Label>Login email</Label>
-                <Input readOnly value={createdCredentials.login_email} />
+              <div className="space-y-3 rounded-xl bg-emerald-light/30 p-4">
+                <div className="space-y-1.5">
+                  <Label>Login email</Label>
+                  <div className="flex gap-2">
+                    <Input readOnly value={createdCredentials.login_email} className="bg-white" />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label="Copy login email"
+                      onClick={() => copyText(createdCredentials.login_email, "Login email")}
+                    >
+                      <HugeiconsIcon icon={Copy01Icon} size={18} />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Password</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={createdCredentials.password}
+                      className="bg-white font-mono text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label="Copy password"
+                      onClick={() => copyText(createdCredentials.password, "Password")}
+                    >
+                      <HugeiconsIcon icon={Copy01Icon} size={18} />
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Password</Label>
-                <Input readOnly value={form.password} />
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border-emerald-deep text-emerald-deep"
+                  onClick={() => copyText(credentialsBlock, "Credentials")}
+                >
+                  Copy all credentials
+                </Button>
+                <Button
+                  className="flex-1 btn-emerald"
+                  onClick={() => router.push("/admin/teachers")}
+                >
+                  Done
+                </Button>
               </div>
-              <Button
-                className="w-full btn-emerald"
-                onClick={() => router.push("/admin/teachers")}
-              >
-                Done
-              </Button>
             </CardContent>
           </Card>
         )}

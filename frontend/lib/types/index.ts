@@ -281,6 +281,7 @@ export interface UpdateTeacherData {
   last_name?: string;
   email?: string;
   password?: string;
+  change_password?: boolean;
   gender?: Gender;
   managed_marhalah?: number;
 }

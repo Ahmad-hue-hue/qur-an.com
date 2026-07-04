@@ -80,6 +80,16 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (password.trim().length < 6) {
+      return new Response(
+        JSON.stringify({ error: "Password must be at least 6 characters" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     if (gender !== "male" && gender !== "female") {
       return new Response(
         JSON.stringify({ error: "Gender must be male or female" }),
@@ -102,11 +112,12 @@ Deno.serve(async (req) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPassword = password.trim();
 
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
         email: normalizedEmail,
-        password,
+        password: normalizedPassword,
         email_confirm: true,
         user_metadata: {
           first_name: first_name.trim(),
@@ -164,6 +175,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         profile,
         login_email: normalizedEmail,
+        temporary_password: normalizedPassword,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

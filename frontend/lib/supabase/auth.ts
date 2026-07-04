@@ -50,7 +50,7 @@ export const authApi = {
     if (error) {
       const message =
         error.message === "Invalid login credentials"
-          ? "Invalid email or password. Admins and teachers sign in here — no sign up needed."
+          ? "Invalid email or password. Teachers and students use the regular sign-in page — admins use Admin sign in."
           : error.message;
       throw new SupabaseApiError(message);
     }
