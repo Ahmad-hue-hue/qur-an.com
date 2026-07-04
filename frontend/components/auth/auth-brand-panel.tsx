@@ -12,7 +12,7 @@ export function AuthBrandPanel({ title, subtitle }: AuthBrandPanelProps) {
   return (
     <div className="relative hidden min-h-screen flex-col justify-between overflow-hidden mosque-header p-8 text-cream lg:flex lg:p-12">
       <div className="relative z-10">
-        <LoginLogo className="h-16 w-20 mb-8" />
+        <LoginLogo className="mb-8" size={140} priority />
         <h1 className="font-serif text-3xl font-bold tracking-tight xl:text-4xl">
           {title}
         </h1>

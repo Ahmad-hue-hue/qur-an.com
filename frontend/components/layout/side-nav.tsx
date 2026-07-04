@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
 import { getNavItems, type NavVariant } from "./nav-config";
 import { useStudentNavItems } from "@/hooks/use-student-nav-items";
+import { LoginLogo } from "@/components/auth/login-logo";
 
 interface SideNavProps {
   variant?: NavVariant;
@@ -25,16 +26,21 @@ export function SideNav({ variant = "student", className }: SideNavProps) {
       )}
     >
       <div className="border-b border-sidebar-border px-6 py-5">
-        <p className="font-serif text-lg font-semibold text-sidebar-foreground">
-          Tajweed Academy
-        </p>
-        <p className="text-xs text-sidebar-foreground/70 mt-0.5">
-          {variant === "admin"
-            ? "Admin Panel"
-            : variant === "teacher"
-              ? "Teacher Panel"
-              : "Student Portal"}
-        </p>
+        <div className="flex items-center gap-3">
+          <LoginLogo size={44} className="shrink-0 rounded-full" />
+          <div className="min-w-0">
+            <p className="font-serif text-lg font-semibold text-sidebar-foreground leading-tight">
+              Tajweed Classes
+            </p>
+            <p className="text-xs text-sidebar-foreground/70 mt-0.5">
+              {variant === "admin"
+                ? "Admin Panel"
+                : variant === "teacher"
+                  ? "Teacher Panel"
+                  : "Student Portal"}
+            </p>
+          </div>
+        </div>
       </div>
 
       <nav className="flex-1 space-y-1 p-4">

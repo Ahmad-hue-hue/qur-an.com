@@ -20,9 +20,13 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Tajweed Academy | Islamic Tajweed Learning Platform",
+  title: "Tajweed Classes | Quranic Tajweed Learning",
   description:
     "Learn and master Tajweed rules through structured Marḥalah courses, exercises, and assessments.",
+  icons: {
+    icon: "/tajweed-logo.jpeg",
+    apple: "/tajweed-logo.jpeg",
+  },
 };
 
 export const viewport: Viewport = {

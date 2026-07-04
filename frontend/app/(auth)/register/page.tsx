@@ -60,7 +60,7 @@ export default function RegisterPage() {
       />
       <div className="flex min-h-screen flex-col safe-area-top">
         <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 sm:px-8 max-w-md mx-auto w-full lg:max-w-lg">
-          <LoginLogo className="w-24 h-20 mb-6 lg:hidden" />
+          <LoginLogo className="mb-6 lg:hidden" size={128} priority />
 
           <div className="text-center mb-8">
             <h1 className="font-serif text-3xl font-bold text-emerald-deep tracking-tight">
