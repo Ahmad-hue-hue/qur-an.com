@@ -486,22 +486,28 @@ export const studentApi = {
       exams,
       halaqah: halaqahRow
         ? ({
-            id: halaqahRow.id,
+            id: Number(halaqahRow.id),
             type: "halaqah",
             score: Number(halaqahRow.score),
             max_score: Number(halaqahRow.max_score),
             marhalah: marhalah.id,
-            notes: halaqahRow.notes,
+            notes:
+              typeof halaqahRow.notes === "string"
+                ? halaqahRow.notes
+                : undefined,
           } satisfies ManualScore)
         : undefined,
       tadreeb: tadreebRow
         ? ({
-            id: tadreebRow.id,
+            id: Number(tadreebRow.id),
             type: "tadreeb",
             score: Number(tadreebRow.score),
             max_score: Number(tadreebRow.max_score),
             marhalah: marhalah.id,
-            notes: tadreebRow.notes,
+            notes:
+              typeof tadreebRow.notes === "string"
+                ? tadreebRow.notes
+                : undefined,
           } satisfies ManualScore)
         : undefined,
       recent_results: {

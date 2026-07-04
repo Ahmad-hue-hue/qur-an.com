@@ -77,7 +77,7 @@ export default function AdminCreateStudentPage() {
           temporary_password: student.temporary_password,
           name: `${student.first_name} ${student.last_name}`.trim(),
           current_marhalah: student.current_marhalah ?? 1,
-          registration_number: student.registration_number,
+          registration_number: student.registration_number ?? undefined,
         });
         toast.success("Student account created");
         return;
