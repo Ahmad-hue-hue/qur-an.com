@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { adminApi } from "@/lib/api";
+import { matchesStudentSearch } from "@/lib/student-search";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,11 +31,7 @@ export default function AdminStudentsPage() {
   });
 
   const filtered = students?.filter((s) => {
-    const matchesSearch =
-      !search ||
-      `${s.first_name} ${s.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-      s.phone?.includes(search.replace(/\D/g, "")) ||
-      s.registration_number?.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = matchesStudentSearch(s, search);
     const matchesMarhalah =
       marhalahFilter === "all" ||
       String(s.current_marhalah ?? 1) === marhalahFilter;
@@ -86,6 +83,11 @@ export default function AdminStudentsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+          {filtered?.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-8 col-span-full">
+              No students match your search.
+            </p>
+          )}
           {filtered?.map((student) => (
             <Link key={student.id} href={`/admin/students/${student.id}`}>
               <Card className="card-shadow hover:shadow-md transition-shadow">

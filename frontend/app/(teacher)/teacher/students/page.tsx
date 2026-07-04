@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { teacherApi } from "@/lib/api";
+import { matchesStudentSearch } from "@/lib/student-search";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,13 +28,7 @@ export default function TeacherStudentsPage() {
     queryFn: teacherApi.getStudents,
   });
 
-  const filtered = students?.filter((s) => {
-    const matchesSearch =
-      !search ||
-      `${s.first_name} ${s.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-      s.registration_number?.toLowerCase().includes(search.toLowerCase());
-    return matchesSearch;
-  });
+  const filtered = students?.filter((s) => matchesStudentSearch(s, search));
 
   return (
     <AppShell variant="teacher">
