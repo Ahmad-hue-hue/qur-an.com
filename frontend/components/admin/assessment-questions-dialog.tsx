@@ -189,18 +189,34 @@ function QuestionFormFields({
   );
 }
 
+type QuestionsApi = Pick<
+  typeof adminApi,
+  | "getExercise"
+  | "getExam"
+  | "addExerciseQuestion"
+  | "addExamQuestion"
+  | "updateExerciseQuestion"
+  | "updateExamQuestion"
+  | "deleteExerciseQuestion"
+  | "deleteExamQuestion"
+>;
+
 export function AssessmentQuestionsDialog({
   kind,
   assessmentId,
   assessmentTitle,
   open,
   onOpenChange,
+  api = adminApi,
+  cachePrefix = "admin",
 }: {
   kind: AssessmentKind;
   assessmentId: number;
   assessmentTitle: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  api?: QuestionsApi;
+  cachePrefix?: "admin" | "teacher";
 }) {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<DialogMode>("list");
@@ -210,15 +226,15 @@ export function AssessmentQuestionsDialog({
 
   const detailKey =
     kind === "exercise"
-      ? ["admin-exercise", assessmentId]
-      : ["admin-exam", assessmentId];
+      ? [`${cachePrefix}-exercise`, assessmentId]
+      : [`${cachePrefix}-exam`, assessmentId];
 
   const { data: assessment, isLoading } = useQuery({
     queryKey: detailKey,
     queryFn: () =>
       kind === "exercise"
-        ? adminApi.getExercise(assessmentId)
-        : adminApi.getExam(assessmentId),
+        ? api.getExercise(assessmentId)
+        : api.getExam(assessmentId),
     enabled: open && assessmentId > 0,
   });
 
@@ -237,7 +253,7 @@ export function AssessmentQuestionsDialog({
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: detailKey });
     queryClient.invalidateQueries({
-      queryKey: kind === "exercise" ? ["admin-exercises"] : ["admin-exams"],
+      queryKey: kind === "exercise" ? [`${cachePrefix}-exercises`] : [`${cachePrefix}-exams`],
     });
   };
 
@@ -246,12 +262,12 @@ export function AssessmentQuestionsDialog({
       const payload = buildQuestionPayload(questionForm);
       if (mode === "edit" && editingQuestionId) {
         return kind === "exercise"
-          ? adminApi.updateExerciseQuestion(assessmentId, editingQuestionId, payload)
-          : adminApi.updateExamQuestion(assessmentId, editingQuestionId, payload);
+          ? api.updateExerciseQuestion(assessmentId, editingQuestionId, payload)
+          : api.updateExamQuestion(assessmentId, editingQuestionId, payload);
       }
       return kind === "exercise"
-        ? adminApi.addExerciseQuestion(assessmentId, payload)
-        : adminApi.addExamQuestion(assessmentId, payload);
+        ? api.addExerciseQuestion(assessmentId, payload)
+        : api.addExamQuestion(assessmentId, payload);
     },
     onSuccess: () => {
       invalidate();
@@ -266,8 +282,8 @@ export function AssessmentQuestionsDialog({
   const deleteMutation = useMutation({
     mutationFn: (questionId: number) =>
       kind === "exercise"
-        ? adminApi.deleteExerciseQuestion(assessmentId, questionId)
-        : adminApi.deleteExamQuestion(assessmentId, questionId),
+        ? api.deleteExerciseQuestion(assessmentId, questionId)
+        : api.deleteExamQuestion(assessmentId, questionId),
     onSuccess: () => {
       invalidate();
       setPendingDeleteId(null);

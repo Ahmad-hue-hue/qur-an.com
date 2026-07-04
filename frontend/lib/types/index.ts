@@ -1,4 +1,6 @@
-export type UserRole = "student" | "admin";
+export type UserRole = "student" | "admin" | "teacher";
+
+export type Gender = "male" | "female";
 
 export type MarhalahStatus = "open" | "locked" | "completed";
 
@@ -22,9 +24,11 @@ export interface User {
   last_name: string;
   phone?: string;
   role: UserRole;
+  gender?: Gender | null;
   registration_number?: string | null;
   is_suspended: boolean;
   current_marhalah?: number;
+  managed_marhalah?: number | null;
   date_joined: string;
 }
 
@@ -250,12 +254,28 @@ export interface StudentRegisterCredentials {
   password: string;
   name: string;
   phone: string;
+  gender: Gender;
 }
 
 export interface CreateStudentData {
   first_name: string;
   last_name: string;
   phone: string;
+  gender: Gender;
+}
+
+export interface CreateTeacherData {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  gender: Gender;
+  managed_marhalah: number;
+}
+
+export interface TeacherProfile extends User {
+  managed_marhalah: number;
+  gender: Gender;
 }
 
 export interface UpdateStudentData {

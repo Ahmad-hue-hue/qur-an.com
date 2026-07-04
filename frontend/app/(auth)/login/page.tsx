@@ -48,7 +48,13 @@ export default function LoginPage() {
 
       setRole(loginRole);
       await refreshAuth();
-      toast.success(loginRole === "admin" ? "Welcome, admin!" : "Welcome back!");
+      toast.success(
+        loginRole === "admin"
+          ? "Welcome, admin!"
+          : loginRole === "teacher"
+            ? "Welcome, teacher!"
+            : "Welcome back!"
+      );
       const destination =
         nextPath && nextPath.startsWith("/") ? nextPath : getDefaultRoute(loginRole);
       router.push(destination);
@@ -91,7 +97,8 @@ export default function LoginPage() {
                 <p className="text-muted-foreground text-sm mt-2">{formSubtitle}</p>
                 {!wantsAdmin && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Admin? Use your admin email and password — no sign up required.
+                    Admin or teacher? Use your assigned email and password — no sign
+                    up required.
                   </p>
                 )}
               </div>

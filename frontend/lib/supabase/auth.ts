@@ -9,6 +9,7 @@ export const authApi = {
     password,
     name,
     phone,
+    gender,
   }: StudentRegisterCredentials) => {
     const { firstName, lastName } = splitFullName(name);
     const supabase = getSupabase();
@@ -21,6 +22,7 @@ export const authApi = {
           last_name: lastName,
           phone: normalizePhone(phone),
           role: "student",
+          gender,
         },
       },
     });
@@ -43,7 +45,7 @@ export const authApi = {
     if (error) {
       const message =
         error.message === "Invalid login credentials"
-          ? "Invalid email or password. Admins sign in here — no sign up needed."
+          ? "Invalid email or password. Admins and teachers sign in here — no sign up needed."
           : error.message;
       throw new SupabaseApiError(message);
     }

@@ -1,5 +1,7 @@
-export function getDefaultRoute(role: "student" | "admin" | null): string {
-  return role === "admin" ? "/admin" : "/dashboard";
+export function getDefaultRoute(role: "student" | "admin" | "teacher" | null): string {
+  if (role === "admin") return "/admin";
+  if (role === "teacher") return "/teacher";
+  return "/dashboard";
 }
 
 // Legacy helpers kept for any remaining imports — auth is Supabase session based.
@@ -7,7 +9,7 @@ export function isAuthenticated(): boolean {
   return false;
 }
 
-export function getUserRole(): "student" | "admin" | null {
+export function getUserRole(): "student" | "admin" | "teacher" | null {
   return null;
 }
 

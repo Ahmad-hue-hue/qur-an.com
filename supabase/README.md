@@ -37,13 +37,26 @@ supabase link --project-ref YOUR_PROJECT_REF
 supabase db push
 ```
 
-## 4. Deploy Edge Functions (admin student management)
+## 4. Deploy Edge Functions (admin student & teacher management)
 
 ```bash
 supabase secrets set SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 supabase functions deploy create-student
+supabase functions deploy create-teacher
 supabase functions deploy delete-student
 ```
+
+## 4b. Teachers
+
+Admins add teachers at **Admin → Teachers → Add Teacher** (email, password, gender, default marḥalah). Share credentials; teachers sign in at `/login` and open `/teacher`.
+
+- Female teachers see **female students only**; male teachers see **male students only**
+- Teachers manage exercises, exams, grading, and manual marks for their selected marḥalah
+- Teachers cannot add lesson content or register students
+
+Students must have **gender** set (registration or admin create) for teacher filtering to work.
+
+Migration: `20250615000001_teacher_role.sql`
 
 ## 5. Create the first admin user
 

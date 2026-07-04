@@ -8,7 +8,7 @@ import {
   File01Icon,
 } from "@hugeicons/core-free-icons";
 
-export type NavVariant = "student" | "admin";
+export type NavVariant = "student" | "admin" | "teacher";
 
 export interface NavItem {
   href: string;
@@ -26,10 +26,19 @@ export const studentNav: NavItem[] = [
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: DashboardSquare01Icon },
   { href: "/admin/students", label: "Students", icon: UserGroupIcon },
+  { href: "/admin/teachers", label: "Teachers", icon: UserGroupIcon },
   { href: "/admin/topics", label: "Content", icon: File01Icon },
   { href: "/admin/exercises", label: "Assessments", icon: Task01Icon },
 ];
 
+export const teacherNav: NavItem[] = [
+  { href: "/teacher", label: "Dashboard", icon: DashboardSquare01Icon },
+  { href: "/teacher/students", label: "Students", icon: UserGroupIcon },
+  { href: "/teacher/exercises", label: "Assessments", icon: Task01Icon },
+];
+
 export function getNavItems(variant: NavVariant): NavItem[] {
-  return variant === "admin" ? adminNav : studentNav;
+  if (variant === "admin") return adminNav;
+  if (variant === "teacher") return teacherNav;
+  return studentNav;
 }

@@ -39,10 +39,13 @@ export function mapProfileRow(row: Record<string, unknown>) {
     first_name: (row.first_name as string) ?? "",
     last_name: (row.last_name as string) ?? "",
     phone: (row.phone as string | null) ?? undefined,
-    role: (row.role as "student" | "admin") ?? "student",
+    role: (row.role as "student" | "admin" | "teacher") ?? "student",
+    gender: (row.gender as "male" | "female" | null) ?? null,
     registration_number: (row.registration_number as string | null) ?? null,
     is_suspended: Boolean(row.is_suspended),
     current_marhalah: Number(row.current_marhalah ?? 1),
+    managed_marhalah:
+      row.managed_marhalah != null ? Number(row.managed_marhalah) : null,
     date_joined: (row.created_at as string) ?? new Date().toISOString(),
   };
 }

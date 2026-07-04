@@ -43,36 +43,59 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = await requireAdmin(req);
-    const { first_name, last_name, phone, gender } = await req.json();
+    const {
+      email,
+      password,
+      first_name,
+      last_name,
+      gender,
+      managed_marhalah,
+    } = await req.json();
 
-    if (!first_name?.trim() || !phone?.trim()) {
-      return new Response(JSON.stringify({ error: "Name and phone are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!email?.trim() || !password?.trim() || !first_name?.trim()) {
+      return new Response(
+        JSON.stringify({ error: "Email, password, and first name are required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     if (gender !== "male" && gender !== "female") {
-      return new Response(JSON.stringify({ error: "Gender must be male or female" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Gender must be male or female" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
-    const email = `${phone.replace(/\D/g, "")}@students.tajweed.local`;
-    const password = crypto.randomUUID() + crypto.randomUUID();
+    const marhalah = Number(managed_marhalah) || 1;
+    if (marhalah < 1 || marhalah > 4) {
+      return new Response(
+        JSON.stringify({ error: "Managed marhalah must be between 1 and 4" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
 
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
-        email,
+        email: normalizedEmail,
         password,
         email_confirm: true,
         user_metadata: {
-          first_name,
-          last_name: last_name ?? "",
-          phone: phone.replace(/\D/g, ""),
-          role: "student",
+          first_name: first_name.trim(),
+          last_name: (last_name ?? "").trim(),
+          role: "teacher",
           gender,
+          managed_marhalah: marhalah,
         },
       });
 
@@ -85,7 +108,13 @@ Deno.serve(async (req) => {
 
     await supabase
       .from("profiles")
-      .update({ gender })
+      .update({
+        role: "teacher",
+        gender,
+        managed_marhalah: marhalah,
+        first_name: first_name.trim(),
+        last_name: (last_name ?? "").trim(),
+      })
       .eq("id", authData.user.id);
 
     const { data: profile } = await supabase
@@ -97,8 +126,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         profile,
-        login_email: email,
-        temporary_password: password,
+        login_email: normalizedEmail,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

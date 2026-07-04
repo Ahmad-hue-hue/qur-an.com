@@ -19,29 +19,40 @@ type AssessmentKind = "exercise" | "exam";
 
 type SubmissionRow = ExerciseSubmissionAdmin | ExamSubmissionAdmin;
 
+type GradingApi = Pick<
+  typeof adminApi,
+  "getExerciseSubmissions" | "getExamSubmissions" | "gradeExerciseAnswer" | "gradeExamAnswer"
+>;
+
+const defaultApi: GradingApi = adminApi;
+
 export function AssessmentSubmissionsView({
   kind,
   assessmentId,
   title,
   questions,
+  api = defaultApi,
+  cachePrefix = "admin",
 }: {
   kind: AssessmentKind;
   assessmentId: number;
   title: string;
   questions?: QuestionAdmin[];
+  api?: GradingApi;
+  cachePrefix?: "admin" | "teacher";
 }) {
   const queryClient = useQueryClient();
   const submissionsKey =
     kind === "exercise"
-      ? ["admin-exercise-submissions", assessmentId]
-      : ["admin-exam-submissions", assessmentId];
+      ? [`${cachePrefix}-exercise-submissions`, assessmentId]
+      : [`${cachePrefix}-exam-submissions`, assessmentId];
 
   const { data: submissions, isLoading } = useQuery<SubmissionRow[]>({
     queryKey: submissionsKey,
     queryFn: () =>
       kind === "exercise"
-        ? adminApi.getExerciseSubmissions(assessmentId)
-        : adminApi.getExamSubmissions(assessmentId),
+        ? api.getExerciseSubmissions(assessmentId)
+        : api.getExamSubmissions(assessmentId),
   });
 
   const gradeMutation = useMutation({
@@ -55,8 +66,8 @@ export function AssessmentSubmissionsView({
       feedback: string;
     }) =>
       kind === "exercise"
-        ? adminApi.gradeExerciseAnswer(gradeId, { score, feedback })
-        : adminApi.gradeExamAnswer(gradeId, { score, feedback }),
+        ? api.gradeExerciseAnswer(gradeId, { score, feedback })
+        : api.gradeExamAnswer(gradeId, { score, feedback }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: submissionsKey });
       toast.success("Answer graded");

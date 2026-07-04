@@ -19,6 +19,7 @@ import {
 
 const quickActions = [
   { label: "Register New Student", href: "/admin/students/new", icon: UserGroupIcon },
+  { label: "Add Teacher", href: "/admin/teachers/new", icon: UserGroupIcon },
   { label: "Add New Lesson", href: "/admin/lessons/new", icon: Add01Icon },
   { label: "Create Exercise", href: "/admin/exercises", icon: Task01Icon },
   { label: "Create Exam", href: "/admin/exams", icon: File01Icon },

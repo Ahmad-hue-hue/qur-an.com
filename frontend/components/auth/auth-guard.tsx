@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { type ReactNode } from "react";
 import { useGuestOnly, useRequireAuth } from "@/hooks/use-auth";
+import { getDefaultRoute } from "@/lib/auth/token";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
+type GuardRole = "student" | "admin" | "teacher";
+
 interface AuthGuardProps {
   children: ReactNode;
-  role?: "student" | "admin";
+  role?: GuardRole;
 }
 
 export function AuthGuard({ children, role }: AuthGuardProps) {
@@ -21,49 +24,60 @@ export function AuthGuard({ children, role }: AuthGuardProps) {
     !auth.isLoggedIn ||
     (auth.isLoggedIn && auth.role === null);
 
-  const isAdminDenied =
-    role === "admin" && auth.isReady && auth.isLoggedIn && auth.role === "student";
+  const isRoleDenied =
+    role != null &&
+    auth.isReady &&
+    auth.isLoggedIn &&
+    auth.role !== role;
 
   const canRender =
     auth.isReady &&
     auth.isLoggedIn &&
-    (role !== "admin" || auth.role === "admin") &&
-    (role !== "student" || auth.role === "student");
+    (role == null || auth.role === role);
+
+  const roleLabel =
+    role === "admin" ? "Admin" : role === "teacher" ? "Teacher" : "Student";
 
   return (
     <>
-      {isLoading && !isAdminDenied && (
+      {isLoading && !isRoleDenied && (
         <div className="page-loading w-full max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto">
           <Skeleton className="h-32 w-full rounded-2xl" />
           <Skeleton className="h-48 w-full rounded-2xl" />
         </div>
       )}
 
-      {isAdminDenied && (
+      {isRoleDenied && (
         <div className="min-h-screen flex items-center justify-center p-6 bg-cream">
           <Card className="w-full max-w-md border-0 card-shadow">
             <CardContent className="p-6 space-y-4 text-center">
               <h1 className="font-serif text-2xl font-bold text-emerald-deep">
-                Admin access required
+                {roleLabel} access required
               </h1>
               <p className="text-sm text-muted-foreground">
-                This account is a student account. Sign in with an admin email and
-                password on the login page.
+                This account cannot open the {roleLabel.toLowerCase()} panel. Sign
+                in with the correct credentials on the login page.
               </p>
               <Link
-                href="/dashboard"
+                href={getDefaultRoute(auth.role)}
                 className={cn(
                   buttonVariants(),
                   "w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
                 )}
               >
-                Go to student dashboard
+                Go to my dashboard
               </Link>
               <Link
-                href="/login?next=/admin"
+                href={
+                  role === "admin"
+                    ? "/login?next=/admin"
+                    : role === "teacher"
+                      ? "/login?next=/teacher"
+                      : "/login"
+                }
                 className={cn(buttonVariants({ variant: "outline" }), "w-full")}
               >
-                Sign in with admin credentials
+                Sign in with {roleLabel.toLowerCase()} credentials
               </Link>
             </CardContent>
           </Card>

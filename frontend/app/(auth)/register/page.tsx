@@ -19,6 +19,14 @@ import { IconInput } from "@/components/auth/icon-input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 export default function RegisterPage() {
@@ -28,10 +36,11 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [gender, setGender] = useState<"male" | "female">("male");
 
   const registerMutation = useMutation({
     mutationFn: () =>
-      authApi.registerStudent({ email, password, name, phone }),
+      authApi.registerStudent({ email, password, name, phone, gender }),
     onSuccess: async () => {
       await refreshAuth();
       toast.success("Account created! Welcome to Tajweed Academy.");
@@ -41,7 +50,7 @@ export default function RegisterPage() {
   });
 
   const canSubmit =
-    name.trim() && phone.trim() && email.trim() && password.length >= 6;
+    name.trim() && phone.trim() && email.trim() && password.length >= 6 && gender;
 
   return (
     <div className="min-h-screen bg-cream lg:grid lg:grid-cols-2">
@@ -104,6 +113,22 @@ export default function RegisterPage() {
                   value={password}
                   onChange={setPassword}
                 />
+
+                <div className="space-y-2">
+                  <Label>Gender</Label>
+                  <Select
+                    value={gender}
+                    onValueChange={(v) => setGender((v as "male" | "female") ?? "male")}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <Button
                   className="w-full h-12 rounded-xl bg-emerald-deep hover:bg-emerald-mid text-cream text-base font-medium mt-2"

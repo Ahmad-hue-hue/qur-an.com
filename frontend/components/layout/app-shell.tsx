@@ -4,7 +4,7 @@ import { BottomNav } from "./bottom-nav";
 
 interface AppShellProps {
   children: React.ReactNode;
-  variant?: "student" | "admin" | "auth";
+  variant?: "student" | "admin" | "teacher" | "auth";
   className?: string;
 }
 
@@ -12,6 +12,8 @@ const mainWidth = {
   student:
     "w-full min-w-0 max-w-lg md:max-w-2xl lg:max-w-none xl:max-w-5xl lg:mx-auto",
   admin:
+    "w-full min-w-0 max-w-full lg:max-w-6xl xl:max-w-7xl lg:mx-auto lg:px-6 xl:px-8",
+  teacher:
     "w-full min-w-0 max-w-full lg:max-w-6xl xl:max-w-7xl lg:mx-auto lg:px-6 xl:px-8",
   auth: "w-full min-w-0 max-w-md sm:max-w-lg mx-auto",
 };

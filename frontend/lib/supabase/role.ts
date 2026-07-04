@@ -1,6 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type AppRole = "student" | "admin";
+export type AppRole = "student" | "admin" | "teacher";
+
+const VALID_ROLES: AppRole[] = ["student", "admin", "teacher"];
+
+function normalizeRole(value: unknown): AppRole | null {
+  if (typeof value === "string" && VALID_ROLES.includes(value as AppRole)) {
+    return value as AppRole;
+  }
+  return null;
+}
 
 export async function fetchUserRole(
   supabase: SupabaseClient,
@@ -8,8 +17,9 @@ export async function fetchUserRole(
 ): Promise<AppRole | null> {
   const { data: rpcRole, error: rpcError } = await supabase.rpc("get_my_role");
 
-  if (!rpcError && (rpcRole === "admin" || rpcRole === "student")) {
-    return rpcRole;
+  const fromRpc = normalizeRole(rpcRole);
+  if (!rpcError && fromRpc) {
+    return fromRpc;
   }
 
   const { data, error } = await supabase
@@ -23,9 +33,5 @@ export async function fetchUserRole(
     return null;
   }
 
-  if (data?.role === "admin" || data?.role === "student") {
-    return data.role;
-  }
-
-  return "student";
+  return normalizeRole(data?.role) ?? "student";
 }

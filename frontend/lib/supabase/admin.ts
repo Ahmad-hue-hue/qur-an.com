@@ -12,6 +12,7 @@ import type {
   CreateExerciseData,
   CreateQuestionData,
   CreateStudentData,
+  CreateTeacherData,
   Exam,
   ExamDetail,
   ExamSubmissionAdmin,
@@ -272,6 +273,7 @@ export const adminApi = {
           first_name: data.first_name,
           last_name: data.last_name,
           phone,
+          gender: data.gender,
         },
       }
     );
@@ -281,6 +283,42 @@ export const adminApi = {
       ...mapProfileRow(result.profile),
       login_email: result.login_email,
       temporary_password: result.temporary_password,
+    };
+  },
+
+  getTeachers: async (): Promise<User[]> => {
+    const rows = throwIfError(
+      await getSupabase()
+        .from("profiles")
+        .select("*")
+        .eq("role", "teacher")
+        .order("created_at", { ascending: false })
+    );
+    return (rows ?? []).map((row) => mapProfileRow(row));
+  },
+
+  createTeacher: async (
+    data: CreateTeacherData
+  ): Promise<User & { login_email?: string }> => {
+    const supabase = getSupabase();
+    const { data: result, error } = await supabase.functions.invoke(
+      "create-teacher",
+      {
+        body: {
+          email: data.email.trim().toLowerCase(),
+          password: data.password,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          gender: data.gender,
+          managed_marhalah: data.managed_marhalah,
+        },
+      }
+    );
+    if (error) throw new SupabaseApiError(error.message);
+    if (result?.error) throw new SupabaseApiError(result.error);
+    return {
+      ...mapProfileRow(result.profile),
+      login_email: result.login_email,
     };
   },
 

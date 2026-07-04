@@ -29,7 +29,11 @@ export function SideNav({ variant = "student", className }: SideNavProps) {
           Tajweed Academy
         </p>
         <p className="text-xs text-sidebar-foreground/70 mt-0.5">
-          {variant === "admin" ? "Admin Panel" : "Student Portal"}
+          {variant === "admin"
+            ? "Admin Panel"
+            : variant === "teacher"
+              ? "Teacher Panel"
+              : "Student Portal"}
         </p>
       </div>
 

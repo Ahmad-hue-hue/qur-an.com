@@ -16,7 +16,7 @@ import { getSupabase } from "@/lib/supabase/client";
 import { fetchUserRole } from "@/lib/supabase/role";
 import { getDefaultRoute } from "@/lib/auth/token";
 
-type AppRole = "student" | "admin" | null;
+type AppRole = "student" | "admin" | "teacher" | null;
 
 interface AuthContextValue {
   isReady: boolean;
@@ -109,7 +109,7 @@ export function useAuth() {
   return ctx;
 }
 
-export function useRequireAuth(requiredRole?: "student" | "admin") {
+export function useRequireAuth(requiredRole?: "student" | "admin" | "teacher") {
   const router = useRouter();
   const auth = useAuth();
 
@@ -120,13 +120,23 @@ export function useRequireAuth(requiredRole?: "student" | "admin") {
       const next =
         requiredRole === "admin"
           ? "/login?next=/admin"
-          : "/login";
+          : requiredRole === "teacher"
+            ? "/login?next=/teacher"
+            : "/login";
       router.replace(next);
       return;
     }
 
-    if (requiredRole === "student" && auth.role === "admin") {
-      router.replace("/admin");
+    if (requiredRole === "student" && auth.role !== "student") {
+      router.replace(getDefaultRoute(auth.role));
+    }
+
+    if (requiredRole === "admin" && auth.role !== "admin") {
+      router.replace(getDefaultRoute(auth.role));
+    }
+
+    if (requiredRole === "teacher" && auth.role !== "teacher") {
+      router.replace(getDefaultRoute(auth.role));
     }
   }, [auth.isReady, auth.isLoggedIn, auth.role, requiredRole, router]);
 
