@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
 import { adminApi } from "@/lib/api";
+import { matchesTextSearch } from "@/lib/student-search";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
+import { SearchInput } from "@/components/layout/search-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -21,6 +23,7 @@ import {
 
 export default function AdminTopicsPage() {
   const [marhalahId, setMarhalahId] = useState("1");
+  const [search, setSearch] = useState("");
   const [pendingDelete, setPendingDelete] = useState<{
     id: number;
     title: string;
@@ -31,6 +34,14 @@ export default function AdminTopicsPage() {
     queryKey: ["admin-topics", marhalahId],
     queryFn: () => adminApi.getTopics(parseInt(marhalahId)),
   });
+
+  const filteredTopics = useMemo(
+    () =>
+      topics?.filter((topic) =>
+        matchesTextSearch([topic.title, topic.description], search)
+      ) ?? [],
+    [topics, search]
+  );
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => adminApi.deleteTopic(id),
@@ -63,14 +74,22 @@ export default function AdminTopicsPage() {
         </div>
       </PageHeader>
 
-      <div className="page-content">
+      <div className="page-content space-y-4">
+        <SearchInput
+          value={search}
+          onValueChange={setSearch}
+          placeholder="Search topics..."
+        />
+
         {isLoading && (
           <p className="text-sm text-muted-foreground text-center py-8">Loading topics...</p>
         )}
-        {!isLoading && topics?.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">No topics yet.</p>
+        {!isLoading && filteredTopics.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            {search.trim() ? "No topics match your search." : "No topics yet."}
+          </p>
         )}
-        {topics?.map((topic) => (
+        {filteredTopics.map((topic) => (
           <Card key={topic.id} className="card-shadow">
             <CardContent className="p-4">
               <div className="flex items-start gap-2">

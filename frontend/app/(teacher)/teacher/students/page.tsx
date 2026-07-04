@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { teacherApi } from "@/lib/api";
 import { matchesStudentSearch } from "@/lib/student-search";
 import { AppShell } from "@/components/layout/app-shell";
+import { ClickableListCard } from "@/components/layout/clickable-list-card";
 import { PageHeader } from "@/components/layout/page-header";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/layout/search-input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TeacherMarhalahSelect } from "@/components/teacher/teacher-marhalah-select";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export default function TeacherStudentsPage() {
   const [search, setSearch] = useState("");
@@ -23,12 +24,23 @@ export default function TeacherStudentsPage() {
     queryFn: teacherApi.getProfile,
   });
 
-  const { data: students } = useQuery({
+  const { data: students, isLoading } = useQuery({
     queryKey: ["teacher-students", marhalahId],
     queryFn: teacherApi.getStudents,
   });
 
-  const filtered = students?.filter((s) => matchesStudentSearch(s, search));
+  useEffect(() => {
+    if (profile?.managed_marhalah != null) {
+      setMarhalahId(String(profile.managed_marhalah));
+    }
+  }, [profile?.managed_marhalah]);
+
+  const filtered = useMemo(
+    () => students?.filter((s) => matchesStudentSearch(s, search)) ?? [],
+    [students, search]
+  );
+
+  const hasSearch = search.trim().length > 0;
 
   return (
     <AppShell variant="teacher">
@@ -47,53 +59,58 @@ export default function TeacherStudentsPage() {
           onValueChange={(v) => setMarhalahId(v ?? "1")}
         />
 
-        <div className="relative">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            placeholder="Search students..."
-            className="pl-10"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onValueChange={setSearch}
+          placeholder="Search by name, email, phone, or reg. number..."
+        />
 
-        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-          {filtered?.map((student) => (
-            <Link key={student.id} href={`/teacher/students/${student.id}`}>
-              <Card className="card-shadow hover:shadow-md transition-shadow">
-                <CardContent className="p-4 flex items-center gap-3">
+        {isLoading && (
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-xl" />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && (
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+            {filtered.map((student) => (
+              <ClickableListCard
+                key={student.id}
+                href={`/teacher/students/${student.id}`}
+              >
+                <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-emerald-light text-emerald-deep text-sm">
-                      {student.first_name[0]}
-                      {student.last_name[0]}
+                      {student.first_name?.[0] ?? "?"}
+                      {student.last_name?.[0] ?? ""}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
                       {student.first_name} {student.last_name}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {student.registration_number || "No reg. number"}
+                    <p className="truncate text-xs text-muted-foreground">
+                      {student.registration_number || student.email || "No reg. number"}
                     </p>
                   </div>
                   <HugeiconsIcon
                     icon={ArrowRight01Icon}
                     size={18}
-                    className="text-muted-foreground"
+                    className="shrink-0 text-muted-foreground"
                   />
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+                </div>
+              </ClickableListCard>
+            ))}
+          </div>
+        )}
 
-        {filtered?.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            No students match your marḥalah and gender filter.
+        {!isLoading && filtered.length === 0 && (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            {hasSearch
+              ? "No students match your search."
+              : "No students in your marḥalah and gender group yet."}
           </p>
         )}
       </div>

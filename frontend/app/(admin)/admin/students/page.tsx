@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { adminApi } from "@/lib/api";
 import { matchesStudentSearch } from "@/lib/student-search";
 import { AppShell } from "@/components/layout/app-shell";
+import { ClickableListCard } from "@/components/layout/clickable-list-card";
 import { PageHeader } from "@/components/layout/page-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { SearchInput } from "@/components/layout/search-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -18,25 +18,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon, ArrowRight01Icon, Add01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export default function AdminStudentsPage() {
   const [search, setSearch] = useState("");
   const [marhalahFilter, setMarhalahFilter] = useState("all");
 
-  const { data: students } = useQuery({
+  const { data: students, isLoading } = useQuery({
     queryKey: ["admin-students"],
     queryFn: adminApi.getStudents,
   });
 
-  const filtered = students?.filter((s) => {
-    const matchesSearch = matchesStudentSearch(s, search);
-    const matchesMarhalah =
-      marhalahFilter === "all" ||
-      String(s.current_marhalah ?? 1) === marhalahFilter;
-    return matchesSearch && matchesMarhalah;
-  });
+  const filtered = useMemo(
+    () =>
+      students?.filter((s) => {
+        const matchesSearch = matchesStudentSearch(s, search);
+        const matchesMarhalah =
+          marhalahFilter === "all" ||
+          String(s.current_marhalah ?? 1) === marhalahFilter;
+        return matchesSearch && matchesMarhalah;
+      }) ?? [],
+    [students, search, marhalahFilter]
+  );
+
+  const hasStudents = (students?.length ?? 0) > 0;
+  const hasSearch = search.trim().length > 0;
+  const hasMarhalahFilter = marhalahFilter !== "all";
 
   return (
     <AppShell variant="admin">
@@ -45,19 +54,12 @@ export default function AdminStudentsPage() {
       <div className="page-content space-y-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative min-w-0 flex-1">
-              <HugeiconsIcon
-                icon={Search01Icon}
-                size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-              />
-              <Input
-                placeholder="Search students..."
-                className="pl-10 w-full"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+            <SearchInput
+              value={search}
+              onValueChange={setSearch}
+              placeholder="Search by name, email, phone, or reg. number..."
+              className="flex-1"
+            />
 
             <Select
               value={marhalahFilter}
@@ -88,48 +90,63 @@ export default function AdminStudentsPage() {
           them securely with the student.
         </p>
 
-        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-          {filtered?.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8 col-span-full">
-              No students match your search.
-            </p>
-          )}
-          {filtered?.map((student) => (
-            <Link key={student.id} href={`/admin/students/${student.id}`}>
-              <Card className="card-shadow hover:shadow-md transition-shadow">
-                <CardContent className="p-4 flex items-center gap-3">
+        {isLoading && (
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-xl" />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && (
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+            {filtered.map((student) => (
+              <ClickableListCard
+                key={student.id}
+                href={`/admin/students/${student.id}`}
+              >
+                <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-emerald-light text-emerald-deep text-sm">
-                      {student.first_name[0]}
-                      {student.last_name[0]}
+                      {student.first_name?.[0] ?? "?"}
+                      {student.last_name?.[0] ?? ""}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
                       {student.first_name} {student.last_name}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="truncate text-xs text-muted-foreground">
                       {student.registration_number || "Pending Assignment"} ·{" "}
-                      {student.phone || "No phone"}
+                      {student.phone || student.email || "No contact"}
                     </p>
                   </div>
                   {student.is_suspended && (
-                    <span className="text-xs text-destructive font-medium">
+                    <span className="text-xs font-medium text-destructive">
                       Suspended
                     </span>
                   )}
                   <HugeiconsIcon
                     icon={ArrowRight01Icon}
                     size={18}
-                    className="text-muted-foreground"
+                    className="shrink-0 text-muted-foreground"
                   />
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
+                </div>
+              </ClickableListCard>
+            ))}
+          </div>
+        )}
 
+        {!isLoading && filtered.length === 0 && (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            {!hasStudents
+              ? "No students yet. Register one to get started."
+              : hasSearch || hasMarhalahFilter
+                ? "No students match your search or filters."
+                : "No students found."}
+          </p>
+        )}
+      </div>
     </AppShell>
   );
 }
