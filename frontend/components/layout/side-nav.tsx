@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { getNavItems, type NavVariant } from "./nav-config";
 import { useStudentNavItems } from "@/hooks/use-student-nav-items";
 import { LoginLogo } from "@/components/auth/login-logo";
+import { SignOutButton } from "@/components/layout/sign-out-button";
 
 interface SideNavProps {
   variant?: NavVariant;
@@ -71,16 +72,17 @@ export function SideNav({ variant = "student", className }: SideNavProps) {
         })}
       </nav>
 
-      {variant === "admin" && (
-        <div className="border-t border-sidebar-border p-4">
+      <div className="border-t border-sidebar-border p-4 space-y-1">
+        {variant === "admin" && (
           <Link
             href="/dashboard"
             className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
           >
             ← Student view
           </Link>
-        </div>
-      )}
+        )}
+        <SignOutButton />
+      </div>
     </aside>
   );
 }

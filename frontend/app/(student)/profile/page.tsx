@@ -9,14 +9,10 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { useAuth } from "@/hooks/use-auth";
 import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { SignOutButton } from "@/components/layout/sign-out-button";
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const { logout } = useAuth();
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: studentApi.getProfile,
@@ -186,16 +182,9 @@ export default function ProfilePage() {
             </Card>
             </div>
 
-            <Button
-              variant="outline"
-              className="w-full lg:col-span-2 text-destructive border-destructive/30 hover:bg-destructive/5"
-              onClick={() => {
-                logout();
-                router.push("/login");
-              }}
-            >
-              Sign Out
-            </Button>
+            <SignOutButton
+              className="lg:col-span-2 w-full justify-center border border-destructive/30 bg-transparent text-destructive hover:bg-destructive/5 hover:text-destructive"
+            />
           </div>
         </>
       )}

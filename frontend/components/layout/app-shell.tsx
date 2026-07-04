@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { SideNav } from "./side-nav";
 import { BottomNav } from "./bottom-nav";
+import { MobileSignOutBar } from "./mobile-sign-out-bar";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -37,6 +38,7 @@ export function AppShell({
     <div className={cn("flex min-h-screen", className)}>
       <SideNav variant={variant} />
       <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
+        <MobileSignOutBar variant={variant} />
         <main
           className={cn(
             "flex-1 w-full",
