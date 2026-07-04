@@ -241,7 +241,7 @@ export default function ExamPage({
             />
 
             <Button
-              className="w-full h-12 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+              className="w-full h-12 btn-emerald gap-2"
               disabled={
                 !hasAnswer || submitMutation.isPending || timeExpired
               }

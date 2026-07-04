@@ -20,7 +20,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft01Icon, Copy01Icon } from "@hugeicons/core-free-icons";
+
+const MARHALAH_OPTIONS = [
+  { value: "1", label: "Marḥalah 1" },
+  { value: "2", label: "Marḥalah 2" },
+  { value: "3", label: "Marḥalah 3" },
+  { value: "4", label: "Marḥalah 4" },
+];
+
+type CreatedStudent = {
+  login_email: string;
+  temporary_password: string;
+  name: string;
+  current_marhalah: number;
+  registration_number?: string;
+};
+
+async function copyText(value: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(value);
+    toast.success(`${label} copied`);
+  } catch {
+    toast.error(`Could not copy ${label.toLowerCase()}`);
+  }
+}
 
 export default function AdminCreateStudentPage() {
   const router = useRouter();
@@ -30,23 +54,26 @@ export default function AdminCreateStudentPage() {
     last_name: "",
     phone: "",
     gender: "male" as "male" | "female",
+    current_marhalah: "1",
   });
 
-  const [createdCredentials, setCreatedCredentials] = useState<{
-    login_email: string;
-    temporary_password: string;
-    name: string;
-  } | null>(null);
+  const [createdStudent, setCreatedStudent] = useState<CreatedStudent | null>(null);
 
   const createMutation = useMutation({
-    mutationFn: () => adminApi.createStudent(form),
+    mutationFn: () =>
+      adminApi.createStudent({
+        ...form,
+        current_marhalah: parseInt(form.current_marhalah, 10) || 1,
+      }),
     onSuccess: (student) => {
       queryClient.invalidateQueries({ queryKey: ["admin-students"] });
       if (student.login_email && student.temporary_password) {
-        setCreatedCredentials({
+        setCreatedStudent({
           login_email: student.login_email,
           temporary_password: student.temporary_password,
-          name: `${student.first_name} ${student.last_name}`,
+          name: `${student.first_name} ${student.last_name}`.trim(),
+          current_marhalah: student.current_marhalah ?? 1,
+          registration_number: student.registration_number,
         });
         toast.success("Student account created");
         return;
@@ -63,6 +90,22 @@ export default function AdminCreateStudentPage() {
   const canSubmit =
     form.first_name.trim() && form.last_name.trim() && form.phone.trim();
 
+  const credentialsBlock = createdStudent
+    ? [
+        `Student: ${createdStudent.name}`,
+        `Marḥalah: ${createdStudent.current_marhalah}`,
+        createdStudent.registration_number
+          ? `Registration #: ${createdStudent.registration_number}`
+          : null,
+        `Login email: ${createdStudent.login_email}`,
+        `Password: ${createdStudent.temporary_password}`,
+        "",
+        "Sign in at the login page with the email and password above.",
+      ]
+        .filter(Boolean)
+        .join("\n")
+    : "";
+
   return (
     <AppShell variant="admin">
       <PageHeader title="Register Student">
@@ -75,86 +118,164 @@ export default function AdminCreateStudentPage() {
         </Link>
       </PageHeader>
 
-      <div className="page-content max-w-2xl">
-        <Card className="card-shadow">
-          <CardContent className="p-5 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Create a student account. Share the generated login email and
-              temporary password with the student so they can sign in.
-            </p>
-            <div className="form-grid-2">
-              <div className="space-y-2">
-                <Label>First Name</Label>
-                <Input
-                  value={form.first_name}
-                  onChange={(e) => update("first_name", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Last Name</Label>
-                <Input
-                  value={form.last_name}
-                  onChange={(e) => update("last_name", e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Phone Number</Label>
-              <Input
-                type="tel"
-                placeholder="966501234567"
-                value={form.phone}
-                onChange={(e) => update("phone", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Gender</Label>
-              <Select
-                value={form.gender}
-                onValueChange={(v) => update("gender", v ?? "male")}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
-              disabled={!canSubmit || createMutation.isPending}
-              onClick={() => createMutation.mutate()}
-            >
-              {createMutation.isPending ? "Creating..." : "Create Student Account"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {createdCredentials && (
-          <Card className="card-shadow border-gold/40">
+      <div className="page-content max-w-2xl space-y-4">
+        {!createdStudent && (
+          <Card className="card-shadow">
             <CardContent className="p-5 space-y-4">
-              <p className="font-medium text-emerald-deep">
-                Account created for {createdCredentials.name}
-              </p>
               <p className="text-sm text-muted-foreground">
-                Copy these credentials and share them securely with the student.
+                Create a student account, assign their starting Marḥalah, and share
+                the generated login credentials securely.
               </p>
-              <div className="space-y-2">
-                <Label>Login email</Label>
-                <Input readOnly value={createdCredentials.login_email} />
+              <div className="form-grid-2">
+                <div className="space-y-2">
+                  <Label>First Name</Label>
+                  <Input
+                    value={form.first_name}
+                    onChange={(e) => update("first_name", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Last Name</Label>
+                  <Input
+                    value={form.last_name}
+                    onChange={(e) => update("last_name", e.target.value)}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label>Temporary password</Label>
-                <Input readOnly value={createdCredentials.temporary_password} />
+                <Label>Phone Number</Label>
+                <Input
+                  type="tel"
+                  placeholder="966501234567"
+                  value={form.phone}
+                  onChange={(e) => update("phone", e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Used to generate the student login email.
+                </p>
+              </div>
+              <div className="form-grid-2">
+                <div className="space-y-2">
+                  <Label>Gender</Label>
+                  <Select
+                    value={form.gender}
+                    onValueChange={(v) => update("gender", v ?? "male")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Marḥalah</Label>
+                  <Select
+                    value={form.current_marhalah}
+                    onValueChange={(v) => update("current_marhalah", v ?? "1")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Marḥalah" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MARHALAH_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <Button
-                className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
-                onClick={() => router.push("/admin/students")}
+                className="w-full btn-emerald"
+                disabled={!canSubmit || createMutation.isPending}
+                onClick={() => createMutation.mutate()}
               >
-                Done
+                {createMutation.isPending ? "Creating..." : "Create Student Account"}
               </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {createdStudent && (
+          <Card className="card-shadow border-gold/40">
+            <CardContent className="p-5 space-y-4">
+              <div>
+                <p className="font-medium text-emerald-deep">
+                  Account created for {createdStudent.name}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Assigned to Marḥalah {createdStudent.current_marhalah}
+                  {createdStudent.registration_number
+                    ? ` · ${createdStudent.registration_number}`
+                    : ""}
+                </p>
+              </div>
+
+              <div className="space-y-3 rounded-xl bg-emerald-light/30 p-4">
+                <div className="space-y-1.5">
+                  <Label>Login email</Label>
+                  <div className="flex gap-2">
+                    <Input readOnly value={createdStudent.login_email} className="bg-white" />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label="Copy login email"
+                      onClick={() => copyText(createdStudent.login_email, "Login email")}
+                    >
+                      <HugeiconsIcon icon={Copy01Icon} size={18} />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Temporary password</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={createdStudent.temporary_password}
+                      className="bg-white font-mono text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label="Copy password"
+                      onClick={() =>
+                        copyText(createdStudent.temporary_password, "Password")
+                      }
+                    >
+                      <HugeiconsIcon icon={Copy01Icon} size={18} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Share these credentials with the student. They sign in at{" "}
+                <span className="font-medium text-emerald-deep">/login</span> using
+                the email and password above.
+              </p>
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border-emerald-deep text-emerald-deep"
+                  onClick={() => copyText(credentialsBlock, "Credentials")}
+                >
+                  Copy all credentials
+                </Button>
+                <Button
+                  className="flex-1 btn-emerald"
+                  onClick={() => router.push("/admin/students")}
+                >
+                  Done
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

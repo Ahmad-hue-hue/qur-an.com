@@ -23,7 +23,7 @@ export default function AdminTeachersPage() {
 
       <div className="page-content">
         <Link href="/admin/teachers/new">
-          <Button className="w-full sm:w-auto bg-emerald-deep hover:bg-emerald-mid text-cream gap-2">
+          <Button className="w-full sm:w-auto btn-emerald gap-2">
             <HugeiconsIcon icon={Add01Icon} size={18} />
             Add Teacher
           </Button>

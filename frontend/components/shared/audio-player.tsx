@@ -117,7 +117,7 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
     return (
       <div
         className={cn(
-          "bg-emerald-deep/60 rounded-2xl p-4 text-cream/70 card-shadow border border-dashed border-cream/20",
+          "bg-emerald-deep/75 backdrop-blur-md rounded-2xl p-4 text-cream/70 card-shadow border border-white/15",
           className
         )}
       >
@@ -130,7 +130,7 @@ export function AudioPlayer({ src, title, className }: AudioPlayerProps) {
   return (
     <div
       className={cn(
-        "bg-emerald-deep rounded-2xl p-4 text-cream card-shadow",
+        "glass-emerald rounded-2xl p-4 text-cream",
         className
       )}
     >

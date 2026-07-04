@@ -71,7 +71,7 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border/40 bg-white/70 p-6 shadow-[0_8px_40px_rgba(6,78,59,0.06)] backdrop-blur-sm sm:p-7">
+          <div className="glass-panel rounded-2xl p-6 sm:p-7">
             <div className="space-y-4">
                 <IconInput
                   id="name"
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                 </div>
 
                 <Button
-                  className="mt-1 h-11 w-full rounded-xl bg-emerald-deep text-cream hover:bg-emerald-mid"
+                  className="mt-1 h-11 w-full rounded-xl btn-emerald"
                   disabled={registerMutation.isPending || !canSubmit}
                   onClick={() => registerMutation.mutate()}
                 >

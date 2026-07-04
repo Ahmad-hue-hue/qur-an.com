@@ -77,7 +77,7 @@ export default function AdminStudentsPage() {
           </div>
 
           <Link href="/admin/students/new" className="block w-full shrink-0 lg:w-auto">
-            <Button className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2 lg:w-auto">
+            <Button className="w-full btn-emerald gap-2 lg:w-auto">
               <HugeiconsIcon icon={Add01Icon} size={18} />
               Register New Student
             </Button>

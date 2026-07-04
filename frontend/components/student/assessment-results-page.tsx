@@ -65,7 +65,7 @@ export function AssessmentResultsPage({
               <Link
                 href={backHref}
                 className={buttonVariants({
-                  className: "bg-emerald-deep hover:bg-emerald-mid text-cream",
+                  className: "btn-emerald",
                 })}
               >
                 {kind === "exercise" ? "Take exercise" : "Take exam"}

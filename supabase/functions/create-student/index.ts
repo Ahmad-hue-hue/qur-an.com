@@ -43,7 +43,8 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = await requireAdmin(req);
-    const { first_name, last_name, phone, gender } = await req.json();
+    const { first_name, last_name, phone, gender, current_marhalah } =
+      await req.json();
 
     if (!first_name?.trim() || !phone?.trim()) {
       return new Response(JSON.stringify({ error: "Name and phone are required" }), {
@@ -59,7 +60,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const email = `${phone.replace(/\D/g, "")}@students.tajweed.local`;
+    const marhalah = Number(current_marhalah) || 1;
+    if (marhalah < 1 || marhalah > 4) {
+      return new Response(
+        JSON.stringify({ error: "Marḥalah must be between 1 and 4" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const normalizedPhone = phone.replace(/\D/g, "");
+    const email = `${normalizedPhone}@students.tajweed.local`;
     const password = crypto.randomUUID() + crypto.randomUUID();
 
     const { data: authData, error: authError } =
@@ -70,7 +83,7 @@ Deno.serve(async (req) => {
         user_metadata: {
           first_name,
           last_name: last_name ?? "",
-          phone: phone.replace(/\D/g, ""),
+          phone: normalizedPhone,
           role: "student",
           gender,
         },
@@ -83,15 +96,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    await supabase
+    const studentId = authData.user.id;
+
+    const { error: profileError } = await supabase
       .from("profiles")
-      .update({ gender })
-      .eq("id", authData.user.id);
+      .update({
+        gender,
+        current_marhalah: marhalah,
+      })
+      .eq("id", studentId);
+
+    if (profileError) {
+      await supabase.auth.admin.deleteUser(studentId);
+      return new Response(JSON.stringify({ error: profileError.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { error: regError } = await supabase.rpc("assign_registration_number", {
+      p_student_id: studentId,
+    });
+
+    if (regError) {
+      console.error("assign_registration_number failed:", regError.message);
+    }
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", authData.user.id)
+      .eq("id", studentId)
       .single();
 
     return new Response(

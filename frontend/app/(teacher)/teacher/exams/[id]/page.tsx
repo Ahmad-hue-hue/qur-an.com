@@ -173,7 +173,7 @@ export default function AdminExamDetailPage({
             </Link>
 
             <Button
-              className="w-full sm:w-auto bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+              className="w-full sm:w-auto btn-emerald gap-2"
               onClick={() => {
                 if (showQuestionForm && !editingQuestionId) {
                   resetQuestionForm();
@@ -312,7 +312,7 @@ export default function AdminExamDetailPage({
 
                   <div className="flex gap-2">
                     <Button
-                      className="flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream"
+                      className="flex-1 btn-emerald"
                       disabled={!questionForm.text.trim() || saveQuestionMutation.isPending}
                       onClick={() => saveQuestionMutation.mutate()}
                     >

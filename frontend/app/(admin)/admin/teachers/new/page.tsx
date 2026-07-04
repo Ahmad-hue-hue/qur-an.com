@@ -165,7 +165,7 @@ export default function AdminCreateTeacherPage() {
               </div>
             </div>
             <Button
-              className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
+              className="w-full btn-emerald"
               disabled={!canSubmit || createMutation.isPending}
               onClick={() => createMutation.mutate()}
             >
@@ -192,7 +192,7 @@ export default function AdminCreateTeacherPage() {
                 <Input readOnly value={form.password} />
               </div>
               <Button
-                className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
+                className="w-full btn-emerald"
                 onClick={() => router.push("/admin/teachers")}
               >
                 Done

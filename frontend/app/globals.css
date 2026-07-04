@@ -102,7 +102,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-cream text-foreground antialiased;
+    @apply bg-cream text-foreground antialiased islamic-pattern;
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
@@ -143,16 +144,71 @@
     background-size: 100% 100%;
   }
   .card-shadow {
-    box-shadow: 0 4px 20px rgba(6, 78, 59, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow:
+      0 8px 32px rgba(6, 78, 59, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+  .glass-panel {
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow:
+      0 10px 40px rgba(6, 78, 59, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  .glass-emerald {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: linear-gradient(
+      135deg,
+      rgba(6, 78, 59, 0.92) 0%,
+      rgba(13, 122, 95, 0.86) 100%
+    );
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 12px 40px rgba(6, 78, 59, 0.22);
+  }
+  .glass-nav {
+    border-top: 1px solid rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 -6px 28px rgba(6, 78, 59, 0.1);
+  }
+  .glass-sidebar {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(
+      180deg,
+      rgba(6, 78, 59, 0.94) 0%,
+      rgba(6, 78, 59, 0.88) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 4px 0 24px rgba(6, 78, 59, 0.12);
   }
   .btn-shadow {
-    box-shadow: 0 2px 8px rgba(6, 78, 59, 0.12);
+    box-shadow: 0 3px 10px rgba(6, 78, 59, 0.14);
   }
   .btn-shadow:hover:not(:disabled) {
-    box-shadow: 0 4px 14px rgba(6, 78, 59, 0.16);
+    box-shadow: 0 6px 18px rgba(6, 78, 59, 0.2);
   }
   .btn-shadow:active:not(:disabled) {
-    box-shadow: 0 1px 4px rgba(6, 78, 59, 0.1);
+    box-shadow: 0 1px 4px rgba(6, 78, 59, 0.12);
+  }
+  .btn-emerald {
+    @apply bg-emerald-deep text-cream transition-all;
+    box-shadow: 0 4px 14px rgba(6, 78, 59, 0.22);
+  }
+  .btn-emerald:hover:not(:disabled) {
+    @apply bg-emerald-mid;
+    box-shadow: 0 8px 22px rgba(6, 78, 59, 0.28);
+  }
+  .btn-emerald:active:not(:disabled) {
+    box-shadow: 0 2px 8px rgba(6, 78, 59, 0.18);
   }
   .gold-glow {
     box-shadow: 0 0 20px rgba(212, 168, 83, 0.3);

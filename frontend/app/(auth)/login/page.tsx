@@ -103,14 +103,14 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-border/40 bg-white/70 p-6 shadow-[0_8px_40px_rgba(6,78,59,0.06)] backdrop-blur-sm sm:p-7">
+              <div className="glass-panel rounded-2xl p-6 sm:p-7">
                 {showSignedInPrompt ? (
                   <div className="space-y-3 py-1 text-center">
                     <p className="text-sm text-muted-foreground">
                       You are already signed in{role === "admin" ? " as admin" : ""}.
                     </p>
                     <Button
-                      className="h-11 w-full rounded-xl bg-emerald-deep text-cream hover:bg-emerald-mid"
+                      className="h-11 w-full rounded-xl btn-emerald"
                       onClick={() => router.push(getDefaultRoute(role))}
                     >
                       Continue
@@ -156,7 +156,7 @@ export default function LoginPage() {
                     />
 
                     <Button
-                      className="mt-1 h-11 w-full rounded-xl bg-emerald-deep text-cream hover:bg-emerald-mid"
+                      className="mt-1 h-11 w-full rounded-xl btn-emerald"
                       disabled={
                         loginMutation.isPending || !email.trim() || !password.trim()
                       }

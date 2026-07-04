@@ -51,7 +51,7 @@ export function ConfirmDialog({
             className={
               destructive
                 ? undefined
-                : "bg-emerald-deep hover:bg-emerald-mid text-cream"
+                : "btn-emerald"
             }
             disabled={loading}
             onClick={onConfirm}

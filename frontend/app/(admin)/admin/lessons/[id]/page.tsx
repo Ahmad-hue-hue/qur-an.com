@@ -234,7 +234,7 @@ export default function EditLessonPage({
         </Card>
 
         <Button
-          className="w-full h-12 bg-emerald-deep hover:bg-emerald-mid text-cream"
+          className="w-full h-12 btn-emerald"
           disabled={!title.trim() || !content.trim() || updateMutation.isPending}
           onClick={() => updateMutation.mutate()}
         >

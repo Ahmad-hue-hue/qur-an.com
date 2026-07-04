@@ -4,6 +4,7 @@ import {
   resolveMarhalahNumberById,
 } from "@/lib/supabase/marhalah";
 import { mapProfileRow, SupabaseApiError, throwIfError } from "@/lib/supabase/utils";
+import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
 import type {
   AssessmentSubmissionResults,
   DashboardData,
@@ -440,24 +441,30 @@ export const studentApi = {
       exams.push(await buildExamRow(exam, user.id));
     }
 
-    const halaqahRow = (
-      await supabase
-        .from("manual_scores")
-        .select("*")
-        .eq("student_id", user.id)
-        .eq("marhalah_id", marhalah.id)
-        .eq("type", "halaqah")
-        .maybeSingle()
-    ).data;
-    const tadreebRow = (
-      await supabase
-        .from("manual_scores")
-        .select("*")
-        .eq("student_id", user.id)
-        .eq("marhalah_id", marhalah.id)
-        .eq("type", "tadreeb")
-        .maybeSingle()
-    ).data;
+    const includeOralAssessments = marhalahHasOralAssessments(marhalah.number);
+
+    let halaqahRow: Record<string, unknown> | null = null;
+    let tadreebRow: Record<string, unknown> | null = null;
+    if (includeOralAssessments) {
+      halaqahRow = (
+        await supabase
+          .from("manual_scores")
+          .select("*")
+          .eq("student_id", user.id)
+          .eq("marhalah_id", marhalah.id)
+          .eq("type", "halaqah")
+          .maybeSingle()
+      ).data;
+      tadreebRow = (
+        await supabase
+          .from("manual_scores")
+          .select("*")
+          .eq("student_id", user.id)
+          .eq("marhalah_id", marhalah.id)
+          .eq("type", "tadreeb")
+          .maybeSingle()
+      ).data;
+    }
 
     const profileData = await studentApi.getProfile();
 

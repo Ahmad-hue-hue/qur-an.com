@@ -21,7 +21,7 @@ export function SideNav({ variant = "student", className }: SideNavProps) {
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex",
+        "glass-sidebar sticky top-0 hidden h-screen w-64 shrink-0 flex-col text-sidebar-foreground lg:flex",
         className
       )}
     >
@@ -54,10 +54,10 @@ export function SideNav({ variant = "student", className }: SideNavProps) {
               key={item.label}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                  ? "bg-white/15 text-sidebar-accent-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.12)] backdrop-blur-sm"
+                  : "text-sidebar-foreground/80 hover:bg-white/10 hover:text-sidebar-foreground"
               )}
             >
               <HugeiconsIcon

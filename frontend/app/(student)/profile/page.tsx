@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
+import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -25,6 +26,8 @@ export default function ProfilePage() {
     queryKey: ["dashboard"],
     queryFn: studentApi.getDashboard,
   });
+
+  const showOralAssessments = marhalahHasOralAssessments(profile?.current_marhalah ?? 1);
 
   const academicItems = profile
     ? [
@@ -45,21 +48,28 @@ export default function ProfilePage() {
             ? `${dashboard.recent_results.exercises[0].score}/${dashboard.recent_results.exercises[0].max_score}`
             : "—",
         },
-        { label: "Exams", value: dashboard?.recent_results.exam
+        {
+          label: "Exams",
+          value: dashboard?.recent_results.exam
             ? `${dashboard.recent_results.exam.score}/${dashboard.recent_results.exam.max_score}`
-            : "—" },
-        {
-          label: "Halaqah",
-          value: dashboard?.halaqah
-            ? `${dashboard.halaqah.score}/${dashboard.halaqah.max_score}`
             : "—",
         },
-        {
-          label: "Tadreeb",
-          value: dashboard?.tadreeb
-            ? `${dashboard.tadreeb.score}/${dashboard.tadreeb.max_score}`
-            : "—",
-        },
+        ...(showOralAssessments
+          ? [
+              {
+                label: "Halaqah",
+                value: dashboard?.halaqah
+                  ? `${dashboard.halaqah.score}/${dashboard.halaqah.max_score}`
+                  : "—",
+              },
+              {
+                label: "Tadreeb",
+                value: dashboard?.tadreeb
+                  ? `${dashboard.tadreeb.score}/${dashboard.tadreeb.max_score}`
+                  : "—",
+              },
+            ]
+          : []),
         {
           label: "Overall Average",
           value: `${profile.overall_average}%`,

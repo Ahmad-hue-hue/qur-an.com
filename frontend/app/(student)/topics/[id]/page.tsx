@@ -158,7 +158,7 @@ export default function TopicDetailPage({
         </div>
 
         <Button
-          className="w-full h-11 sm:h-10 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+          className="w-full h-11 sm:h-10 btn-emerald gap-2"
           disabled={isDone || completeMutation.isPending}
           onClick={() => completeMutation.mutate()}
         >

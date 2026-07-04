@@ -316,7 +316,7 @@ export default function AdminStudentDetailPage({
               </Button>
             </div>
             <Button
-              className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
+              className="w-full btn-emerald"
               disabled={
                 updateMutation.isPending ||
                 !form.first_name.trim() ||

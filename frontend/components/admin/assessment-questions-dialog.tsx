@@ -403,7 +403,7 @@ export function AssessmentQuestionsDialog({
 
               <Button
                 type="button"
-                className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
+                className="w-full btn-emerald"
                 disabled={!questionForm.text.trim() || saveMutation.isPending}
                 onClick={() => saveMutation.mutate()}
               >

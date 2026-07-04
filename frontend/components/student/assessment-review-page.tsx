@@ -156,7 +156,7 @@ function QuestionWalkthrough({
           Previous
         </Button>
         <Button
-          className="flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+          className="flex-1 btn-emerald gap-2"
           disabled={isLast}
           onClick={onNext}
         >
@@ -260,7 +260,7 @@ export function AssessmentReviewPage({ exerciseId }: { exerciseId: number }) {
                 <Link
                   href={`/exercises/${exerciseId}`}
                   className={buttonVariants({
-                    className: "bg-emerald-deep hover:bg-emerald-mid text-cream",
+                    className: "btn-emerald",
                   })}
                 >
                   Take exercise

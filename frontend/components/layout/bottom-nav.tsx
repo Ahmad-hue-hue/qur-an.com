@@ -20,7 +20,7 @@ export function BottomNav({ variant = "student", className }: BottomNavProps) {
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-white card-shadow safe-area-bottom lg:hidden",
+        "glass-nav fixed bottom-0 left-0 right-0 z-50 safe-area-bottom lg:hidden",
         className
       )}
     >

@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
+import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
 
 export default function AssessmentsPage() {
   const { data: exercises, isLoading: loadingExercises } = useQuery({
@@ -30,6 +31,7 @@ export default function AssessmentsPage() {
   const marhalahNumber = dashboard?.current_marhalah.number ?? 1;
   const marhalahTitle =
     dashboard?.current_marhalah.title ?? `Marḥalah ${marhalahNumber}`;
+  const showOralAssessments = marhalahHasOralAssessments(marhalahNumber);
   const topicsComplete =
     Boolean(dashboard?.total_topics) &&
     (dashboard?.topics_completed ?? 0) >= (dashboard?.total_topics ?? 0);
@@ -91,7 +93,7 @@ export default function AssessmentsPage() {
                         <Link
                           href={`/exercises/${ex.id}/review`}
                           className={buttonVariants({
-                            className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                            className: "flex-1 btn-emerald",
                           })}
                         >
                           Review exercise
@@ -107,7 +109,7 @@ export default function AssessmentsPage() {
                       <Link
                         href={`/exercises/${ex.id}`}
                         className={buttonVariants({
-                          className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                          className: "flex-1 btn-emerald",
                         })}
                       >
                         Start exercise
@@ -116,7 +118,7 @@ export default function AssessmentsPage() {
                       <Link
                         href={`/exercises/${ex.id}/review`}
                         className={buttonVariants({
-                          className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                          className: "flex-1 btn-emerald",
                         })}
                       >
                         Review questions
@@ -185,7 +187,7 @@ export default function AssessmentsPage() {
                         <Link
                           href={`/exams/${exam.id}/results`}
                           className={buttonVariants({
-                            className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                            className: "flex-1 btn-emerald",
                           })}
                         >
                           View results
@@ -194,7 +196,7 @@ export default function AssessmentsPage() {
                         <Link
                           href={`/exams/${exam.id}`}
                           className={buttonVariants({
-                            className: "flex-1 bg-emerald-deep hover:bg-emerald-mid text-cream",
+                            className: "flex-1 btn-emerald",
                           })}
                         >
                           Start exam
@@ -217,6 +219,7 @@ export default function AssessmentsPage() {
           </TabsContent>
         </Tabs>
 
+        {showOralAssessments && (
         <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
           {dashboard?.halaqah && (
             <Card className="card-shadow">
@@ -249,6 +252,7 @@ export default function AssessmentsPage() {
             </Card>
           )}
         </div>
+        )}
 
         <p className="text-xs text-muted-foreground text-center mt-6 px-4">
           You must complete all topics in this Marḥalah to unlock the final exam.

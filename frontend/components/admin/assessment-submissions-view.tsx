@@ -187,7 +187,7 @@ function ManualGradeCard({
         </div>
         <Button
           size="sm"
-          className="bg-emerald-deep hover:bg-emerald-mid text-cream"
+          className="btn-emerald"
           disabled={score === "" || isPending}
           onClick={() => onSave(parseFloat(score), feedback)}
         >

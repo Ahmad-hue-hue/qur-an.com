@@ -262,6 +262,7 @@ export interface CreateStudentData {
   last_name: string;
   phone: string;
   gender: Gender;
+  current_marhalah: number;
 }
 
 export interface CreateTeacherData {

@@ -100,7 +100,7 @@ export default function TeacherExamsPage() {
 
       <div className="page-content">
         <Button
-          className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+          className="w-full btn-emerald gap-2"
           onClick={() => setShowForm((v) => !v)}
         >
           <HugeiconsIcon icon={Add01Icon} size={18} />
@@ -160,7 +160,7 @@ export default function TeacherExamsPage() {
                 </div>
               </div>
               <Button
-                className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
+                className="w-full btn-emerald"
                 disabled={!form.title.trim() || createMutation.isPending}
                 onClick={() => createMutation.mutate()}
               >

@@ -274,6 +274,7 @@ export const adminApi = {
           last_name: data.last_name,
           phone,
           gender: data.gender,
+          current_marhalah: data.current_marhalah,
         },
       }
     );

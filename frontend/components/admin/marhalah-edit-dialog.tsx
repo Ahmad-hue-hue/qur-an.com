@@ -91,7 +91,7 @@ function MarhalahEditForm({
 
       <Button
         type="button"
-        className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
+        className="w-full btn-emerald"
         disabled={!title.trim() || saveMutation.isPending}
         onClick={() => saveMutation.mutate()}
       >

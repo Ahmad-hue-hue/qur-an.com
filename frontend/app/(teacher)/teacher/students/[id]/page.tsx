@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 
@@ -37,11 +38,12 @@ export default function TeacherStudentDetailPage({
 
   const student = students?.find((s) => s.id === id);
   const marhalah = profile?.managed_marhalah ?? 1;
+  const showOralAssessments = marhalahHasOralAssessments(marhalah);
 
   const { data: manualScores } = useQuery({
     queryKey: ["teacher-manual-scores", id, marhalah],
     queryFn: () => teacherApi.getManualScores(id, marhalah),
-    enabled: Boolean(student),
+    enabled: Boolean(student) && showOralAssessments,
   });
 
   const halaqah = manualScores?.find((s) => s.type === "halaqah");
@@ -104,6 +106,7 @@ export default function TeacherStudentDetailPage({
               </CardContent>
             </Card>
 
+            {showOralAssessments ? (
             <Card className="card-shadow">
               <CardContent className="p-5 space-y-4">
                 <p className="font-medium text-emerald-deep">Manual marks</p>
@@ -148,7 +151,7 @@ export default function TeacherStudentDetailPage({
                 </div>
 
                 <Button
-                  className="w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
+                  className="w-full btn-emerald"
                   disabled={
                     saveMutation.isPending ||
                     (!halaqahScore.trim() && !tadreebScore.trim())
@@ -159,6 +162,14 @@ export default function TeacherStudentDetailPage({
                 </Button>
               </CardContent>
             </Card>
+            ) : (
+            <Card className="card-shadow">
+              <CardContent className="p-5 text-sm text-muted-foreground">
+                Marḥalah 1 uses exercises and exams only — ḥalaqah and tadreeb
+                scores are not recorded for this stage.
+              </CardContent>
+            </Card>
+            )}
           </div>
         </>
       )}

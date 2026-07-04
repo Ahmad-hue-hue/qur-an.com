@@ -138,7 +138,7 @@ export default function ExercisePage({
                   <Link
                     href={`/exercises/${exerciseId}/review`}
                     className={buttonVariants({
-                      className: "bg-emerald-deep hover:bg-emerald-mid text-cream",
+                      className: "btn-emerald",
                     })}
                   >
                     {exercise.has_submitted ? "Review exercise" : "Review questions"}
@@ -225,7 +225,7 @@ export default function ExercisePage({
             />
 
             <Button
-              className="w-full h-12 bg-emerald-deep hover:bg-emerald-mid text-cream gap-2"
+              className="w-full h-12 btn-emerald gap-2"
               disabled={!hasAnswer || submitMutation.isPending}
               onClick={() => {
                 if (isLast) {

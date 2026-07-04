@@ -62,7 +62,7 @@ export function AuthGuard({ children, role }: AuthGuardProps) {
                 href={getDefaultRoute(auth.role)}
                 className={cn(
                   buttonVariants(),
-                  "w-full bg-emerald-deep hover:bg-emerald-mid text-cream"
+                  "w-full btn-emerald"
                 )}
               >
                 Go to my dashboard

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
 
 export default function DashboardPage() {
   const { data, isLoading, isError, error } = useQuery({
@@ -108,7 +109,8 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
                 ))}
-                {data.halaqah && (
+                {marhalahHasOralAssessments(data.current_marhalah.number) &&
+                  data.halaqah && (
                   <Card className="card-shadow">
                     <CardContent className="p-4 flex items-center justify-between">
                       <p className="font-medium text-sm">Halaqah (Oral Test)</p>
@@ -118,7 +120,8 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
                 )}
-                {data.tadreeb && (
+                {marhalahHasOralAssessments(data.current_marhalah.number) &&
+                  data.tadreeb && (
                   <Card className="card-shadow">
                     <CardContent className="p-4 flex items-center justify-between">
                       <p className="font-medium text-sm">Tadreeb (Practice)</p>
