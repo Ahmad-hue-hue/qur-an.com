@@ -18,7 +18,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ variant, onMenuOpen }: AppHeaderProps) {
   return (
-    <header className="glass-nav safe-area-top sticky top-0 z-40 flex items-center gap-3 border-b border-white/40 px-4 py-3 lg:hidden">
+    <header className="glass-nav safe-area-top sticky top-0 z-30 flex items-center gap-3 border-b border-white/40 px-4 py-3 md:hidden">
       <button
         type="button"
         onClick={onMenuOpen}

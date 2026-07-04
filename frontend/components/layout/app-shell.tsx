@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SideNav } from "./side-nav";
-import { MobileSidebar } from "./mobile-sidebar";
 import { AppHeader } from "./app-header";
 import type { NavVariant } from "./nav-config";
 
@@ -43,11 +42,10 @@ export function AppShell({
 
   return (
     <div className={cn("flex min-h-screen", className)}>
-      <SideNav variant={navVariant} />
-      <MobileSidebar
+      <SideNav
         variant={navVariant}
-        open={mobileNavOpen}
-        onOpenChange={setMobileNavOpen}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
       />
       <div className="relative flex min-w-0 flex-1 flex-col overflow-x-hidden">
         <AppHeader
@@ -58,7 +56,7 @@ export function AppShell({
           className={cn(
             "w-full flex-1",
             mainWidth[navVariant],
-            "pb-6 lg:pb-8 safe-area-bottom"
+            "pb-6 md:pb-8 safe-area-bottom"
           )}
         >
           {children}
