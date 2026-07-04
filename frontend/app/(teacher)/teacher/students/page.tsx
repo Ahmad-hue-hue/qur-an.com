@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { teacherApi } from "@/lib/api";
 import { matchesStudentSearch } from "@/lib/student-search";
 import { AppShell } from "@/components/layout/app-shell";
@@ -17,23 +16,20 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export default function TeacherStudentsPage() {
   const [search, setSearch] = useState("");
-  const [marhalahId, setMarhalahId] = useState("1");
+  const [marhalahOverride, setMarhalahOverride] = useState<string | null>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["teacher-profile"],
     queryFn: teacherApi.getProfile,
   });
 
+  const marhalahId =
+    marhalahOverride ?? String(profile?.managed_marhalah ?? 1);
+
   const { data: students, isLoading } = useQuery({
     queryKey: ["teacher-students", marhalahId],
     queryFn: teacherApi.getStudents,
   });
-
-  useEffect(() => {
-    if (profile?.managed_marhalah != null) {
-      setMarhalahId(String(profile.managed_marhalah));
-    }
-  }, [profile?.managed_marhalah]);
 
   const filtered = useMemo(
     () => students?.filter((s) => matchesStudentSearch(s, search)) ?? [],
@@ -56,7 +52,7 @@ export default function TeacherStudentsPage() {
       <div className="page-content space-y-4">
         <TeacherMarhalahSelect
           value={marhalahId}
-          onValueChange={(v) => setMarhalahId(v ?? "1")}
+          onValueChange={(v) => setMarhalahOverride(v ?? "1")}
         />
 
         <SearchInput

@@ -38,7 +38,10 @@ export default function AdminTopicsPage() {
   const filteredTopics = useMemo(
     () =>
       topics?.filter((topic) =>
-        matchesTextSearch([topic.title, topic.description], search)
+        matchesTextSearch(
+          [topic.title, topic.arabic_title, topic.content],
+          search
+        )
       ) ?? [],
     [topics, search]
   );
