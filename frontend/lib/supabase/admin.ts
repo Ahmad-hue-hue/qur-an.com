@@ -1,4 +1,5 @@
 import { getSupabase, getSupabaseUrl } from "@/lib/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/edge-functions";
 import { resolveMarhalahIdByNumber, resolveMarhalahNumberById } from "@/lib/supabase/marhalah";
 import {
   mapProfileRow,
@@ -264,22 +265,18 @@ export const adminApi = {
   createStudent: async (
     data: CreateStudentData
   ): Promise<User & { login_email?: string; temporary_password?: string }> => {
-    const supabase = getSupabase();
     const phone = normalizePhone(data.phone);
-    const { data: result, error } = await supabase.functions.invoke(
-      "create-student",
-      {
-        body: {
-          first_name: data.first_name,
-          last_name: data.last_name,
-          phone,
-          gender: data.gender,
-          current_marhalah: data.current_marhalah,
-        },
-      }
-    );
-    if (error) throw new SupabaseApiError(error.message);
-    if (result?.error) throw new SupabaseApiError(result.error);
+    const result = await invokeEdgeFunction<{
+      profile: Record<string, unknown>;
+      login_email?: string;
+      temporary_password?: string;
+    }>("create-student", {
+      first_name: data.first_name,
+      last_name: data.last_name,
+      phone,
+      gender: data.gender,
+      current_marhalah: data.current_marhalah,
+    });
     return {
       ...mapProfileRow(result.profile),
       login_email: result.login_email,
@@ -301,22 +298,17 @@ export const adminApi = {
   createTeacher: async (
     data: CreateTeacherData
   ): Promise<User & { login_email?: string }> => {
-    const supabase = getSupabase();
-    const { data: result, error } = await supabase.functions.invoke(
-      "create-teacher",
-      {
-        body: {
-          email: data.email.trim().toLowerCase(),
-          password: data.password,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          gender: data.gender,
-          managed_marhalah: data.managed_marhalah,
-        },
-      }
-    );
-    if (error) throw new SupabaseApiError(error.message);
-    if (result?.error) throw new SupabaseApiError(result.error);
+    const result = await invokeEdgeFunction<{
+      profile: Record<string, unknown>;
+      login_email?: string;
+    }>("create-teacher", {
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      gender: data.gender,
+      managed_marhalah: data.managed_marhalah,
+    });
     return {
       ...mapProfileRow(result.profile),
       login_email: result.login_email,
@@ -338,11 +330,7 @@ export const adminApi = {
   },
 
   deleteStudent: async (id: string): Promise<void> => {
-    const supabase = getSupabase();
-    const { error } = await supabase.functions.invoke("delete-student", {
-      body: { student_id: id },
-    });
-    if (error) throw new SupabaseApiError(error.message);
+    await invokeEdgeFunction("delete-student", { student_id: id });
   },
 
   assignRegistrationNumber: async (id: string): Promise<StudentProfile> => {

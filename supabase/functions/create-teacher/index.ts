@@ -14,25 +14,43 @@ function adminClient() {
   });
 }
 
+class AuthError extends Error {
+  status: number;
+  constructor(message: string, status = 401) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function requireAdmin(req: Request) {
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader) throw new Error("Missing authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    throw new AuthError("Missing authorization");
+  }
 
   const supabase = adminClient();
-  const token = authHeader.replace("Bearer ", "");
+  const token = authHeader.slice("Bearer ".length);
   const {
     data: { user },
     error,
   } = await supabase.auth.getUser(token);
-  if (error || !user) throw new Error("Unauthorized");
+  if (error || !user) {
+    throw new AuthError("Session expired or invalid. Sign in again.");
+  }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (profile?.role !== "admin") throw new Error("Admin only");
+  if (profileError) {
+    throw new AuthError("Could not verify admin access");
+  }
+  if (profile?.role !== "admin") {
+    throw new AuthError("Admin access required", 403);
+  }
+
   return supabase;
 }
 
@@ -106,7 +124,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    await supabase
+    const { error: profileError } = await supabase
       .from("profiles")
       .update({
         role: "teacher",
@@ -114,14 +132,33 @@ Deno.serve(async (req) => {
         managed_marhalah: marhalah,
         first_name: first_name.trim(),
         last_name: (last_name ?? "").trim(),
+        email: normalizedEmail,
       })
       .eq("id", authData.user.id);
 
-    const { data: profile } = await supabase
+    if (profileError) {
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      return new Response(JSON.stringify({ error: profileError.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: profile, error: fetchError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", authData.user.id)
       .single();
+
+    if (fetchError || !profile) {
+      return new Response(
+        JSON.stringify({ error: fetchError?.message ?? "Teacher profile not found" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     return new Response(
       JSON.stringify({
@@ -133,12 +170,11 @@ Deno.serve(async (req) => {
       }
     );
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "Failed" }),
-      {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    const status = err instanceof AuthError ? err.status : 500;
+    const message = err instanceof Error ? err.message : "Failed";
+    return new Response(JSON.stringify({ error: message }), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
