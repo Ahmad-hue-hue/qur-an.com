@@ -190,7 +190,7 @@
     box-shadow: 0 -6px 28px rgba(6, 78, 59, 0.1);
   }
   .glass-sidebar {
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
     background: linear-gradient(
       180deg,
       rgba(6, 78, 59, 0.94) 0%,
@@ -198,7 +198,7 @@
     );
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    box-shadow: 4px 0 24px rgba(6, 78, 59, 0.12);
+    box-shadow: -4px 0 24px rgba(6, 78, 59, 0.12);
   }
   .btn-shadow {
     box-shadow: 0 3px 10px rgba(6, 78, 59, 0.14);

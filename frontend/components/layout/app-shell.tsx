@@ -42,11 +42,6 @@ export function AppShell({
 
   return (
     <div className={cn("flex min-h-screen", className)}>
-      <SideNav
-        variant={navVariant}
-        mobileOpen={mobileNavOpen}
-        onMobileClose={() => setMobileNavOpen(false)}
-      />
       <div className="relative flex min-w-0 flex-1 flex-col overflow-x-hidden">
         <AppHeader
           variant={navVariant}
@@ -62,6 +57,11 @@ export function AppShell({
           {children}
         </main>
       </div>
+      <SideNav
+        variant={navVariant}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
+      />
     </div>
   );
 }
