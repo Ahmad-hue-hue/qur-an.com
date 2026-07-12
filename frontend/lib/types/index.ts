@@ -84,11 +84,16 @@ export interface Topic {
   pdf_url?: string;
   is_completed: boolean;
   status: TopicStatus;
+  is_last_lesson?: boolean;
+  exercise_id?: number;
+  exercise_question_count?: number;
+  exercise_submitted?: boolean;
 }
 
 export interface Exercise {
   id: number;
   marhalah: number;
+  topic_id?: number;
   title: string;
   description?: string;
   start_date: string;
@@ -302,6 +307,7 @@ export interface UpdateStudentData {
 
 export interface CreateExerciseData {
   marhalah: number;
+  topic_id?: number;
   title: string;
   description?: string;
   start_date: string;

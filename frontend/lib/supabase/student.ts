@@ -5,6 +5,7 @@ import {
 } from "@/lib/supabase/marhalah";
 import { mapProfileRow, SupabaseApiError, throwIfError } from "@/lib/supabase/utils";
 import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
+import { isLastLessonOrder } from "@/lib/topic-assessment";
 import type {
   AssessmentSubmissionResults,
   DashboardData,
@@ -214,6 +215,65 @@ function mapTopic(
     pdf_url: topic.pdf_url ?? undefined,
     is_completed: isCompleted,
     status,
+  };
+}
+
+async function enrichStudentTopic(
+  topic: Topic,
+  studentId: string
+): Promise<Topic> {
+  const supabase = getSupabase();
+  const siblings = throwIfError(
+    await supabase
+      .from("topics")
+      .select("order")
+      .eq("marhalah_id", topic.marhalah)
+      .eq("is_published", true)
+  ) as { order: number }[];
+  const is_last_lesson = isLastLessonOrder(
+    topic.order,
+    siblings.map((row) => row.order)
+  );
+
+  if (is_last_lesson) {
+    return { ...topic, is_last_lesson };
+  }
+
+  const exercise = (
+    await supabase
+      .from("exercises")
+      .select("id")
+      .eq("topic_id", topic.id)
+      .maybeSingle()
+  ).data;
+
+  if (!exercise?.id) {
+    return { ...topic, is_last_lesson };
+  }
+
+  const exercise_question_count =
+    (
+      await supabase
+        .from("questions")
+        .select("id", { count: "exact", head: true })
+        .eq("exercise_id", exercise.id)
+    ).count ?? 0;
+
+  const submission = (
+    await supabase
+      .from("exercise_submissions")
+      .select("id")
+      .eq("student_id", studentId)
+      .eq("exercise_id", exercise.id)
+      .maybeSingle()
+  ).data;
+
+  return {
+    ...topic,
+    is_last_lesson,
+    exercise_id: exercise.id,
+    exercise_question_count,
+    exercise_submitted: Boolean(submission),
   };
 }
 
@@ -659,7 +719,8 @@ export const studentApi = {
     }
 
     const activeTopic = marhalahTopics.find((t) => !completedIds.has(t.id));
-    return mapTopic(topic, completedIds, activeTopic?.id ?? null);
+    const mapped = mapTopic(topic, completedIds, activeTopic?.id ?? null);
+    return enrichStudentTopic(mapped, user.id);
   },
 
   completeTopic: async (topicId: number): Promise<Topic> => {
@@ -937,5 +998,19 @@ export const studentApi = {
       submitted_at: submission.submitted_at as string,
       answer_grades: mapAnswerGrades(grades),
     };
+  },
+
+  getMarhalahExam: async (marhalahNumber: number): Promise<Exam | null> => {
+    const { user } = await getCurrentProfile();
+    const marhalahId = await resolveMarhalahIdByNumber(marhalahNumber);
+    const row = (
+      await getSupabase()
+        .from("exams")
+        .select("*")
+        .eq("marhalah_id", marhalahId)
+        .maybeSingle()
+    ).data;
+    if (!row) return null;
+    return buildExamRow(row, user.id);
   },
 };

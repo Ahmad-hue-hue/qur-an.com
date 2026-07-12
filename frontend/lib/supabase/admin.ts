@@ -7,6 +7,11 @@ import {
   SupabaseApiError,
   throwIfError,
 } from "@/lib/supabase/utils";
+import {
+  defaultExamDates,
+  defaultExerciseDates,
+  isLastLessonOrder,
+} from "@/lib/topic-assessment";
 import type {
   AdminStats,
   CreateExamData,
@@ -77,6 +82,48 @@ function mapQuestionRow(q: Record<string, unknown>): QuestionAdmin {
     max_score: q.max_score as number,
     exercise: (q.exercise_id as number) ?? undefined,
     exam: (q.exam_id as number) ?? undefined,
+  };
+}
+
+async function enrichTopicWithAssessment(topic: Topic): Promise<Topic> {
+  const supabase = getSupabase();
+  const marhalahId = await resolveMarhalahIdByNumber(topic.marhalah);
+  const siblings = throwIfError(
+    await supabase.from("topics").select("order").eq("marhalah_id", marhalahId)
+  ) as { order: number }[];
+  const is_last_lesson = isLastLessonOrder(
+    topic.order,
+    siblings.map((row) => row.order)
+  );
+
+  if (is_last_lesson) {
+    return { ...topic, is_last_lesson };
+  }
+
+  const exercise = (
+    await supabase
+      .from("exercises")
+      .select("id")
+      .eq("topic_id", topic.id)
+      .maybeSingle()
+  ).data;
+
+  let exercise_question_count = 0;
+  if (exercise?.id) {
+    exercise_question_count =
+      (
+        await supabase
+          .from("questions")
+          .select("id", { count: "exact", head: true })
+          .eq("exercise_id", exercise.id)
+      ).count ?? 0;
+  }
+
+  return {
+    ...topic,
+    is_last_lesson,
+    exercise_id: exercise?.id,
+    exercise_question_count,
   };
 }
 
@@ -463,7 +510,7 @@ export const adminApi = {
       await getSupabase().from("topics").select("*").eq("id", id).single()
     ) as Record<string, unknown>;
     const marhalahNumber = await resolveMarhalahNumberById(row.marhalah_id as number);
-    return {
+    return enrichTopicWithAssessment({
       id: row.id as number,
       marhalah: marhalahNumber,
       order: row.order as number,
@@ -476,7 +523,44 @@ export const adminApi = {
       pdf_url: (row.pdf_url as string) ?? undefined,
       is_completed: false,
       status: "active",
-    };
+    });
+  },
+
+  ensureTopicExercise: async (topicId: number): Promise<ExerciseDetail> => {
+    const topic = await adminApi.getTopic(topicId);
+    if (topic.is_last_lesson) {
+      throw new Error("The final lesson in a Marḥalah uses an exam, not an exercise.");
+    }
+    if (topic.exercise_id) {
+      return adminApi.getExercise(topic.exercise_id);
+    }
+
+    const dates = defaultExerciseDates();
+    const created = await adminApi.createExercise({
+      marhalah: topic.marhalah,
+      topic_id: topicId,
+      title: `${topic.title} — Exercise`,
+      start_date: dates.start_date,
+      end_date: dates.end_date,
+    });
+    return adminApi.getExercise(created.id);
+  },
+
+  ensureMarhalahExam: async (marhalahNumber: number): Promise<ExamDetail> => {
+    const existing = (await adminApi.getExams(marhalahNumber))[0];
+    if (existing) {
+      return adminApi.getExam(existing.id);
+    }
+
+    const dates = defaultExamDates();
+    const created = await adminApi.createExam({
+      marhalah: marhalahNumber,
+      title: `Marḥalah ${marhalahNumber} Exam`,
+      duration_minutes: 60,
+      start_date: dates.start_date,
+      end_date: dates.end_date,
+    });
+    return adminApi.getExam(created.id);
   },
 
   updateTopic: async (data: CreateTopicData & { id: number }): Promise<Topic> => {
@@ -543,6 +627,7 @@ export const adminApi = {
       exercises.push({
         id: exerciseId,
         marhalah: e.marhalah_id as number,
+        topic_id: (e.topic_id as number) ?? undefined,
         title: e.title as string,
         description: (e.description as string) || undefined,
         start_date: e.start_date as string,
@@ -564,6 +649,7 @@ export const adminApi = {
         .from("exercises")
         .insert({
           marhalah_id: marhalahId,
+          topic_id: data.topic_id ?? null,
           title: data.title,
           description: data.description ?? "",
           start_date: data.start_date,

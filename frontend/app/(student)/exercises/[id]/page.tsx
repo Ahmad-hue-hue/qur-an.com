@@ -98,7 +98,7 @@ export default function ExercisePage({
               <p className="text-sm text-muted-foreground">
                 {exerciseError.message}
               </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
               </Link>
             </CardContent>
@@ -115,7 +115,7 @@ export default function ExercisePage({
               <p className="text-sm text-muted-foreground">
                 Opens on {format(new Date(exercise.start_date), "MMM d, yyyy 'at' h:mm a")}
               </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
               </Link>
             </CardContent>
@@ -145,7 +145,7 @@ export default function ExercisePage({
                     {exercise.has_submitted ? "Review exercise" : "Review questions"}
                   </Link>
                 )}
-                <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                   Back to assessments
                 </Link>
               </div>
@@ -167,7 +167,7 @@ export default function ExercisePage({
                 <p className="text-sm text-muted-foreground">
                   This exercise is open, but no questions have been added yet.
                 </p>
-                <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                   Back to assessments
                 </Link>
               </CardContent>

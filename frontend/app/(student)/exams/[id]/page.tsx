@@ -127,7 +127,7 @@ export default function ExamPage({
               <p className="text-sm text-muted-foreground">
                 {loadError.message}
               </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
               </Link>
             </CardContent>
@@ -144,7 +144,7 @@ export default function ExamPage({
               <p className="text-sm text-muted-foreground">
                 Opens on {format(new Date(exam.start_date), "MMM d, yyyy 'at' h:mm a")}
               </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
               </Link>
             </CardContent>
@@ -161,7 +161,7 @@ export default function ExamPage({
               <p className="text-sm text-muted-foreground">
                 This exam closed on {format(new Date(exam.end_date), "MMM d, yyyy")}
               </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
               </Link>
             </CardContent>
@@ -181,7 +181,7 @@ export default function ExamPage({
                 <p className="text-sm text-muted-foreground">
                   This exam is open, but no questions have been added yet.
                 </p>
-                <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+                <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                   Back to assessments
                 </Link>
               </CardContent>
@@ -194,7 +194,7 @@ export default function ExamPage({
           <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3">
             <div className="flex items-center justify-between mb-2">
               <Link
-                href="/assessments"
+                href="/dashboard"
                 className="inline-flex items-center gap-1 text-sm text-emerald-deep hover:text-emerald-mid"
               >
                 <HugeiconsIcon icon={Home01Icon} size={16} />

@@ -6,6 +6,15 @@ export const EXERCISE_QUESTION_TYPES: {
   short: string;
 }[] = [
   { value: "mcq", label: "Multiple Choice", short: "MCQ" },
+  { value: "true_false", label: "True / False", short: "True/False" },
+];
+
+export const EXAM_QUESTION_TYPES: {
+  value: QuestionType;
+  label: string;
+  short: string;
+}[] = [
+  { value: "mcq", label: "Multiple Choice", short: "MCQ" },
   { value: "fill_blank", label: "Fill in the Blank", short: "Fill Blank" },
   { value: "true_false", label: "True / False", short: "True/False" },
   { value: "fill_gap", label: "Fill the Gap", short: "Fill Gap" },
@@ -20,7 +29,11 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
 };
 
 export function buildQuestionPayload(
-  form: CreateQuestionData & { option_a?: string; option_b?: string }
+  form: CreateQuestionData & {
+    option_a?: string;
+    option_b?: string;
+    option_c?: string;
+  }
 ): CreateQuestionData {
   const payload: CreateQuestionData = {
     type: form.type,
@@ -30,7 +43,7 @@ export function buildQuestionPayload(
   };
 
   if (form.type === "mcq") {
-    payload.options = [form.option_a, form.option_b]
+    payload.options = [form.option_a, form.option_b, form.option_c]
       .map((opt) => opt?.trim())
       .filter(Boolean) as string[];
     payload.correct_answer = (form.correct_answer || form.option_a || "").trim();

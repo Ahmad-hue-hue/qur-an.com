@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MarhalahSelectWithEdit } from "@/components/admin/marhalah-select-with-edit";
+import { MarhalahExamPanel } from "@/components/admin/marhalah-exam-panel";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DragDropVerticalIcon,
@@ -140,6 +141,10 @@ export default function AdminTopicsPage() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="page-content pt-0">
+        <MarhalahExamPanel marhalahNumber={parseInt(marhalahId)} />
       </div>
 
       <ConfirmDialog

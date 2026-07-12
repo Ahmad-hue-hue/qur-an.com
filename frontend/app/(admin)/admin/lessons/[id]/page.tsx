@@ -29,6 +29,7 @@ import {
 import { AudioPlayer } from "@/components/shared/audio-player";
 import { DownloadButton } from "@/components/shared/download-button";
 import { sanitizeDownloadName } from "@/lib/download";
+import { TopicExercisePanel } from "@/components/admin/topic-exercise-panel";
 
 export default function EditLessonPage({
   params,
@@ -233,6 +234,8 @@ export default function EditLessonPage({
             )}
           </CardContent>
         </Card>
+
+        <TopicExercisePanel topic={topic} />
 
         <Button
           className="w-full h-12 btn-emerald"

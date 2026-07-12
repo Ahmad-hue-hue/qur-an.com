@@ -1,7 +1,6 @@
 import {
   Home01Icon,
   BookOpen01Icon,
-  Task01Icon,
   UserIcon,
   DashboardSquare01Icon,
   UserGroupIcon,
@@ -19,7 +18,6 @@ export interface NavItem {
 export const studentNav: NavItem[] = [
   { href: "/dashboard", label: "Home", icon: Home01Icon },
   { href: "/marhalah/1", label: "Lessons", icon: BookOpen01Icon },
-  { href: "/assessments", label: "Assessments", icon: Task01Icon },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ];
 
@@ -28,13 +26,11 @@ export const adminNav: NavItem[] = [
   { href: "/admin/students", label: "Students", icon: UserGroupIcon },
   { href: "/admin/teachers", label: "Teachers", icon: UserGroupIcon },
   { href: "/admin/topics", label: "Content", icon: File01Icon },
-  { href: "/admin/exercises", label: "Assessments", icon: Task01Icon },
 ];
 
 export const teacherNav: NavItem[] = [
   { href: "/teacher", label: "Dashboard", icon: DashboardSquare01Icon },
   { href: "/teacher/students", label: "Students", icon: UserGroupIcon },
-  { href: "/teacher/exercises", label: "Assessments", icon: Task01Icon },
 ];
 
 export function getNavItems(variant: NavVariant): NavItem[] {

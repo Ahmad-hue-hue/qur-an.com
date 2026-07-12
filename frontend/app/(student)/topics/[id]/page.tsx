@@ -10,7 +10,7 @@ import { AudioPlayer } from "@/components/shared/audio-player";
 import { DownloadButton } from "@/components/shared/download-button";
 import { FormattedText } from "@/components/shared/formatted-text";
 import { sanitizeDownloadName } from "@/lib/download";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -162,6 +162,52 @@ export default function TopicDetailPage({
           <HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} />
           {isDone ? "Completed" : "Mark as Completed"}
         </Button>
+
+        {!topic.is_last_lesson && topic.exercise_id && isDone && (
+          <Card className="card-shadow border-gold/30 bg-gold-light/20">
+            <CardContent className="p-4 space-y-3">
+              <div>
+                <h3 className="text-sm font-semibold text-emerald-deep">
+                  Lesson Exercise
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {topic.exercise_submitted
+                    ? "You finished this lesson quiz."
+                    : "Complete the quick quiz for this lesson."}
+                </p>
+              </div>
+              <Link
+                href={`/exercises/${topic.exercise_id}`}
+                className={buttonVariants({ className: "w-full btn-emerald" })}
+              >
+                {topic.exercise_submitted ? "Review exercise" : "Take exercise"}
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {topic.is_last_lesson && isDone && (
+          <Card className="card-shadow border-emerald-deep/20 bg-emerald-light/20">
+            <CardContent className="p-4 space-y-2">
+              <h3 className="text-sm font-semibold text-emerald-deep">
+                Marḥalah complete
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Return to your lessons list to take the final Marḥalah exam.
+              </p>
+              <Link
+                href={
+                  dashboard?.current_marhalah
+                    ? `/marhalah/${dashboard.current_marhalah.id}`
+                    : "/dashboard"
+                }
+                className={buttonVariants({ variant: "outline", className: "w-full" })}
+              >
+                Go to Marḥalah exam
+              </Link>
+            </CardContent>
+          </Card>
+        )}
       </div>
         </>
       )}

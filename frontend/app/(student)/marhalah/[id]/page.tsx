@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Home01Icon } from "@hugeicons/core-free-icons";
 
@@ -34,6 +35,13 @@ export default function MarhalahTopicsPage({
   const marhalah = marhalahs?.find((m) => m.id === marhalahId);
   const completed = topics?.filter((t) => t.is_completed).length ?? 0;
   const total = topics?.length ?? 0;
+  const allLessonsComplete = total > 0 && completed === total;
+
+  const { data: exam } = useQuery({
+    queryKey: ["marhalah-exam", marhalahId],
+    queryFn: () => studentApi.getMarhalahExam(marhalahId),
+    enabled: allLessonsComplete,
+  });
 
   return (
     <AppShell>
@@ -71,7 +79,45 @@ export default function MarhalahTopicsPage({
             ))}
           </div>
         ) : (
-          <TopicList topics={topics || []} />
+          <>
+            <TopicList topics={topics || []} />
+            {allLessonsComplete && exam && (
+              <Card className="card-shadow mt-4 border-emerald-deep/20">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-emerald-deep">
+                        Final Marḥalah Exam
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {exam.question_count} questions · {exam.duration_minutes} min
+                      </p>
+                    </div>
+                    <StatusBadge status={exam.status} />
+                  </div>
+                  {exam.status === "open" && !exam.has_submitted ? (
+                    <Link
+                      href={`/exams/${exam.id}`}
+                      className={buttonVariants({ className: "w-full btn-emerald" })}
+                    >
+                      Start exam
+                    </Link>
+                  ) : exam.has_submitted ? (
+                    <Link
+                      href={`/exams/${exam.id}/results`}
+                      className={buttonVariants({ variant: "outline", className: "w-full" })}
+                    >
+                      View exam results
+                    </Link>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      The exam is not open yet.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
       </div>
 

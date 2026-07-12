@@ -40,7 +40,7 @@ export function AssessmentResultsPage({
     <AppShell variant="auth">
       <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3">
         <Link
-          href="/assessments"
+          href="/dashboard"
           className="inline-flex items-center gap-1 text-sm text-emerald-deep hover:text-emerald-mid"
         >
           Back to assessments
@@ -100,7 +100,7 @@ export function AssessmentResultsPage({
               <p className="text-sm text-muted-foreground">
                 Detailed results are not available yet.
               </p>
-              <Link href="/assessments" className={buttonVariants({ variant: "outline" })}>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                 Back to assessments
               </Link>
             </CardContent>

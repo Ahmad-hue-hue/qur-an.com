@@ -220,7 +220,7 @@ export function AssessmentReviewPage({ exerciseId }: { exerciseId: number }) {
     <AppShell variant="auth">
       <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur border-b border-border page-inset-x py-3 space-y-2">
         <Link
-          href="/assessments"
+          href="/dashboard"
           className="inline-flex items-center gap-1 text-sm text-emerald-deep hover:text-emerald-mid"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />

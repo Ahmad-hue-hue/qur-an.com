@@ -13,7 +13,6 @@ import {
   UserGroupIcon,
   BookOpen01Icon,
   File01Icon,
-  Task01Icon,
   Add01Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -21,8 +20,7 @@ const quickActions = [
   { label: "Register New Student", href: "/admin/students/new", icon: UserGroupIcon },
   { label: "Add Teacher", href: "/admin/teachers/new", icon: UserGroupIcon },
   { label: "Add New Lesson", href: "/admin/lessons/new", icon: Add01Icon },
-  { label: "Create Exercise", href: "/admin/exercises", icon: Task01Icon },
-  { label: "Create Exam", href: "/admin/exams", icon: File01Icon },
+  { label: "Manage Content", href: "/admin/topics", icon: File01Icon },
   { label: "Manage Students", href: "/admin/students", icon: UserGroupIcon },
 ];
 
@@ -37,7 +35,6 @@ export default function AdminDashboardPage() {
         { label: "Total Students", value: stats.total_students, icon: UserGroupIcon },
         { label: "Marḥalah", value: stats.total_marhalahs, icon: BookOpen01Icon },
         { label: "Topics", value: stats.total_topics, icon: File01Icon },
-        { label: "Assessments", value: stats.total_assessments, icon: Task01Icon },
       ]
     : [];
 

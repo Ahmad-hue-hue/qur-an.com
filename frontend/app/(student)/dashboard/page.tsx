@@ -7,10 +7,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ProgressCard } from "@/components/student/progress-card";
 import { MarhalahList } from "@/components/student/marhalah-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/shared/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
-import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
 
 export default function DashboardPage() {
   const { data, isLoading, isError, error } = useQuery({
@@ -66,72 +63,6 @@ export default function DashboardPage() {
             <section>
               <h2 className="section-title">Marḥalah Stages</h2>
               <MarhalahList marhalahs={data.marhalahs} />
-            </section>
-
-            <section>
-              <h2 className="section-title">
-                Assessments · {data.current_marhalah.title}
-              </h2>
-              <div className="auto-grid-cards">
-                {data.exercises.map((ex) => (
-                  <Link key={ex.id} href={`/exercises/${ex.id}`}>
-                    <Card className="card-shadow hover:shadow-md transition-shadow">
-                      <CardContent className="p-4 flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-sm">{ex.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {ex.question_count} questions
-                          </p>
-                        </div>
-                        <StatusBadge status={ex.status} />
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-                {data.exercises.length === 0 && (
-                  <Card className="card-shadow md:col-span-2">
-                    <CardContent className="p-4 text-sm text-muted-foreground">
-                      No exercises for {data.current_marhalah.title} yet.
-                      Your instructor must create one for this stage.
-                    </CardContent>
-                  </Card>
-                )}
-                {data.exams.map((exam) => (
-                  <Card key={exam.id} className="card-shadow">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{exam.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {exam.duration_minutes} min · {exam.question_count} questions
-                        </p>
-                      </div>
-                      <StatusBadge status={exam.status} />
-                    </CardContent>
-                  </Card>
-                ))}
-                {marhalahHasOralAssessments(data.current_marhalah.number) &&
-                  data.halaqah && (
-                  <Card className="card-shadow">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <p className="font-medium text-sm">Halaqah (Oral Test)</p>
-                      <span className="text-sm text-muted-foreground">
-                        {data.halaqah.score}/{data.halaqah.max_score}
-                      </span>
-                    </CardContent>
-                  </Card>
-                )}
-                {marhalahHasOralAssessments(data.current_marhalah.number) &&
-                  data.tadreeb && (
-                  <Card className="card-shadow">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <p className="font-medium text-sm">Tadreeb (Practice)</p>
-                      <span className="text-sm text-muted-foreground">
-                        {data.tadreeb.score}/{data.tadreeb.max_score}
-                      </span>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
             </section>
 
             <section>

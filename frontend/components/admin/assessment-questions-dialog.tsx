@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
 import type { CreateQuestionData, QuestionAdmin } from "@/lib/types";
-import { buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
+import { EXAM_QUESTION_TYPES, EXERCISE_QUESTION_TYPES, buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
+import type { QuestionType } from "@/lib/types";
 import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -39,11 +40,13 @@ type DialogMode = "list" | "edit" | "add";
 const emptyQuestionForm = (): CreateQuestionData & {
   option_a: string;
   option_b: string;
+  option_c: string;
 } => ({
   type: "mcq",
   text: "",
   option_a: "",
   option_b: "",
+  option_c: "",
   correct_answer: "",
   max_score: 1,
 });
@@ -54,6 +57,7 @@ function questionToForm(q: QuestionAdmin) {
     text: q.text,
     option_a: q.options?.[0] ?? "",
     option_b: q.options?.[1] ?? "",
+    option_c: q.options?.[2] ?? "",
     correct_answer: q.correct_answer ?? "",
     max_score: q.max_score ?? 1,
   };
@@ -62,11 +66,13 @@ function questionToForm(q: QuestionAdmin) {
 function QuestionFormFields({
   questionForm,
   setQuestionForm,
+  allowedTypes,
 }: {
   questionForm: ReturnType<typeof emptyQuestionForm>;
   setQuestionForm: React.Dispatch<
     React.SetStateAction<ReturnType<typeof emptyQuestionForm>>
   >;
+  allowedTypes?: QuestionType[];
 }) {
   return (
     <div className="space-y-4">
@@ -74,6 +80,7 @@ function QuestionFormFields({
         <Label>Question type</Label>
         <QuestionTypePicker
           value={questionForm.type}
+          allowedTypes={allowedTypes}
           onChange={(type) =>
             setQuestionForm((p) => ({
               ...p,
@@ -117,6 +124,13 @@ function QuestionFormFields({
               }
             />
           </div>
+          <Input
+            placeholder="Option C"
+            value={questionForm.option_c}
+            onChange={(e) =>
+              setQuestionForm((p) => ({ ...p, option_c: e.target.value }))
+            }
+          />
           <Input
             placeholder="Correct answer (match option text)"
             value={questionForm.correct_answer}
@@ -209,6 +223,7 @@ export function AssessmentQuestionsDialog({
   onOpenChange,
   api = adminApi,
   cachePrefix = "admin",
+  allowedTypes,
 }: {
   kind: AssessmentKind;
   assessmentId: number;
@@ -217,6 +232,7 @@ export function AssessmentQuestionsDialog({
   onOpenChange: (open: boolean) => void;
   api?: QuestionsApi;
   cachePrefix?: "admin" | "teacher";
+  allowedTypes?: QuestionType[];
 }) {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<DialogMode>("list");
@@ -239,6 +255,11 @@ export function AssessmentQuestionsDialog({
   });
 
   const questions = assessment?.questions ?? [];
+  const resolvedAllowedTypes =
+    allowedTypes ??
+    (kind === "exam"
+      ? EXAM_QUESTION_TYPES.map((entry) => entry.value)
+      : EXERCISE_QUESTION_TYPES.map((entry) => entry.value));
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -399,6 +420,7 @@ export function AssessmentQuestionsDialog({
               <QuestionFormFields
                 questionForm={questionForm}
                 setQuestionForm={setQuestionForm}
+                allowedTypes={resolvedAllowedTypes}
               />
 
               <Button
