@@ -104,8 +104,8 @@ export function InstallAppPrompt() {
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2",
-        "animate-in fade-in-0 slide-in-from-bottom-4 duration-300"
+        "fixed inset-x-0 top-0 z-50 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2",
+        "animate-in fade-in-0 slide-in-from-top-4 duration-300"
       )}
       role="region"
       aria-label="Install app"
