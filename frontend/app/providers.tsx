@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { ConfigMissing } from "@/components/config-missing";
+import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import { AuthProvider } from "@/hooks/use-auth";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -27,6 +28,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <RegisterServiceWorker />
         {children}
         <Toaster
           position="top-center"

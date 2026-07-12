@@ -20,12 +20,24 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Tajweed Classes",
   title: "Tajweed Classes | Quranic Tajweed Learning",
   description:
     "Learn and master Tajweed rules through structured Marḥalah courses, exercises, and assessments.",
+  appleWebApp: {
+    capable: true,
+    title: "Tajweed Classes",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
-    icon: "/tajweed-logo.jpeg",
-    apple: "/tajweed-logo.jpeg",
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-180.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
