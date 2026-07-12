@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatAssessmentMark } from "@/lib/assessment-mark";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -21,7 +22,7 @@ export function AssessmentResultsPanel({
           <div>
             <p className="text-sm text-muted-foreground">Your score</p>
             <p className="text-4xl font-bold text-emerald-deep mt-1">
-              {score}/{maxScore}
+              {formatAssessmentMark(score, maxScore)}
             </p>
           </div>
           <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>

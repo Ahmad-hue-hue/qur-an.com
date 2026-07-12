@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
+import { totalQuestionMarks } from "@/lib/assessment-mark";
 import { AUTO_GRADED_QUESTION_TYPES } from "@/lib/topic-assessment";
 import { AssessmentMarksPanel } from "@/components/admin/assessment-marks-panel";
 import { AssessmentQuestionsDialog } from "@/components/admin/assessment-questions-dialog";
@@ -20,6 +21,14 @@ export function MarhalahExamPanel({ marhalahNumber }: { marhalahNumber: number }
   });
 
   const exam = exams?.[0];
+
+  const { data: examDetail } = useQuery({
+    queryKey: ["admin-exam", exam?.id],
+    queryFn: () => adminApi.getExam(exam!.id),
+    enabled: Boolean(exam?.id),
+  });
+
+  const totalMarks = totalQuestionMarks(examDetail?.questions ?? []);
 
   const setupMutation = useMutation({
     mutationFn: () => adminApi.ensureMarhalahExam(marhalahNumber),
@@ -52,7 +61,8 @@ export function MarhalahExamPanel({ marhalahNumber }: { marhalahNumber: number }
           {!isLoading && exam && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-muted-foreground">
-                {exam.question_count} question{exam.question_count === 1 ? "" : "s"}
+                {exam.question_count} question{exam.question_count === 1 ? "" : "s"} ·{" "}
+                {totalMarks} mark{totalMarks === 1 ? "" : "s"} total
               </span>
               <Button
                 size="sm"

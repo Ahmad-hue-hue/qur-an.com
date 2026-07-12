@@ -10,6 +10,7 @@ import { AudioPlayer } from "@/components/shared/audio-player";
 import { DownloadButton } from "@/components/shared/download-button";
 import { FormattedText } from "@/components/shared/formatted-text";
 import { sanitizeDownloadName } from "@/lib/download";
+import { audioExtensionFromUrl } from "@/lib/lesson-audio";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -140,7 +141,10 @@ export default function TopicDetailPage({
         <div className="flex gap-2">
           <DownloadButton
             url={topic.audio_url}
-            filename={sanitizeDownloadName(topic.title, "mp3")}
+            filename={sanitizeDownloadName(
+              topic.title,
+              topic.audio_url ? audioExtensionFromUrl(topic.audio_url) : "mp3"
+            )}
             label="Audio"
             tone="gold"
             className="flex-1 min-w-0 gap-1.5 text-xs sm:text-sm"

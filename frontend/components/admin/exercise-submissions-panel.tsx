@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import type { ExerciseSubmissionAdmin } from "@/lib/types";
+import { formatAssessmentMark } from "@/lib/assessment-mark";
 import { Card, CardContent } from "@/components/ui/card";
 
 type SubmissionRow = Pick<
@@ -44,7 +45,7 @@ export function ExerciseSubmissionsPanel({
               </p>
             </div>
             <p className="text-lg font-semibold text-emerald-deep">
-              {submission.score}/{submission.max_score}
+              {formatAssessmentMark(submission.score, submission.max_score)}
             </p>
           </CardContent>
         </Card>

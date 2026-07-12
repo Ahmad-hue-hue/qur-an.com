@@ -12,6 +12,7 @@ import {
   defaultExerciseDates,
   isLastLessonOrder,
 } from "@/lib/topic-assessment";
+import { resolveLessonAudioContentType } from "@/lib/lesson-audio";
 import type {
   AdminStats,
   CreateExamData,
@@ -58,7 +59,7 @@ async function uploadLessonFile(
   const path = `topics/${topicId}/${Date.now()}.${ext}`;
   const contentType =
     bucket === "lesson-audio"
-      ? file.type || "audio/mpeg"
+      ? resolveLessonAudioContentType(file)
       : file.type || "application/pdf";
 
   const { error } = await supabase.storage.from(bucket).upload(path, file, {

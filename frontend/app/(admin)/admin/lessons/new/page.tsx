@@ -26,6 +26,11 @@ import {
   Cancel01Icon,
   ArrowLeft01Icon,
 } from "@hugeicons/core-free-icons";
+import {
+  LESSON_AUDIO_ACCEPT,
+  LESSON_AUDIO_LABEL,
+  isLessonAudioFile,
+} from "@/lib/lesson-audio";
 
 export default function AddLessonPage() {
   const router = useRouter();
@@ -150,7 +155,7 @@ export default function AddLessonPage() {
 
         <Card className="card-shadow">
           <CardContent className="p-4">
-            <Label className="mb-2 block">Upload Audio (.mp3)</Label>
+            <Label className="mb-2 block">Upload Audio ({LESSON_AUDIO_LABEL})</Label>
             {audioFile ? (
               <div className="flex items-center justify-between bg-emerald-light rounded-lg p-3">
                 <span className="text-sm truncate">{audioFile.name}</span>
@@ -161,12 +166,23 @@ export default function AddLessonPage() {
             ) : (
               <label className="flex flex-col items-center gap-2 p-6 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-emerald-mid/50 transition-colors">
                 <HugeiconsIcon icon={Upload01Icon} size={24} className="text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Tap to upload MP3</span>
+                <span className="text-sm text-muted-foreground">
+                  Tap to upload {LESSON_AUDIO_LABEL}
+                </span>
                 <input
                   type="file"
-                  accept=".mp3,audio/mpeg"
+                  accept={LESSON_AUDIO_ACCEPT}
                   className="hidden"
-                  onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (!isLessonAudioFile(file)) {
+                      toast.error("Please upload an MP3 or M4A audio file.");
+                      e.target.value = "";
+                      return;
+                    }
+                    setAudioFile(file);
+                  }}
                 />
               </label>
             )}

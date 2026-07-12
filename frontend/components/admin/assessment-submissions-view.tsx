@@ -49,8 +49,8 @@ export function AssessmentSubmissionsView({
         <CardContent className="p-4 space-y-2">
           <p className="font-medium text-emerald-deep">{title}</p>
           <p className="text-sm text-muted-foreground">
-            MCQ and True/False questions are graded automatically when a student
-            submits. Only the total score is shown here.
+            MCQ and True/False are graded automatically. Marks per question are
+            set by the admin; the total is the sum of all question marks.
           </p>
         </CardContent>
       </Card>

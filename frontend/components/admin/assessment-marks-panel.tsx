@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api";
+import { formatAssessmentMark } from "@/lib/assessment-mark";
 import type { ExamSubmissionAdmin, ExerciseSubmissionAdmin } from "@/lib/types";
 
 type MarkRow = Pick<
@@ -47,7 +48,11 @@ export function AssessmentMarksPanel({
   return (
     <div className="space-y-2 pt-1 border-t border-border/60">
       <p className="text-xs font-medium text-emerald-deep">
-        Student marks ({submissions.length})
+        Student marks · {submissions.length} submission
+        {submissions.length === 1 ? "" : "s"}
+      </p>
+      <p className="text-[11px] text-muted-foreground">
+        Total marks are set per question by the admin.
       </p>
       <div className="space-y-1.5">
         {submissions.map((submission) => (
@@ -62,7 +67,7 @@ export function AssessmentMarksPanel({
               </p>
             </div>
             <p className="shrink-0 font-semibold text-emerald-deep">
-              {submission.score}/{submission.max_score}
+              {formatAssessmentMark(submission.score, submission.max_score)}
             </p>
           </div>
         ))}

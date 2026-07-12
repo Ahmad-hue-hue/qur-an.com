@@ -9,6 +9,7 @@ import {
   sanitizeDownloadName,
   downloadStorageFile,
 } from "@/lib/download";
+import { audioExtensionFromUrl } from "@/lib/lesson-audio";
 import { cn } from "@/lib/utils";
 
 interface DownloadButtonProps {
@@ -55,7 +56,9 @@ export function DownloadButton({
     );
   }
 
-  const ext = url.includes(".pdf") ? "pdf" : url.includes(".mp3") ? "mp3" : "file";
+  const ext = url.includes(".pdf")
+    ? "pdf"
+    : audioExtensionFromUrl(url);
   const resolvedName =
     filename ??
     filenameFromStorageUrl(url, sanitizeDownloadName(label, ext));

@@ -29,6 +29,12 @@ import {
 import { AudioPlayer } from "@/components/shared/audio-player";
 import { DownloadButton } from "@/components/shared/download-button";
 import { sanitizeDownloadName } from "@/lib/download";
+import {
+  LESSON_AUDIO_ACCEPT,
+  LESSON_AUDIO_LABEL,
+  audioExtensionFromUrl,
+  isLessonAudioFile,
+} from "@/lib/lesson-audio";
 import { TopicExercisePanel } from "@/components/admin/topic-exercise-panel";
 
 export default function EditLessonPage({
@@ -170,7 +176,12 @@ export default function EditLessonPage({
           <div className="flex gap-2">
             <DownloadButton
               url={topic.audio_url && !audioFile ? topic.audio_url : undefined}
-              filename={sanitizeDownloadName(topic.title, "mp3")}
+              filename={sanitizeDownloadName(
+                topic.title,
+                topic.audio_url
+                  ? audioExtensionFromUrl(topic.audio_url)
+                  : "mp3"
+              )}
               label="Audio"
               tone="gold"
               className="flex-1 min-w-0 gap-1.5 text-xs sm:text-sm"
@@ -187,7 +198,7 @@ export default function EditLessonPage({
 
         <Card className="card-shadow">
           <CardContent className="p-4">
-            <Label className="mb-2 block">Replace Audio (.mp3)</Label>
+            <Label className="mb-2 block">Replace Audio ({LESSON_AUDIO_LABEL})</Label>
             {audioFile ? (
               <div className="flex items-center justify-between bg-emerald-light rounded-lg p-3">
                 <span className="text-sm truncate">{audioFile.name}</span>
@@ -198,12 +209,23 @@ export default function EditLessonPage({
             ) : (
               <label className="flex flex-col items-center gap-2 p-6 border-2 border-dashed border-border rounded-xl cursor-pointer">
                 <HugeiconsIcon icon={Upload01Icon} size={24} className="text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Tap to upload MP3</span>
+                <span className="text-sm text-muted-foreground">
+                  Tap to upload {LESSON_AUDIO_LABEL}
+                </span>
                 <input
                   type="file"
-                  accept=".mp3,audio/mpeg"
+                  accept={LESSON_AUDIO_ACCEPT}
                   className="hidden"
-                  onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (!isLessonAudioFile(file)) {
+                      toast.error("Please upload an MP3 or M4A audio file.");
+                      e.target.value = "";
+                      return;
+                    }
+                    setAudioFile(file);
+                  }}
                 />
               </label>
             )}

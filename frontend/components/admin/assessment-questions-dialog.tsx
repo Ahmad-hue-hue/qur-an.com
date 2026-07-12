@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
 import type { CreateQuestionData, QuestionAdmin } from "@/lib/types";
 import { EXAM_QUESTION_TYPES, EXERCISE_QUESTION_TYPES, buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
+import { formatQuestionMark, totalQuestionMarks } from "@/lib/assessment-mark";
 import type { QuestionType } from "@/lib/types";
 import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -186,7 +187,7 @@ function QuestionFormFields({
       )}
 
       <div className="space-y-2">
-        <Label>Max score</Label>
+        <Label>Marks for this question</Label>
         <Input
           type="number"
           min={1}
@@ -194,10 +195,14 @@ function QuestionFormFields({
           onChange={(e) =>
             setQuestionForm((p) => ({
               ...p,
-              max_score: parseInt(e.target.value) || 1,
+              max_score: Math.max(1, parseInt(e.target.value, 10) || 1),
             }))
           }
         />
+        <p className="text-xs text-muted-foreground">
+          Set how many marks a correct answer earns. Total student score is the
+          sum of marks from all questions.
+        </p>
       </div>
     </div>
   );
@@ -276,6 +281,12 @@ export function AssessmentQuestionsDialog({
     queryClient.invalidateQueries({
       queryKey: kind === "exercise" ? [`${cachePrefix}-exercises`] : [`${cachePrefix}-exams`],
     });
+    if (kind === "exercise") {
+      queryClient.invalidateQueries({ queryKey: ["admin-topic"] });
+      queryClient.invalidateQueries({ queryKey: [`${cachePrefix}-exercise-submissions`, assessmentId] });
+    } else {
+      queryClient.invalidateQueries({ queryKey: [`${cachePrefix}-exam-submissions`, assessmentId] });
+    }
   };
 
   const saveMutation = useMutation({
@@ -352,6 +363,12 @@ export function AssessmentQuestionsDialog({
 
           {!isLoading && mode === "list" && (
             <div className="space-y-3">
+              {questions.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {questions.length} question{questions.length === 1 ? "" : "s"} ·{" "}
+                  {totalQuestionMarks(questions)} marks total
+                </p>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -379,7 +396,8 @@ export function AssessmentQuestionsDialog({
                         onClick={() => startEdit(q)}
                       >
                         <p className="text-xs text-muted-foreground mb-1">
-                          Question {index + 1} · {QUESTION_TYPE_LABELS[q.type]}
+                          Question {index + 1} · {QUESTION_TYPE_LABELS[q.type]} ·{" "}
+                          {formatQuestionMark(q.max_score)}
                         </p>
                         <p className="text-sm font-medium line-clamp-2">{q.text}</p>
                       </button>

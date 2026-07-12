@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
 import type { Topic } from "@/lib/types";
+import { totalQuestionMarks } from "@/lib/assessment-mark";
 import { TOPIC_EXERCISE_QUESTION_TYPES } from "@/lib/topic-assessment";
 import { AssessmentMarksPanel } from "@/components/admin/assessment-marks-panel";
 import { AssessmentQuestionsDialog } from "@/components/admin/assessment-questions-dialog";
@@ -16,6 +17,16 @@ export function TopicExercisePanel({ topic }: { topic: Topic }) {
   const [questionsOpen, setQuestionsOpen] = useState(false);
   const [createdExerciseId, setCreatedExerciseId] = useState<number | undefined>();
   const exerciseId = createdExerciseId ?? topic.exercise_id;
+
+  const { data: exerciseDetail } = useQuery({
+    queryKey: ["admin-exercise", exerciseId],
+    queryFn: () => adminApi.getExercise(exerciseId!),
+    enabled: Boolean(exerciseId),
+  });
+
+  const questionCount =
+    exerciseDetail?.question_count ?? topic.exercise_question_count ?? 0;
+  const totalMarks = totalQuestionMarks(exerciseDetail?.questions ?? []);
 
   const setupMutation = useMutation({
     mutationFn: () => adminApi.ensureTopicExercise(topic.id),
@@ -53,8 +64,8 @@ export function TopicExercisePanel({ topic }: { topic: Topic }) {
           {exerciseId ? (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-muted-foreground">
-                {topic.exercise_question_count ?? 0} question
-                {(topic.exercise_question_count ?? 0) === 1 ? "" : "s"}
+                {questionCount} question{questionCount === 1 ? "" : "s"} · {totalMarks}{" "}
+                mark{totalMarks === 1 ? "" : "s"} total
               </span>
               <Button
                 size="sm"
