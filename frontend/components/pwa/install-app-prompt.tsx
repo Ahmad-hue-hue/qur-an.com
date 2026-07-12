@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { TAJWEED_LOGO_SRC } from "@/components/auth/login-logo";
 
-const DISMISS_KEY = "tajweed-install-dismissed-v2";
+const DISMISS_KEY = "tajweed-install-dismissed-session";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -21,6 +21,7 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 function isStandalone() {
+  if (typeof window === "undefined") return false;
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true
@@ -43,6 +44,13 @@ function detectPlatform(): "ios" | "android" | "desktop" {
   return "desktop";
 }
 
+function shouldShowInstallPrompt() {
+  if (typeof window === "undefined") return false;
+  if (isStandalone()) return false;
+  if (sessionStorage.getItem(DISMISS_KEY) === "1") return false;
+  return true;
+}
+
 export function InstallAppPrompt() {
   const [open, setOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] =
@@ -51,7 +59,7 @@ export function InstallAppPrompt() {
   const [platform] = useState(detectPlatform);
 
   const dismiss = useCallback(() => {
-    localStorage.setItem(DISMISS_KEY, "1");
+    sessionStorage.setItem(DISMISS_KEY, "1");
     setOpen(false);
   }, []);
 
@@ -62,7 +70,7 @@ export function InstallAppPrompt() {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
-        localStorage.setItem(DISMISS_KEY, "1");
+        sessionStorage.setItem(DISMISS_KEY, "1");
         setOpen(false);
       }
     } finally {
@@ -72,28 +80,19 @@ export function InstallAppPrompt() {
   }, [deferredPrompt]);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-    if (isStandalone()) return;
-    if (localStorage.getItem(DISMISS_KEY) === "1") return;
+    if (!shouldShowInstallPrompt()) return;
+
+    const timer = window.setTimeout(() => setOpen(true), 0);
 
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
-      if (localStorage.getItem(DISMISS_KEY) === "1") return;
       setDeferredPrompt(event as BeforeInstallPromptEvent);
-      setOpen(true);
     };
 
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-
-    const timer = window.setTimeout(() => {
-      if (isStandalone()) return;
-      if (localStorage.getItem(DISMISS_KEY) === "1") return;
-      setOpen(true);
-    }, 1200);
-
     return () => {
-      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
       window.clearTimeout(timer);
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
     };
   }, []);
 
@@ -102,7 +101,12 @@ export function InstallAppPrompt() {
   const canNativeInstall = Boolean(deferredPrompt);
 
   return (
-    <Dialog open={open} onOpenChange={(next) => !next && dismiss()}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) dismiss();
+      }}
+    >
       <DialogContent className="sm:max-w-md" showCloseButton>
         <DialogHeader className="items-center text-center sm:text-center">
           <div className="mx-auto mb-2 h-16 w-16 overflow-hidden rounded-full ring-1 ring-emerald-deep/10">
@@ -124,15 +128,21 @@ export function InstallAppPrompt() {
         {platform === "ios" && (
           <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
             <li>Tap the Share button in Safari (square with arrow up).</li>
-            <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
-            <li>Tap <strong>Add</strong> in the top right.</li>
+            <li>
+              Scroll down and tap <strong>Add to Home Screen</strong>.
+            </li>
+            <li>
+              Tap <strong>Add</strong> in the top right.
+            </li>
           </ol>
         )}
 
         {platform === "android" && !canNativeInstall && (
           <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
             <li>Open the browser menu (three dots).</li>
-            <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+            <li>
+              Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.
+            </li>
             <li>Confirm to add Tajweed Classes.</li>
           </ol>
         )}
