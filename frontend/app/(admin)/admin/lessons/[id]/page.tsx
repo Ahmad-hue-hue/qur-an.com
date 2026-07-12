@@ -153,8 +153,9 @@ export default function EditLessonPage({
 
         <div className="space-y-2">
           <Label>Examples (optional)</Label>
-          <Input
-            className="font-arabic"
+          <Textarea
+            className="min-h-20 font-arabic"
+            placeholder="One example per line"
             value={examples}
             onChange={(e) => setExamplesOverride(e.target.value)}
           />

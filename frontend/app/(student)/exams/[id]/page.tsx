@@ -24,6 +24,7 @@ import {
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { FormattedText } from "@/components/shared/formatted-text";
 import { useCountdown } from "@/lib/hooks/use-countdown";
 
 export default function ExamPage({
@@ -221,13 +222,15 @@ export default function ExamPage({
                 <span className="inline-flex rounded-full bg-emerald-light px-3 py-1 text-xs font-medium text-emerald-deep">
                   {QUESTION_TYPE_LABELS[question.type]}
                 </span>
-                <p className="font-medium leading-relaxed">
+                <FormattedText className="font-medium leading-relaxed">
                   {question.type === "fill_blank"
                     ? renderBlankText(question.text)
                     : question.text}
-                </p>
+                </FormattedText>
                 {question.arabic_text && (
-                  <p className="font-arabic text-lg mt-3">{question.arabic_text}</p>
+                  <FormattedText className="font-arabic text-lg mt-3 leading-relaxed">
+                    {question.arabic_text}
+                  </FormattedText>
                 )}
               </CardContent>
             </Card>

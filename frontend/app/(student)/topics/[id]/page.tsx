@@ -8,6 +8,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { AudioPlayer } from "@/components/shared/audio-player";
 import { DownloadButton } from "@/components/shared/download-button";
+import { FormattedText } from "@/components/shared/formatted-text";
 import { sanitizeDownloadName } from "@/lib/download";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -103,9 +104,9 @@ export default function TopicDetailPage({
               <h3 className="text-sm font-semibold text-emerald-deep mb-2">
                 Definition
               </h3>
-              <p className="font-arabic text-lg leading-relaxed">
+              <FormattedText className="font-arabic text-lg leading-relaxed">
                 {topic.arabic_content}
-              </p>
+              </FormattedText>
             </CardContent>
           </Card>
         )}
@@ -115,9 +116,9 @@ export default function TopicDetailPage({
             <h3 className="text-sm font-semibold text-emerald-deep mb-2">
               Explanation
             </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <FormattedText className="text-sm text-muted-foreground leading-relaxed">
               {topic.content}
-            </p>
+            </FormattedText>
           </CardContent>
         </Card>
 
@@ -127,13 +128,9 @@ export default function TopicDetailPage({
               <h3 className="text-sm font-semibold text-emerald-deep mb-3">
                 Examples
               </h3>
-              <div className="space-y-2">
-                {topic.examples.split(" — ").map((ex, i) => (
-                  <p key={i} className="font-arabic text-lg text-center py-2">
-                    {ex}
-                  </p>
-                ))}
-              </div>
+              <FormattedText className="font-arabic text-lg text-center py-2 leading-relaxed">
+                {topic.examples}
+              </FormattedText>
             </CardContent>
           </Card>
         )}

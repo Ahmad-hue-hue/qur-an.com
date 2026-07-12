@@ -140,9 +140,9 @@ export default function AddLessonPage() {
 
         <div className="space-y-2">
           <Label>Examples (optional)</Label>
-          <Input
-            placeholder="مِنْ عِلْمٍ — مِنْ هَادٍ"
-            className="font-arabic"
+          <Textarea
+            className="min-h-20 font-arabic"
+            placeholder="One example per line"
             value={examples}
             onChange={(e) => setExamples(e.target.value)}
           />

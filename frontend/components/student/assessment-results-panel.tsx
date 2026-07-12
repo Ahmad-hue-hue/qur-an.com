@@ -11,6 +11,7 @@ import {
   isManualQuestionType,
   questionTypeLabel,
 } from "@/lib/exercise-grading";
+import { FormattedText } from "@/components/shared/formatted-text";
 
 function AnswerResultRow({ grade }: { grade: ExerciseAnswerGrade }) {
   const tone = gradeResultTone(grade);
@@ -27,19 +28,19 @@ function AnswerResultRow({ grade }: { grade: ExerciseAnswerGrade }) {
           {gradeResultLabel(grade)}
         </span>
       </div>
-      <p className="text-sm font-medium">{grade.question_text}</p>
+      <FormattedText className="text-sm font-medium">{grade.question_text}</FormattedText>
       <div className="rounded-lg bg-muted/40 p-3">
         <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
           Your answer
         </p>
-        <p className="text-sm mt-1">{grade.answer_text || "(no answer)"}</p>
+        <FormattedText className="text-sm mt-1">{grade.answer_text || "(no answer)"}</FormattedText>
       </div>
       {grade.correct_answer && !isManualQuestionType(grade.question_type) && (
         <div className="rounded-lg bg-muted/40 p-3">
           <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
             Correct answer
           </p>
-          <p className="text-sm mt-1">{grade.correct_answer}</p>
+          <FormattedText className="text-sm mt-1">{grade.correct_answer}</FormattedText>
         </div>
       )}
       {grade.feedback && (
@@ -47,7 +48,7 @@ function AnswerResultRow({ grade }: { grade: ExerciseAnswerGrade }) {
           <p className="text-[11px] uppercase tracking-wide text-emerald-deep">
             Teacher feedback
           </p>
-          <p className="text-sm mt-1">{grade.feedback}</p>
+          <FormattedText className="text-sm mt-1">{grade.feedback}</FormattedText>
         </div>
       )}
     </div>
