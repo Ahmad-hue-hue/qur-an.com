@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { ConfigMissing } from "@/components/config-missing";
 import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
+import { InstallAppPrompt } from "@/components/pwa/install-app-prompt";
 import { AuthProvider } from "@/hooks/use-auth";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -29,6 +30,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <RegisterServiceWorker />
+        <InstallAppPrompt />
         {children}
         <Toaster
           position="top-center"

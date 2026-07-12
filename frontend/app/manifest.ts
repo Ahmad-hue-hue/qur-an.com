@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: "Tajweed Classes",
     short_name: "Tajweed Classes",
     description:
@@ -12,6 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     background_color: "#ffffff",
     theme_color: "#064e3b",
+    categories: ["education"],
     icons: [
       {
         src: "/icons/icon-192.png",
