@@ -62,12 +62,7 @@ export default function ExercisePage({
   const submitMutation = useMutation({
     mutationFn: () => studentApi.submitExercise(exerciseId, answers),
     onSuccess: (result) => {
-      const pending = result.grading_status === "pending_manual";
-      toast.success(
-        pending
-          ? `Submitted! Auto score: ${result.score}/${result.max_score}. Some answers await teacher review.`
-          : `Submitted! Score: ${result.score}/${result.max_score}`
-      );
+      toast.success(`Submitted! Score: ${result.score}/${result.max_score}`);
       router.push(`/exercises/${exerciseId}/results`);
     },
     onError: (err: Error) => toast.error(err.message || "Submission failed"),

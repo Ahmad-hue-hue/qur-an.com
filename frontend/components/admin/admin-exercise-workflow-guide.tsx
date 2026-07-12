@@ -1,59 +1,35 @@
 "use client";
 
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 
 const STEPS = [
   {
-    title: "Create the exercise",
-    body: "Assessments → Create Exercise. Set title, Marḥalah, start date, and end date. Students only see exercises for their current Marḥalah.",
+    title: "Add the lesson exercise",
+    body: "When editing a lesson, tap Add lesson exercise and add MCQ or True/False questions with the correct answer set.",
   },
   {
-    title: "Add questions",
-    body: "Open Manage and add questions. MCQ and True/False are auto-graded when you set the correct answer. Fill blank, fill the gap, and written need manual grading.",
+    title: "Set the Marḥalah exam",
+    body: "On Content, set up the final exam for the Marḥalah with MCQ or True/False questions only.",
   },
   {
-    title: "Students complete it",
-    body: "When the start date arrives, the exercise appears on the student Assessments page. They submit answers before the end date.",
+    title: "Students submit",
+    body: "After each lesson, students take the exercise quiz. After the last lesson, they take the Marḥalah exam.",
   },
   {
-    title: "Results go out automatically",
-    body: "Auto-graded questions show scores immediately after submit. There is no separate “publish results” button.",
-  },
-  {
-    title: "Grade manual answers (if any)",
-    body: "Open Submissions → Manual grading for Fill in the blank, Fill the gap, or Written questions. Enter score + feedback and tap Save grade.",
-  },
-  {
-    title: "Students view feedback",
-    body: "Students open Assessments → Results or Review exercise to see scores, correct answers, and your feedback.",
+    title: "Scores are automatic",
+    body: "MCQ and True/False are graded instantly on submit. You only see each student's total mark.",
   },
 ] as const;
 
-export function AdminExerciseWorkflowGuide({
-  submissionsHref,
-  pendingCount,
-}: {
-  submissionsHref?: string;
-  pendingCount?: number;
-}) {
+export function AdminExerciseWorkflowGuide() {
   return (
     <Card className="card-shadow border-emerald-deep/25 bg-emerald-light/20">
       <CardContent className="p-4 space-y-4">
         <div>
-          <p className="font-semibold text-emerald-deep">How exercises & results work</p>
+          <p className="font-semibold text-emerald-deep">How exercises & exams work</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Follow these steps from creating an exercise to students seeing their results.
+            Lesson exercises and Marḥalah exams use auto-graded MCQ and True/False only.
           </p>
-          {pendingCount != null && pendingCount > 0 && submissionsHref && (
-            <p className="text-sm text-amber-800 mt-2">
-              {pendingCount} answer{pendingCount === 1 ? "" : "s"} still need manual grading
-              before final scores are complete.{" "}
-              <Link href={submissionsHref} className="underline font-medium">
-                Grade now →
-              </Link>
-            </p>
-          )}
         </div>
 
         <ol className="space-y-3">

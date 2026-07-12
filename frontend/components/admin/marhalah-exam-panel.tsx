@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
+import { AUTO_GRADED_QUESTION_TYPES } from "@/lib/topic-assessment";
+import { AssessmentMarksPanel } from "@/components/admin/assessment-marks-panel";
 import { AssessmentQuestionsDialog } from "@/components/admin/assessment-questions-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,7 +40,8 @@ export function MarhalahExamPanel({ marhalahNumber }: { marhalahNumber: number }
               Marḥalah {marhalahNumber} Final Exam
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Shown after students complete every lesson in this Marḥalah.
+              MCQ and True/False only. Scores are calculated automatically when
+              students submit after completing every lesson.
             </p>
           </div>
 
@@ -61,6 +64,8 @@ export function MarhalahExamPanel({ marhalahNumber }: { marhalahNumber: number }
             </div>
           )}
 
+          {exam && <AssessmentMarksPanel kind="exam" assessmentId={exam.id} />}
+
           {!isLoading && !exam && (
             <Button
               size="sm"
@@ -81,6 +86,7 @@ export function MarhalahExamPanel({ marhalahNumber }: { marhalahNumber: number }
           assessmentTitle={exam.title}
           open={questionsOpen}
           onOpenChange={setQuestionsOpen}
+          allowedTypes={AUTO_GRADED_QUESTION_TYPES}
         />
       )}
     </>

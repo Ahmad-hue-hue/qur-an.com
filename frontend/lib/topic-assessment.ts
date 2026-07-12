@@ -2,6 +2,9 @@ import type { QuestionType } from "@/lib/types";
 
 export const TOPIC_EXERCISE_QUESTION_TYPES: QuestionType[] = ["mcq", "true_false"];
 
+/** MCQ and True/False only — auto-graded on submit for lessons and exams. */
+export const AUTO_GRADED_QUESTION_TYPES = TOPIC_EXERCISE_QUESTION_TYPES;
+
 export function isLastLessonOrder(order: number, orders: number[]) {
   if (orders.length === 0) return false;
   return order === Math.max(...orders);

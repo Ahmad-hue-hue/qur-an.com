@@ -80,9 +80,6 @@ export function AssessmentResultsPage({
           title={assessment.title}
           score={results.score}
           maxScore={results.max_score}
-          gradingStatus={results.grading_status}
-          answerGrades={results.answer_grades}
-          reviewHref={kind === "exercise" ? `/exercises/${id}/review` : undefined}
         />
       )}
 

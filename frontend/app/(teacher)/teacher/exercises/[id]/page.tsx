@@ -146,10 +146,7 @@ export default function AdminExerciseDetailPage({
 
         {exercise && (
           <>
-            <AdminExerciseWorkflowGuide
-              submissionsHref={`/teacher/exercises/${exerciseId}/submissions`}
-              pendingCount={pendingManualGrades}
-            />
+            <AdminExerciseWorkflowGuide />
 
             <Card className="card-shadow">
               <CardContent className="p-4 space-y-1">

@@ -25,7 +25,7 @@ export default function AdminExerciseSubmissionsPage({
 
   return (
     <AppShell variant="teacher">
-      <PageHeader title="Grade & results">
+      <PageHeader title="Student marks">
         <Link
           href={`/teacher/exercises/${exerciseId}`}
           className="inline-flex items-center gap-1 text-sm text-cream/80 hover:text-cream mt-2"
@@ -44,7 +44,6 @@ export default function AdminExerciseSubmissionsPage({
             kind="exercise"
             assessmentId={exerciseId}
             title={exercise.title}
-            questions={exercise.questions}
             api={teacherApi}
             cachePrefix="teacher"
           />

@@ -15,9 +15,7 @@ export const EXAM_QUESTION_TYPES: {
   short: string;
 }[] = [
   { value: "mcq", label: "Multiple Choice", short: "MCQ" },
-  { value: "fill_blank", label: "Fill in the Blank", short: "Fill Blank" },
   { value: "true_false", label: "True / False", short: "True/False" },
-  { value: "fill_gap", label: "Fill the Gap", short: "Fill Gap" },
 ];
 
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {

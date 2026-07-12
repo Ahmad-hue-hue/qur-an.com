@@ -72,12 +72,7 @@ export default function ExamPage({
   const submitMutation = useMutation({
     mutationFn: () => studentApi.submitExam(examId, answers),
     onSuccess: (result) => {
-      const pending = result.grading_status === "pending_manual";
-      toast.success(
-        pending
-          ? `Submitted! Auto score: ${result.score}/${result.max_score}. Some answers await teacher review.`
-          : `Exam submitted! Score: ${result.score}/${result.max_score}`
-      );
+      toast.success(`Exam submitted! Score: ${result.score}/${result.max_score}`);
       router.push(`/exams/${examId}/results`);
     },
     onError: (err: Error) => toast.error(err.message || "Submission failed"),

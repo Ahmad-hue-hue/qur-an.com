@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
 import type { Topic } from "@/lib/types";
 import { TOPIC_EXERCISE_QUESTION_TYPES } from "@/lib/topic-assessment";
+import { AssessmentMarksPanel } from "@/components/admin/assessment-marks-panel";
 import { AssessmentQuestionsDialog } from "@/components/admin/assessment-questions-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export function TopicExercisePanel({ topic }: { topic: Topic }) {
           <div>
             <h3 className="text-sm font-semibold text-emerald-deep">Lesson Exercise</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Students answer this MCQ or True/False quiz after finishing the lesson.
+              MCQ or True/False only. Scored automatically when the student submits.
             </p>
           </div>
 
@@ -63,7 +64,11 @@ export function TopicExercisePanel({ topic }: { topic: Topic }) {
                 Manage questions
               </Button>
             </div>
-          ) : (
+          ) : null}
+
+          {exerciseId ? <AssessmentMarksPanel kind="exercise" assessmentId={exerciseId} /> : null}
+
+          {!exerciseId ? (
             <Button
               size="sm"
               className="btn-emerald"
@@ -72,7 +77,7 @@ export function TopicExercisePanel({ topic }: { topic: Topic }) {
             >
               {setupMutation.isPending ? "Creating..." : "Add lesson exercise"}
             </Button>
-          )}
+          ) : null}
         </CardContent>
       </Card>
 

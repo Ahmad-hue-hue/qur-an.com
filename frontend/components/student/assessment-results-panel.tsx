@@ -1,110 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import type { ExerciseAnswerGrade, GradingStatus } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge } from "@/components/shared/status-badge";
-import {
-  GRADE_TONE_CLASSES,
-  gradeResultLabel,
-  gradeResultTone,
-  isManualQuestionType,
-  questionTypeLabel,
-} from "@/lib/exercise-grading";
-import { FormattedText } from "@/components/shared/formatted-text";
-
-function AnswerResultRow({ grade }: { grade: ExerciseAnswerGrade }) {
-  const tone = gradeResultTone(grade);
-
-  return (
-    <div className="rounded-xl border border-border/70 p-3 space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium text-emerald-deep">
-          {questionTypeLabel(grade.question_type)}
-        </span>
-        <span
-          className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${GRADE_TONE_CLASSES[tone]}`}
-        >
-          {gradeResultLabel(grade)}
-        </span>
-      </div>
-      <FormattedText className="text-sm font-medium">{grade.question_text}</FormattedText>
-      <div className="rounded-lg bg-muted/40 p-3">
-        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-          Your answer
-        </p>
-        <FormattedText className="text-sm mt-1">{grade.answer_text || "(no answer)"}</FormattedText>
-      </div>
-      {grade.correct_answer && !isManualQuestionType(grade.question_type) && (
-        <div className="rounded-lg bg-muted/40 p-3">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-            Correct answer
-          </p>
-          <FormattedText className="text-sm mt-1">{grade.correct_answer}</FormattedText>
-        </div>
-      )}
-      {grade.feedback && (
-        <div className="rounded-lg border border-emerald-deep/20 bg-emerald-light/30 p-3">
-          <p className="text-[11px] uppercase tracking-wide text-emerald-deep">
-            Teacher feedback
-          </p>
-          <FormattedText className="text-sm mt-1">{grade.feedback}</FormattedText>
-        </div>
-      )}
-    </div>
-  );
-}
+import { buttonVariants } from "@/components/ui/button";
 
 export function AssessmentResultsPanel({
   title,
   score,
   maxScore,
-  gradingStatus,
-  answerGrades,
-  reviewHref,
 }: {
   title: string;
   score: number;
   maxScore: number;
-  gradingStatus?: GradingStatus;
-  answerGrades: ExerciseAnswerGrade[];
-  reviewHref?: string;
 }) {
   return (
     <div className="page-content max-w-3xl mx-auto space-y-4">
       <Card className="card-shadow">
-        <CardContent className="p-6 text-center space-y-3">
-          <StatusBadge
-            status={gradingStatus === "pending_manual" ? "open" : "completed"}
-          />
+        <CardContent className="p-8 text-center space-y-4">
           <p className="text-xl font-semibold text-emerald-deep">{title}</p>
-          <p className="text-2xl font-bold text-emerald-deep">
-            {score}/{maxScore}
-          </p>
-          {gradingStatus === "pending_manual" && (
-            <p className="text-sm text-amber-700">
-              Some answers are still being reviewed by your teacher.
+          <div>
+            <p className="text-sm text-muted-foreground">Your score</p>
+            <p className="text-4xl font-bold text-emerald-deep mt-1">
+              {score}/{maxScore}
             </p>
-          )}
+          </div>
+          <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
+            Back to dashboard
+          </Link>
         </CardContent>
       </Card>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-sm">Your answers</h2>
-          {reviewHref && (
-            <Link
-              href={reviewHref}
-              className="text-xs text-emerald-deep hover:text-emerald-mid"
-            >
-              Review questions
-            </Link>
-          )}
-        </div>
-        {answerGrades.map((grade) => (
-          <AnswerResultRow key={grade.question_id} grade={grade} />
-        ))}
-      </div>
     </div>
   );
 }
