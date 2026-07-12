@@ -25,13 +25,28 @@ export function AssessmentQuestionInput({
   value,
   onChange,
   readOnly = false,
+  reviewResult,
 }: {
   question: Question;
   value: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
+  reviewResult?: {
+    correctAnswer: string;
+    isCorrect: boolean;
+  };
 }) {
   const type = question.type as QuestionType;
+
+  const reviewOptionClass = (opt: string) => {
+    if (!reviewResult) return null;
+    const { correctAnswer, isCorrect } = reviewResult;
+    const isStudent = value === opt;
+    const isCorrectOption = correctAnswer === opt;
+    if (isCorrectOption) return "border-emerald-deep bg-emerald-light text-emerald-deep";
+    if (isStudent && !isCorrect) return "border-red-400 bg-red-50 text-red-800";
+    return "border-border bg-background/60 text-muted-foreground";
+  };
 
   if (type === "mcq") {
     if (!question.options?.length) {
@@ -51,6 +66,7 @@ export function AssessmentQuestionInput({
         {question.options.map((opt, i) => {
           const letter = String.fromCharCode(65 + i);
           const selected = value === opt;
+          const reviewClass = reviewOptionClass(opt);
           return (
             <Label
               key={i}
@@ -58,17 +74,24 @@ export function AssessmentQuestionInput({
               className={cn(
                 "flex items-center gap-3 p-4 rounded-xl border card-shadow transition-all",
                 readOnly ? "cursor-default" : "cursor-pointer",
-                selected
-                  ? "border-emerald-deep bg-emerald-light"
-                  : "border-border hover:border-emerald-mid/30"
+                reviewClass ??
+                  (selected
+                    ? "border-emerald-deep bg-emerald-light"
+                    : "border-border hover:border-emerald-mid/30")
               )}
             >
               <span
                 className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
-                  selected
-                    ? "bg-emerald-deep text-cream"
-                    : "bg-muted text-muted-foreground"
+                  reviewClass
+                    ? reviewClass.includes("red")
+                      ? "bg-red-500 text-white"
+                      : reviewClass.includes("emerald-deep")
+                        ? "bg-emerald-deep text-cream"
+                        : "bg-muted text-muted-foreground"
+                    : selected
+                      ? "bg-emerald-deep text-cream"
+                      : "bg-muted text-muted-foreground"
                 )}
               >
                 {letter}
@@ -108,6 +131,9 @@ export function AssessmentQuestionInput({
           { value: "false", label: "False" },
         ].map((opt) => {
           const selected = value === opt.value;
+          const reviewClass = reviewResult
+            ? reviewOptionClass(opt.value)
+            : null;
           return (
             <Label
               key={opt.value}
@@ -115,9 +141,10 @@ export function AssessmentQuestionInput({
               className={cn(
                 "flex items-center justify-center p-4 rounded-xl border card-shadow font-medium transition-all",
                 readOnly ? "cursor-default" : "cursor-pointer",
-                selected
-                  ? "border-emerald-deep bg-emerald-light text-emerald-deep"
-                  : "border-border hover:border-emerald-mid/30"
+                reviewClass ??
+                  (selected
+                    ? "border-emerald-deep bg-emerald-light text-emerald-deep"
+                    : "border-border hover:border-emerald-mid/30")
               )}
             >
               {opt.label}

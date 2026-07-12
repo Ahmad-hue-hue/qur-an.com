@@ -147,6 +147,8 @@ export interface ExerciseAnswerGrade {
   question_type: QuestionType;
   answer_text: string;
   correct_answer?: string;
+  question_options?: string[];
+  question_order?: number;
   score: number | null;
   max_score: number;
   feedback?: string;

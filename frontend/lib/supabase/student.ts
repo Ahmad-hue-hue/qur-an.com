@@ -218,6 +218,47 @@ function mapTopic(
   };
 }
 
+async function countAnswerGrades(
+  supabase: ReturnType<typeof getSupabase>,
+  table: "exercise_answer_grades" | "exam_answer_grades",
+  submissionId: number
+): Promise<number> {
+  const { count, error } = await supabase
+    .from(table)
+    .select("id", { count: "exact", head: true })
+    .eq("submission_id", submissionId);
+  if (error) throw new SupabaseApiError(error.message);
+  return count ?? 0;
+}
+
+async function isExerciseSubmissionCurrent(
+  supabase: ReturnType<typeof getSupabase>,
+  submission: { id: number } | null | undefined,
+  questionCount: number
+): Promise<boolean> {
+  if (!submission || questionCount === 0) return false;
+  const gradeCount = await countAnswerGrades(
+    supabase,
+    "exercise_answer_grades",
+    submission.id
+  );
+  return gradeCount >= questionCount;
+}
+
+async function isExamSubmissionCurrent(
+  supabase: ReturnType<typeof getSupabase>,
+  submission: { id: number; submitted_at?: string | null } | null | undefined,
+  questionCount: number
+): Promise<boolean> {
+  if (!submission?.submitted_at || questionCount === 0) return false;
+  const gradeCount = await countAnswerGrades(
+    supabase,
+    "exam_answer_grades",
+    submission.id
+  );
+  return gradeCount >= questionCount;
+}
+
 async function enrichStudentTopic(
   topic: Topic,
   studentId: string
@@ -268,12 +309,18 @@ async function enrichStudentTopic(
       .maybeSingle()
   ).data;
 
+  const exercise_submitted = await isExerciseSubmissionCurrent(
+    supabase,
+    submission,
+    exercise_question_count
+  );
+
   return {
     ...topic,
     is_last_lesson,
     exercise_id: exercise.id,
     exercise_question_count,
-    exercise_submitted: Boolean(submission),
+    exercise_submitted,
   };
 }
 
@@ -299,11 +346,17 @@ async function buildExerciseRow(
     .eq("exercise_id", exerciseId);
   if (countError) throw new SupabaseApiError(countError.message);
 
+  const has_submitted = await isExerciseSubmissionCurrent(
+    supabase,
+    submission,
+    questionCount ?? 0
+  );
+
   const status = throwIfError(
     await supabase.rpc("get_assessment_status", {
       p_start: exercise.start_date,
       p_end: exercise.end_date,
-      p_has_submitted: Boolean(submission),
+      p_has_submitted: has_submitted,
     })
   ) as Exercise["status"];
 
@@ -318,10 +371,12 @@ async function buildExerciseRow(
     end_date: exercise.end_date as string,
     status,
     question_count: questionCount ?? 0,
-    score: submission ? Number(submission.score) : undefined,
-    max_score: submission ? Number(submission.max_score) : undefined,
-    has_submitted: Boolean(submission),
-    grading_status: submission?.grading_status as Exercise["grading_status"],
+    score: has_submitted && submission ? Number(submission.score) : undefined,
+    max_score: has_submitted && submission ? Number(submission.max_score) : undefined,
+    has_submitted,
+    grading_status: has_submitted
+      ? (submission?.grading_status as Exercise["grading_status"])
+      : undefined,
   };
 }
 
@@ -347,12 +402,17 @@ async function buildExamRow(
     .eq("exam_id", examId);
   if (countError) throw new SupabaseApiError(countError.message);
 
-  const hasSubmitted = Boolean(submission?.submitted_at);
+  const has_submitted = await isExamSubmissionCurrent(
+    supabase,
+    submission,
+    questionCount ?? 0
+  );
+
   const status = throwIfError(
     await supabase.rpc("get_assessment_status", {
       p_start: exam.start_date,
       p_end: exam.end_date,
-      p_has_submitted: hasSubmitted,
+      p_has_submitted: has_submitted,
     })
   ) as Exam["status"];
 
@@ -368,10 +428,12 @@ async function buildExamRow(
     end_date: exam.end_date as string,
     status,
     question_count: questionCount ?? 0,
-    score: submission ? Number(submission.score) : undefined,
-    max_score: submission ? Number(submission.max_score) : undefined,
-    has_submitted: hasSubmitted,
-    grading_status: submission?.grading_status as Exam["grading_status"],
+    score: has_submitted && submission ? Number(submission.score) : undefined,
+    max_score: has_submitted && submission ? Number(submission.max_score) : undefined,
+    has_submitted,
+    grading_status: has_submitted
+      ? (submission?.grading_status as Exam["grading_status"])
+      : undefined,
   };
 }
 
@@ -383,6 +445,8 @@ function mapAnswerGrades(
       text: string;
       type: string;
       correct_answer?: string;
+      options?: string[];
+      order?: number;
     };
     return {
       id: g.id as number,
@@ -391,6 +455,8 @@ function mapAnswerGrades(
       question_type: question?.type as AssessmentSubmissionResults["answer_grades"][0]["question_type"],
       answer_text: g.answer_text as string,
       correct_answer: question?.correct_answer || undefined,
+      question_options: question?.options ?? undefined,
+      question_order: question?.order ?? undefined,
       score: g.score != null ? Number(g.score) : null,
       max_score: Number(g.max_score),
       feedback: (g.feedback as string) || undefined,
@@ -853,7 +919,7 @@ export const studentApi = {
           *,
           exercise_answer_grades (
             id, question_id, answer_text, score, max_score, feedback, graded_at,
-            questions:question_id ( text, type, correct_answer )
+            questions:question_id ( text, type, correct_answer, options, order )
           )
         `
         )
@@ -869,6 +935,12 @@ export const studentApi = {
     if (answer_grades.length === 0) {
       answer_grades = await buildFallbackAnswerGrades(supabase, "exercise", id, answers);
     }
+
+    answer_grades.sort((a, b) => {
+      const orderA = a.question_order ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.question_order ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    });
 
     return {
       score: Number(submission.score),
@@ -979,7 +1051,7 @@ export const studentApi = {
           *,
           exam_answer_grades (
             id, question_id, answer_text, score, max_score, feedback, graded_at,
-            questions:question_id ( text, type, correct_answer )
+            questions:question_id ( text, type, correct_answer, options, order )
           )
         `
         )
@@ -990,13 +1062,18 @@ export const studentApi = {
     ) as Record<string, unknown>;
 
     const grades = (submission.exam_answer_grades as Record<string, unknown>[]) ?? [];
+    const answer_grades = mapAnswerGrades(grades).sort((a, b) => {
+      const orderA = a.question_order ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.question_order ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    });
 
     return {
       score: Number(submission.score),
       max_score: Number(submission.max_score),
       grading_status: submission.grading_status as AssessmentSubmissionResults["grading_status"],
       submitted_at: submission.submitted_at as string,
-      answer_grades: mapAnswerGrades(grades),
+      answer_grades,
     };
   },
 

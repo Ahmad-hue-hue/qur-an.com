@@ -176,15 +176,19 @@ export default function TopicDetailPage({
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   {topic.exercise_submitted
-                    ? "You finished this lesson quiz."
+                    ? "You finished this lesson quiz. View your score and answers."
                     : "Complete the quick quiz for this lesson."}
                 </p>
               </div>
               <Link
-                href={`/exercises/${topic.exercise_id}`}
+                href={
+                  topic.exercise_submitted
+                    ? `/exercises/${topic.exercise_id}/results`
+                    : `/exercises/${topic.exercise_id}`
+                }
                 className={buttonVariants({ className: "w-full btn-emerald" })}
               >
-                {topic.exercise_submitted ? "Review exercise" : "Take exercise"}
+                {topic.exercise_submitted ? "View results" : "Take exercise"}
               </Link>
             </CardContent>
           </Card>

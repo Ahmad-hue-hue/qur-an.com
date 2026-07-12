@@ -86,6 +86,22 @@ function mapQuestionRow(q: Record<string, unknown>): QuestionAdmin {
   };
 }
 
+async function resetExerciseSubmissions(exerciseId: number): Promise<void> {
+  throwIfError(
+    await getSupabase().rpc("reset_exercise_submissions", {
+      p_exercise_id: exerciseId,
+    })
+  );
+}
+
+async function resetExamSubmissions(examId: number): Promise<void> {
+  throwIfError(
+    await getSupabase().rpc("reset_exam_submissions", {
+      p_exam_id: examId,
+    })
+  );
+}
+
 async function enrichTopicWithAssessment(topic: Topic): Promise<Topic> {
   const supabase = getSupabase();
   const marhalahId = await resolveMarhalahIdByNumber(topic.marhalah);
@@ -776,6 +792,7 @@ export const adminApi = {
         .select("*")
         .single()
     );
+    await resetExerciseSubmissions(exerciseId);
     return mapQuestionRow(row);
   },
 
@@ -802,6 +819,7 @@ export const adminApi = {
         .select("*")
         .single()
     );
+    await resetExerciseSubmissions(exerciseId);
     return mapQuestionRow(row);
   },
 
@@ -816,6 +834,7 @@ export const adminApi = {
         .eq("id", questionId)
         .eq("exercise_id", exerciseId)
     );
+    await resetExerciseSubmissions(exerciseId);
   },
 
   getExerciseSubmissions: async (
@@ -1051,6 +1070,7 @@ export const adminApi = {
         .select("*")
         .single()
     );
+    await resetExamSubmissions(examId);
     return mapQuestionRow(row);
   },
 
@@ -1077,6 +1097,7 @@ export const adminApi = {
         .select("*")
         .single()
     );
+    await resetExamSubmissions(examId);
     return mapQuestionRow(row);
   },
 
@@ -1088,6 +1109,7 @@ export const adminApi = {
         .eq("id", questionId)
         .eq("exam_id", examId)
     );
+    await resetExamSubmissions(examId);
   },
 
   getExamSubmissions: async (

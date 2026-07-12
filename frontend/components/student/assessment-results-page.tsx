@@ -80,6 +80,7 @@ export function AssessmentResultsPage({
           title={assessment.title}
           score={results.score}
           maxScore={results.max_score}
+          answerGrades={results.answer_grades}
         />
       )}
 
