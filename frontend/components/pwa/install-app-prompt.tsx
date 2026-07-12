@@ -2,16 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
+import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { TAJWEED_LOGO_SRC } from "@/components/auth/login-logo";
+import { cn } from "@/lib/utils";
 
 const DISMISS_KEY = "tajweed-install-dismissed-session";
 
@@ -49,6 +43,13 @@ function shouldShowInstallPrompt() {
   if (isStandalone()) return false;
   if (sessionStorage.getItem(DISMISS_KEY) === "1") return false;
   return true;
+}
+
+function installHint(platform: "ios" | "android" | "desktop", canNativeInstall: boolean) {
+  if (platform === "ios") return "Share → Add to Home Screen";
+  if (canNativeInstall) return "Install for quick access";
+  if (platform === "android") return "Menu → Install app";
+  return "Install from the address bar";
 }
 
 export function InstallAppPrompt() {
@@ -96,79 +97,59 @@ export function InstallAppPrompt() {
     };
   }, []);
 
-  if (isStandalone()) return null;
+  if (isStandalone() || !open) return null;
 
   const canNativeInstall = Boolean(deferredPrompt);
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) dismiss();
-      }}
+    <div
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-50 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2",
+        "animate-in fade-in-0 slide-in-from-bottom-4 duration-300"
+      )}
+      role="region"
+      aria-label="Install app"
     >
-      <DialogContent className="sm:max-w-md" showCloseButton>
-        <DialogHeader className="items-center text-center sm:text-center">
-          <div className="mx-auto mb-2 h-16 w-16 overflow-hidden rounded-full ring-1 ring-emerald-deep/10">
-            <Image
-              src={TAJWEED_LOGO_SRC}
-              alt="Tajweed Classes"
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <DialogTitle>Install Tajweed Classes</DialogTitle>
-          <DialogDescription>
-            Add the app to your home screen for quick access, full-screen
-            learning, and a native app feel.
-          </DialogDescription>
-        </DialogHeader>
+      <div className="mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-border/70 bg-background/95 p-3 shadow-lg backdrop-blur-md">
+        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl ring-1 ring-emerald-deep/10">
+          <Image
+            src={TAJWEED_LOGO_SRC}
+            alt=""
+            width={40}
+            height={40}
+            className="h-full w-full object-cover"
+          />
+        </div>
 
-        {platform === "ios" && (
-          <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-            <li>Tap the Share button in Safari (square with arrow up).</li>
-            <li>
-              Scroll down and tap <strong>Add to Home Screen</strong>.
-            </li>
-            <li>
-              Tap <strong>Add</strong> in the top right.
-            </li>
-          </ol>
-        )}
-
-        {platform === "android" && !canNativeInstall && (
-          <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-            <li>Open the browser menu (three dots).</li>
-            <li>
-              Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.
-            </li>
-            <li>Confirm to add Tajweed Classes.</li>
-          </ol>
-        )}
-
-        {platform === "desktop" && !canNativeInstall && (
-          <p className="text-sm text-muted-foreground">
-            Look for the install icon in your browser address bar, or open the
-            browser menu and choose <strong>Install Tajweed Classes</strong>.
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-foreground">
+            Install Tajweed Classes
           </p>
+          <p className="truncate text-xs text-muted-foreground">
+            {installHint(platform, canNativeInstall)}
+          </p>
+        </div>
+
+        {canNativeInstall && (
+          <Button
+            size="sm"
+            className="btn-emerald h-8 shrink-0 px-3 text-xs"
+            disabled={installing}
+            onClick={() => void install()}
+          >
+            {installing ? "..." : "Install"}
+          </Button>
         )}
 
-        <DialogFooter className="gap-2 sm:justify-center">
-          {canNativeInstall && (
-            <Button
-              className="btn-emerald w-full sm:w-auto"
-              disabled={installing}
-              onClick={() => void install()}
-            >
-              {installing ? "Installing..." : "Install now"}
-            </Button>
-          )}
-          <Button variant="outline" className="w-full sm:w-auto" onClick={dismiss}>
-            {canNativeInstall ? "Not now" : "Got it"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <button
+          type="button"
+          onClick={dismiss}
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          aria-label="Dismiss install prompt"
+        >
+          <XIcon className="size-4" />
+        </button>
+      </div>
+    </div>
   );
 }
