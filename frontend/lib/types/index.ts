@@ -77,8 +77,8 @@ export interface Topic {
   order: number;
   title: string;
   arabic_title?: string;
-  content: string;
-  arabic_content?: string;
+  content?: string;
+  arabic_content: string;
   examples?: string;
   audio_url?: string;
   pdf_url?: string;

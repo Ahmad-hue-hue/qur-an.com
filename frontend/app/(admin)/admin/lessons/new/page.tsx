@@ -68,7 +68,7 @@ export default function AddLessonPage() {
     onError: (err: Error) => toast.error(err.message || "Failed to save lesson"),
   });
 
-  const canSave = title.trim() && content.trim();
+  const canSave = title.trim() && arabicContent.trim();
 
   return (
     <AppShell variant="admin">
@@ -119,22 +119,22 @@ export default function AddLessonPage() {
         </div>
 
         <div className="space-y-2">
-          <Label>Text Content</Label>
-          <Textarea
-            placeholder="Write lesson content..."
-            className="min-h-32"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Arabic Content (optional)</Label>
+          <Label>Arabic Content</Label>
           <Textarea
             placeholder="المحتوى بالعربية..."
             className="min-h-24 font-arabic"
             value={arabicContent}
             onChange={(e) => setArabicContent(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Text Content (optional)</Label>
+          <Textarea
+            placeholder="Write lesson content..."
+            className="min-h-32"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
           />
         </div>
 

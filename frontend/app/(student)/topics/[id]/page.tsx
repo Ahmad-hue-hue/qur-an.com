@@ -98,29 +98,29 @@ export default function TopicDetailPage({
       </PageHeader>
 
       <div className="page-content">
-        {topic.arabic_content && (
+        <Card className="card-shadow">
+          <CardContent className="p-5">
+            <h3 className="text-sm font-semibold text-emerald-deep mb-2">
+              Definition
+            </h3>
+            <FormattedText className="font-arabic text-lg leading-relaxed">
+              {topic.arabic_content}
+            </FormattedText>
+          </CardContent>
+        </Card>
+
+        {topic.content?.trim() && (
           <Card className="card-shadow">
             <CardContent className="p-5">
               <h3 className="text-sm font-semibold text-emerald-deep mb-2">
-                Definition
+                Explanation
               </h3>
-              <FormattedText className="font-arabic text-lg leading-relaxed">
-                {topic.arabic_content}
+              <FormattedText className="text-sm text-muted-foreground leading-relaxed">
+                {topic.content}
               </FormattedText>
             </CardContent>
           </Card>
         )}
-
-        <Card className="card-shadow">
-          <CardContent className="p-5">
-            <h3 className="text-sm font-semibold text-emerald-deep mb-2">
-              Explanation
-            </h3>
-            <FormattedText className="text-sm text-muted-foreground leading-relaxed">
-              {topic.content}
-            </FormattedText>
-          </CardContent>
-        </Card>
 
         {topic.examples && (
           <Card className="card-shadow">

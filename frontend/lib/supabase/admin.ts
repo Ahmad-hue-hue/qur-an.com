@@ -36,8 +36,8 @@ export interface CreateTopicData {
   order: number;
   title: string;
   arabic_title?: string;
-  content: string;
-  arabic_content?: string;
+  content?: string;
+  arabic_content: string;
   examples?: string;
   audio?: File | null;
   pdf?: File | null;
@@ -398,8 +398,8 @@ export const adminApi = {
         order: t.order as number,
         title: t.title as string,
         arabic_title: (t.arabic_title as string) || undefined,
-        content: t.content as string,
-        arabic_content: (t.arabic_content as string) || undefined,
+        content: (t.content as string) || undefined,
+        arabic_content: (t.arabic_content as string) || "",
         examples: (t.examples as string) || undefined,
         audio_url: (t.audio_url as string) ?? undefined,
         pdf_url: (t.pdf_url as string) ?? undefined,
@@ -423,7 +423,7 @@ export const adminApi = {
         p_order: data.order,
         p_title: data.title,
         p_arabic_title: data.arabic_title ?? "",
-        p_content: data.content,
+        p_content: data.content ?? "",
         p_arabic_content: data.arabic_content ?? "",
         p_examples: data.examples ?? "",
       })
@@ -446,7 +446,7 @@ export const adminApi = {
           p_order: data.order,
           p_title: data.title,
           p_arabic_title: data.arabic_title ?? "",
-          p_content: data.content,
+          p_content: data.content ?? "",
           p_arabic_content: data.arabic_content ?? "",
           p_examples: data.examples ?? "",
           p_audio_url: audio_url,
@@ -469,8 +469,8 @@ export const adminApi = {
       order: row.order as number,
       title: row.title as string,
       arabic_title: (row.arabic_title as string) || undefined,
-      content: row.content as string,
-      arabic_content: (row.arabic_content as string) || undefined,
+      content: (row.content as string) || undefined,
+      arabic_content: (row.arabic_content as string) || "",
       examples: (row.examples as string) || undefined,
       audio_url: (row.audio_url as string) ?? undefined,
       pdf_url: (row.pdf_url as string) ?? undefined,
@@ -500,7 +500,7 @@ export const adminApi = {
         p_order: data.order,
         p_title: data.title,
         p_arabic_title: data.arabic_title ?? "",
-        p_content: data.content,
+        p_content: data.content ?? "",
         p_arabic_content: data.arabic_content ?? "",
         p_examples: data.examples ?? "",
         p_audio_url: audio_url,

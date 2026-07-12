@@ -134,20 +134,20 @@ export default function EditLessonPage({
         </div>
 
         <div className="space-y-2">
-          <Label>Text Content</Label>
-          <Textarea
-            className="min-h-32"
-            value={content}
-            onChange={(e) => setContentOverride(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Arabic Content (optional)</Label>
+          <Label>Arabic Content</Label>
           <Textarea
             className="min-h-24 font-arabic"
             value={arabicContent}
             onChange={(e) => setArabicContentOverride(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Text Content (optional)</Label>
+          <Textarea
+            className="min-h-32"
+            value={content}
+            onChange={(e) => setContentOverride(e.target.value)}
           />
         </div>
 
@@ -236,7 +236,7 @@ export default function EditLessonPage({
 
         <Button
           className="w-full h-12 btn-emerald"
-          disabled={!title.trim() || !content.trim() || updateMutation.isPending}
+          disabled={!title.trim() || !arabicContent.trim() || updateMutation.isPending}
           onClick={() => updateMutation.mutate()}
         >
           {updateMutation.isPending ? "Saving..." : "Update Lesson"}
