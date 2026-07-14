@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
 import { totalQuestionMarks } from "@/lib/assessment-mark";
 import { AUTO_GRADED_QUESTION_TYPES } from "@/lib/topic-assessment";
-import { AssessmentMarksPanel } from "@/components/admin/assessment-marks-panel";
 import { AssessmentQuestionsDialog } from "@/components/admin/assessment-questions-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,10 +81,6 @@ export function MarhalahExamPanel({ marhalahNumber }: { marhalahNumber: number }
               )
             )}
           </div>
-
-          {exam ? (
-            <AssessmentMarksPanel kind="exam" assessmentId={exam.id} />
-          ) : null}
         </CardContent>
       </Card>
 

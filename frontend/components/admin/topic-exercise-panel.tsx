@@ -7,7 +7,6 @@ import { adminApi } from "@/lib/api";
 import type { Topic } from "@/lib/types";
 import { totalQuestionMarks } from "@/lib/assessment-mark";
 import { TOPIC_EXERCISE_QUESTION_TYPES } from "@/lib/topic-assessment";
-import { AssessmentMarksPanel } from "@/components/admin/assessment-marks-panel";
 import { AssessmentQuestionsDialog } from "@/components/admin/assessment-questions-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
