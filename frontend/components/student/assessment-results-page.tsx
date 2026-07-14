@@ -43,7 +43,7 @@ export function AssessmentResultsPage({
           href="/dashboard"
           className="inline-flex items-center gap-1 text-sm text-emerald-deep hover:text-emerald-mid"
         >
-          Back to assessments
+          Back
         </Link>
       </div>
 
