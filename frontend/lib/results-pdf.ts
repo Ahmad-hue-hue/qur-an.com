@@ -61,3 +61,47 @@ export async function downloadResultsPdf(options: {
 
   doc.save(options.filename);
 }
+
+export async function downloadResultsRosterPdf(options: {
+  title: string;
+  subtitle?: string;
+  filename: string;
+  head: string[];
+  body: string[][];
+}) {
+  const [{ jsPDF }, autoTableModule] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
+  const autoTable = autoTableModule.default;
+
+  const doc = new jsPDF({ orientation: "landscape" });
+  let y = 14;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text(options.title, 14, y);
+  y += 7;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  if (options.subtitle) {
+    doc.text(options.subtitle, 14, y);
+    y += 5;
+  }
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y);
+  y += 3;
+
+  autoTable(doc, {
+    startY: y + 3,
+    head: [options.head],
+    body: options.body,
+    styles: { fontSize: 8, cellPadding: 1.5, halign: "center" },
+    headStyles: { fillColor: [15, 81, 50], halign: "center" },
+    columnStyles: {
+      0: { halign: "left", cellWidth: 36 },
+    },
+  });
+
+  doc.save(options.filename);
+}

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { teacherApi } from "@/lib/api";
+import { adminApi } from "@/lib/api";
 import { downloadResultsRosterPdf } from "@/lib/results-pdf";
 import {
   ResultsRosterTable,
@@ -12,29 +12,21 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { SearchInput } from "@/components/layout/search-input";
-import { TeacherMarhalahSelect } from "@/components/teacher/teacher-marhalah-select";
+import { MarhalahSelectWithEdit } from "@/components/admin/marhalah-select-with-edit";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Download01Icon } from "@hugeicons/core-free-icons";
 import type { MarhalahResultsRoster } from "@/lib/types";
 
-export default function TeacherResultsPage() {
-  const [marhalahOverride, setMarhalahOverride] = useState<string | null>(null);
+export default function AdminResultsPage() {
+  const [marhalahId, setMarhalahId] = useState("1");
   const [search, setSearch] = useState("");
-
-  const { data: profile } = useQuery({
-    queryKey: ["teacher-profile"],
-    queryFn: teacherApi.getProfile,
-  });
-
-  const marhalahId =
-    marhalahOverride ?? String(profile?.managed_marhalah ?? 1);
   const marhalahNumber = parseInt(marhalahId) || 1;
 
   const { data: roster, isLoading } = useQuery({
-    queryKey: ["teacher-results-roster", marhalahNumber],
-    queryFn: () => teacherApi.getMarhalahResultsRoster(marhalahNumber),
+    queryKey: ["admin-results-roster", marhalahNumber],
+    queryFn: () => adminApi.getMarhalahResultsRoster(marhalahNumber),
   });
 
   const filteredRoster = useMemo((): MarhalahResultsRoster | undefined => {
@@ -58,7 +50,7 @@ export default function TeacherResultsPage() {
     await downloadResultsRosterPdf({
       title: "Marḥalah Results",
       subtitle: `Marḥalah ${marhalahNumber}`,
-      filename: `results-m${marhalahNumber}.pdf`,
+      filename: `admin-results-m${marhalahNumber}.pdf`,
       head,
       body,
     });
@@ -66,7 +58,7 @@ export default function TeacherResultsPage() {
   };
 
   return (
-    <AppShell variant="teacher">
+    <AppShell variant="admin">
       <PageHeader
         title="Results"
         subtitle="Lesson scores and final exam by registration number"
@@ -84,9 +76,9 @@ export default function TeacherResultsPage() {
       </PageHeader>
 
       <div className="page-content space-y-4">
-        <TeacherMarhalahSelect
+        <MarhalahSelectWithEdit
           value={marhalahId}
-          onValueChange={(v) => setMarhalahOverride(v ?? "1")}
+          onValueChange={(v) => setMarhalahId(v ?? "1")}
         />
         <SearchInput
           value={search}

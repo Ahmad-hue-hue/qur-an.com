@@ -36,6 +36,7 @@ import type {
   User,
   MarhalahAdmin,
   UpdateMarhalahData,
+  MarhalahResultsRoster,
 } from "@/lib/types";
 
 export interface CreateTopicData {
@@ -1220,6 +1221,51 @@ export const adminApi = {
       })
     );
     return result;
+  },
+
+  getMarhalahResultsRoster: async (
+    marhalahNumber: number
+  ): Promise<MarhalahResultsRoster> => {
+    const data = throwIfError(
+      await getSupabase().rpc("get_marhalah_results_roster", {
+        p_marhalah_number: marhalahNumber,
+      })
+    ) as MarhalahResultsRoster | null;
+
+    if (!data || typeof data !== "object") {
+      return {
+        marhalah_number: marhalahNumber,
+        marhalah_id: marhalahNumber,
+        columns: [],
+        rows: [],
+      };
+    }
+
+    return {
+      marhalah_number: Number(data.marhalah_number),
+      marhalah_id: Number(data.marhalah_id),
+      columns: (data.columns ?? []).map((col) => ({
+        topic_id: Number(col.topic_id),
+        order: Number(col.order),
+        title: String(col.title ?? ""),
+        exercise_id: Number(col.exercise_id),
+      })),
+      rows: (data.rows ?? []).map((row) => ({
+        student_id: String(row.student_id),
+        registration_number: row.registration_number ?? null,
+        lesson_scores: (row.lesson_scores ?? []).map((score) => ({
+          exercise_id: Number(score.exercise_id),
+          topic_id: Number(score.topic_id),
+          score: score.score == null ? null : Number(score.score),
+          max_score: score.max_score == null ? null : Number(score.max_score),
+        })),
+        exam_score: row.exam_score == null ? null : Number(row.exam_score),
+        exam_max_score:
+          row.exam_max_score == null ? null : Number(row.exam_max_score),
+        overall_percent:
+          row.overall_percent == null ? null : Number(row.overall_percent),
+      })),
+    };
   },
 };
 

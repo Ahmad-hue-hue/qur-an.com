@@ -33,6 +33,7 @@ export function TeacherMarhalahSelect({
       queryClient.invalidateQueries({ queryKey: ["teacher-students"] });
       queryClient.invalidateQueries({ queryKey: ["teacher-exercises"] });
       queryClient.invalidateQueries({ queryKey: ["teacher-exams"] });
+      queryClient.invalidateQueries({ queryKey: ["teacher-results-roster"] });
       toast.success("Marḥalah updated");
     },
     onError: (err: Error) => toast.error(err.message || "Could not update marhalah"),
@@ -63,8 +64,7 @@ export function TeacherMarhalahSelect({
       </Select>
       {profile && (
         <p className="text-xs text-muted-foreground">
-          You see {profile.gender === "female" ? "female" : "male"} students in this
-          marḥalah only.
+          Students in Marḥalah {value} (male and female).
         </p>
       )}
     </div>

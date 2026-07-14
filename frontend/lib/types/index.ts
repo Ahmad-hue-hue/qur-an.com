@@ -317,6 +317,36 @@ export interface TeacherOverallResultRow {
   overall_average: number | null;
 }
 
+export interface MarhalahResultsLessonColumn {
+  topic_id: number;
+  order: number;
+  title: string;
+  exercise_id: number;
+}
+
+export interface MarhalahResultsLessonScore {
+  exercise_id: number;
+  topic_id: number;
+  score: number | null;
+  max_score: number | null;
+}
+
+export interface MarhalahResultsRosterRow {
+  student_id: string;
+  registration_number: string | null;
+  lesson_scores: MarhalahResultsLessonScore[];
+  exam_score: number | null;
+  exam_max_score: number | null;
+  overall_percent: number | null;
+}
+
+export interface MarhalahResultsRoster {
+  marhalah_number: number;
+  marhalah_id: number;
+  columns: MarhalahResultsLessonColumn[];
+  rows: MarhalahResultsRosterRow[];
+}
+
 export interface TeacherProfile extends User {
   managed_marhalah: number;
   gender: Gender;

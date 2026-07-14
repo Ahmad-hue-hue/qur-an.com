@@ -29,6 +29,7 @@ export const adminNav: NavItem[] = [
   { href: "/admin/students", label: "Students", icon: UserGroupIcon },
   { href: "/admin/teachers", label: "Teachers", icon: UserGroupIcon },
   { href: "/admin/topics", label: "Content", icon: File01Icon },
+  { href: "/admin/results", label: "Results", icon: Analytics01Icon },
 ];
 
 export const teacherNav: NavItem[] = [
