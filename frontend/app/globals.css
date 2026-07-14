@@ -124,6 +124,7 @@
   .font-arabic {
     font-family: var(--font-arabic), serif;
     direction: rtl;
+    line-height: 2.2;
   }
   .islamic-pattern {
     background-image: radial-gradient(

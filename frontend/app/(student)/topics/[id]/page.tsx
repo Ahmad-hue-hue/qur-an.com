@@ -104,7 +104,7 @@ export default function TopicDetailPage({
             <h3 className="text-sm font-semibold text-emerald-deep mb-2">
               Definition
             </h3>
-            <FormattedText className="font-arabic text-lg leading-relaxed">
+            <FormattedText className="font-arabic text-lg leading-[2.2]">
               {topic.arabic_content}
             </FormattedText>
           </CardContent>
@@ -129,7 +129,7 @@ export default function TopicDetailPage({
               <h3 className="text-sm font-semibold text-emerald-deep mb-3">
                 Examples
               </h3>
-              <FormattedText className="font-arabic text-lg text-center py-2 leading-relaxed">
+              <FormattedText className="font-arabic text-lg text-center py-2 leading-[2.2]">
                 {topic.examples}
               </FormattedText>
             </CardContent>

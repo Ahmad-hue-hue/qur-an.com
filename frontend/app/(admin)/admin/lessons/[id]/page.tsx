@@ -25,6 +25,8 @@ import {
   Upload01Icon,
   Cancel01Icon,
   ArrowLeft01Icon,
+  LockIcon,
+  SquareUnlock01Icon,
 } from "@hugeicons/core-free-icons";
 import { AudioPlayer } from "@/components/shared/audio-player";
 import { DownloadButton } from "@/components/shared/download-button";
@@ -122,33 +124,33 @@ export default function EditLessonPage({
 
       <div className="page-content max-w-3xl">
         <Card className="card-shadow mb-4">
-          <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+          <CardContent className="p-4 flex items-center justify-between gap-3">
+            <div className="min-w-0">
               <p className="text-sm font-medium text-emerald-deep">
                 Student access
               </p>
               <p className="text-xs text-muted-foreground">
-                {topic.is_unlocked
-                  ? "This lesson is unlocked — students can open it."
-                  : "This lesson is locked — unlock it when students should read it."}
+                {topic.is_unlocked ? "Visible to students" : "Hidden from students"}
               </p>
             </div>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
+              size="icon"
               className={
                 topic.is_unlocked
-                  ? "text-muted-foreground"
-                  : "border-emerald-deep text-emerald-deep"
+                  ? "text-emerald-deep"
+                  : "text-muted-foreground"
               }
               disabled={unlockMutation.isPending}
+              aria-label={topic.is_unlocked ? "Lock lesson" : "Unlock lesson"}
+              title={topic.is_unlocked ? "Lock" : "Unlock"}
               onClick={() => unlockMutation.mutate(!topic.is_unlocked)}
             >
-              {unlockMutation.isPending
-                ? "Updating..."
-                : topic.is_unlocked
-                  ? "Lock lesson"
-                  : "Unlock lesson"}
+              <HugeiconsIcon
+                icon={topic.is_unlocked ? SquareUnlock01Icon : LockIcon}
+                size={20}
+              />
             </Button>
           </CardContent>
         </Card>

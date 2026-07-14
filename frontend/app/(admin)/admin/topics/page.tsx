@@ -20,7 +20,10 @@ import {
   Edit02Icon,
   Delete02Icon,
   Add01Icon,
+  LockIcon,
+  SquareUnlock01Icon,
 } from "@hugeicons/core-free-icons";
+import { cn } from "@/lib/utils";
 
 export default function AdminTopicsPage() {
   const [marhalahId, setMarhalahId] = useState("1");
@@ -62,7 +65,7 @@ export default function AdminTopicsPage() {
       adminApi.setTopicUnlocked(id, unlocked),
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["admin-topics", marhalahId] });
-      toast.success(vars.unlocked ? "Lesson unlocked" : "Lesson locked");
+      toast.success(vars.unlocked ? "Unlocked" : "Locked");
     },
     onError: (err: Error) => toast.error(err.message || "Update failed"),
   });
@@ -88,10 +91,9 @@ export default function AdminTopicsPage() {
         </div>
       </PageHeader>
 
-      <div className="page-content space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Unlock each lesson for students. Locked lessons stay hidden until you
-          unlock them.
+      <div className="page-content space-y-3">
+        <p className="text-xs text-muted-foreground">
+          Tap the lock to show or hide a lesson for students.
         </p>
         <SearchInput
           value={search}
@@ -100,80 +102,94 @@ export default function AdminTopicsPage() {
         />
 
         {isLoading && (
-          <p className="text-sm text-muted-foreground text-center py-8">Loading topics...</p>
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Loading topics...
+          </p>
         )}
         {!isLoading && filteredTopics.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-8">
             {search.trim() ? "No topics match your search." : "No topics yet."}
           </p>
         )}
-        {filteredTopics.map((topic) => (
-          <Card key={topic.id} className="card-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-2">
-                <HugeiconsIcon
-                  icon={DragDropVerticalIcon}
-                  size={18}
-                  className="shrink-0 mt-0.5 text-muted-foreground cursor-grab"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">
-                    {topic.order}. {topic.title}
-                  </p>
-                  {topic.arabic_title && (
-                    <p className="font-arabic text-xs text-muted-foreground">
-                      {topic.arabic_title}
+        {filteredTopics.map((topic) => {
+          const unlocked = Boolean(topic.is_unlocked);
+          return (
+            <Card key={topic.id} className="card-shadow">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-3">
+                  <HugeiconsIcon
+                    icon={DragDropVerticalIcon}
+                    size={18}
+                    className="shrink-0 text-muted-foreground/70 cursor-grab"
+                  />
+
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    <p className="font-medium text-sm truncate leading-snug">
+                      <span className="text-muted-foreground tabular-nums mr-1.5">
+                        {topic.order}.
+                      </span>
+                      {topic.title}
                     </p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {topic.is_unlocked ? "Unlocked" : "Locked"}
-                    {topic.audio_url ? " · Audio attached" : " · No audio"}
-                    {topic.pdf_url ? " · PDF attached" : ""}
-                  </p>
+                    {topic.arabic_title ? (
+                      <p className="font-arabic text-sm text-muted-foreground truncate leading-relaxed">
+                        {topic.arabic_title}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        unlocked
+                          ? "text-emerald-deep hover:text-emerald-deep"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                      disabled={unlockMutation.isPending}
+                      aria-label={unlocked ? "Lock lesson" : "Unlock lesson"}
+                      title={unlocked ? "Lock" : "Unlock"}
+                      onClick={() =>
+                        unlockMutation.mutate({
+                          id: topic.id,
+                          unlocked: !unlocked,
+                        })
+                      }
+                    >
+                      <HugeiconsIcon
+                        icon={unlocked ? SquareUnlock01Icon : LockIcon}
+                        size={18}
+                      />
+                    </Button>
+                    <Link
+                      href={`/admin/lessons/${topic.id}`}
+                      className={buttonVariants({
+                        variant: "ghost",
+                        size: "icon",
+                      })}
+                      aria-label="Edit lesson"
+                    >
+                      <HugeiconsIcon icon={Edit02Icon} size={16} />
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive"
+                      aria-label="Delete lesson"
+                      onClick={() =>
+                        setPendingDelete({ id: topic.id, title: topic.title })
+                      }
+                      disabled={deleteMutation.isPending}
+                    >
+                      <HugeiconsIcon icon={Delete02Icon} size={16} />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={
-                      topic.is_unlocked
-                        ? "text-muted-foreground"
-                        : "border-emerald-deep text-emerald-deep"
-                    }
-                    disabled={unlockMutation.isPending}
-                    onClick={() =>
-                      unlockMutation.mutate({
-                        id: topic.id,
-                        unlocked: !topic.is_unlocked,
-                      })
-                    }
-                  >
-                    {topic.is_unlocked ? "Lock" : "Unlock"}
-                  </Button>
-                  <Link
-                    href={`/admin/lessons/${topic.id}`}
-                    className={buttonVariants({ variant: "ghost", size: "icon" })}
-                    aria-label="Edit lesson"
-                  >
-                    <HugeiconsIcon icon={Edit02Icon} size={16} />
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive"
-                    aria-label="Delete lesson"
-                    onClick={() =>
-                      setPendingDelete({ id: topic.id, title: topic.title })
-                    }
-                    disabled={deleteMutation.isPending}
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={16} />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <div className="page-content pt-0">
@@ -188,9 +204,10 @@ export default function AdminTopicsPage() {
         confirmLabel="Delete"
         destructive
         loading={deleteMutation.isPending}
-        onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
+        onConfirm={() =>
+          pendingDelete && deleteMutation.mutate(pendingDelete.id)
+        }
       />
-
     </AppShell>
   );
 }
