@@ -67,7 +67,6 @@ Deno.serve(async (req) => {
       phone,
       gender,
       current_marhalah,
-      login_email,
       password,
     } = await req.json();
 
@@ -107,9 +106,14 @@ Deno.serve(async (req) => {
     }
 
     const normalizedPhone = phone.replace(/\D/g, "");
-    const email =
-      login_email?.trim().toLowerCase() ||
-      `${normalizedPhone}@students.tajweed.local`;
+    if (!normalizedPhone) {
+      return new Response(JSON.stringify({ error: "Enter a valid phone number" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const email = `${normalizedPhone}@students.tajweed.local`;
 
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
@@ -171,7 +175,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         profile,
-        login_email: email,
+        login_phone: normalizedPhone,
         temporary_password: password.trim(),
       }),
       {

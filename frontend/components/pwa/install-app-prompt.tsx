@@ -23,16 +23,19 @@ function isStandalone() {
 }
 
 function isIOS() {
+  if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
   if (/iPad|iPhone|iPod/.test(ua)) return true;
   return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
 }
 
 function isAndroid() {
+  if (typeof navigator === "undefined") return false;
   return /Android/i.test(navigator.userAgent);
 }
 
 function detectPlatform(): "ios" | "android" | "desktop" {
+  if (typeof navigator === "undefined") return "desktop";
   if (isIOS()) return "ios";
   if (isAndroid()) return "android";
   return "desktop";
@@ -97,7 +100,8 @@ export function InstallAppPrompt() {
     };
   }, []);
 
-  if (isStandalone() || !open) return null;
+  if (typeof window !== "undefined" && isStandalone()) return null;
+  if (!open) return null;
 
   const canNativeInstall = Boolean(deferredPrompt);
 

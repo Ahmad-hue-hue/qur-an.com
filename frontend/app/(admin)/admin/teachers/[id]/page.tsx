@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { adminApi } from "@/lib/api";
 import type { Gender } from "@/lib/types";
+import { formatPhoneDisplay } from "@/lib/phone-auth";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +42,7 @@ export default function AdminTeacherDetailPage({
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
-    email: "",
+    phone: "",
     password: "",
     gender: "male" as Gender,
     managed_marhalah: "1",
@@ -62,7 +63,7 @@ export default function AdminTeacherDetailPage({
       adminApi.updateTeacher(id, {
         first_name: form.first_name,
         last_name: form.last_name,
-        email: form.email,
+        phone: form.phone,
         change_password: changePassword,
         password: changePassword ? form.password : undefined,
         gender: form.gender,
@@ -84,7 +85,7 @@ export default function AdminTeacherDetailPage({
     setForm({
       first_name: teacher.first_name,
       last_name: teacher.last_name,
-      email: teacher.email || "",
+      phone: teacher.phone || "",
       password: "",
       gender: (teacher.gender as Gender) ?? "male",
       managed_marhalah: String(teacher.managed_marhalah ?? 1),
@@ -115,7 +116,7 @@ export default function AdminTeacherDetailPage({
                   Teacher Information
                 </h3>
                 {[
-                  ["Login email", teacher.email || "—"],
+                  ["Phone (login)", formatPhoneDisplay(teacher.phone)],
                   ["Gender", teacher.gender === "female" ? "Female" : "Male"],
                   ["Managed Marḥalah", teacher.managed_marhalah ?? "—"],
                 ].map(([label, value]) => (
@@ -128,8 +129,8 @@ export default function AdminTeacherDetailPage({
             </Card>
 
                 <p className="text-xs text-muted-foreground rounded-xl bg-emerald-light/30 px-3 py-2">
-                  Teachers sign in at the main login page — not the admin sign-in
-                  link. Share the exact email and password below with them.
+                  Teachers sign in with phone and password at the main login page —
+                  not the admin sign-in link.
                 </p>
                 <Button variant="outline" className="w-full" onClick={openEdit}>
                   Edit Teacher / Reset Password
@@ -163,13 +164,13 @@ export default function AdminTeacherDetailPage({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Login email</Label>
+                  <Label>Phone (login)</Label>
                   <Input
-                    type="email"
+                    type="tel"
                     autoComplete="off"
-                    value={form.email}
+                    value={form.phone}
                     onChange={(e) =>
-                      setForm((prev) => ({ ...prev, email: e.target.value }))
+                      setForm((prev) => ({ ...prev, phone: e.target.value }))
                     }
                   />
                 </div>
@@ -249,7 +250,7 @@ export default function AdminTeacherDetailPage({
                     updateMutation.isPending ||
                     !form.first_name.trim() ||
                     !form.last_name.trim() ||
-                    !form.email.trim() ||
+                    !form.phone.trim() ||
                     (changePassword &&
                       form.password.trim().length > 0 &&
                       form.password.trim().length < 6) ||

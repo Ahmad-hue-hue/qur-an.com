@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
     const supabase = await requireAdmin(req);
     const {
       teacher_id,
-      email,
+      phone,
       password,
       first_name,
       last_name,
@@ -114,7 +114,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedPhone = phone?.trim()
+      ? phone.replace(/\D/g, "")
+      : existing.phone?.replace(/\D/g, "") ?? "";
 
     const authPayload: {
       email?: string;
@@ -122,7 +124,10 @@ Deno.serve(async (req) => {
       user_metadata?: Record<string, unknown>;
     } = {};
 
-    if (normalizedEmail) authPayload.email = normalizedEmail;
+    if (normalizedPhone) {
+      authPayload.email = `${normalizedPhone}@teachers.tajweed.local`;
+    }
+
     if (password?.trim()) {
       if (password.trim().length < 6) {
         return new Response(
@@ -139,6 +144,7 @@ Deno.serve(async (req) => {
     authPayload.user_metadata = {
       first_name: first_name?.trim() ?? existing.first_name,
       last_name: last_name?.trim() ?? existing.last_name ?? "",
+      phone: normalizedPhone || existing.phone,
       role: "teacher",
       gender: gender ?? existing.gender,
       managed_marhalah: marhalah ?? existing.managed_marhalah,
@@ -161,7 +167,10 @@ Deno.serve(async (req) => {
       gender: gender ?? existing.gender,
       managed_marhalah: marhalah ?? existing.managed_marhalah,
     };
-    if (normalizedEmail) profileUpdate.email = normalizedEmail;
+    if (normalizedPhone) {
+      profileUpdate.phone = normalizedPhone;
+      profileUpdate.email = `${normalizedPhone}@teachers.tajweed.local`;
+    }
 
     const { error: profileError } = await supabase
       .from("profiles")
@@ -196,7 +205,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         profile,
-        login_email: profile.email ?? normalizedEmail,
+        login_phone: profile.phone ?? normalizedPhone,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

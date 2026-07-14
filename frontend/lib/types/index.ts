@@ -160,6 +160,7 @@ export interface ExerciseSubmissionAdmin {
   id: number;
   student: string;
   student_name: string;
+  student_phone: string;
   exercise: number;
   answers: Record<string, string>;
   score: number;
@@ -181,6 +182,7 @@ export interface ExamSubmissionAdmin {
   id: number;
   student: string;
   student_name: string;
+  student_phone: string;
   exam: number;
   answers: Record<string, string>;
   score: number;
@@ -247,7 +249,7 @@ export interface AuthTokens {
 }
 
 export interface StudentLoginCredentials {
-  email: string;
+  phone: string;
   password: string;
 }
 
@@ -257,7 +259,6 @@ export interface AdminLoginCredentials {
 }
 
 export interface StudentRegisterCredentials {
-  email: string;
   password: string;
   name: string;
   phone: string;
@@ -270,12 +271,11 @@ export interface CreateStudentData {
   phone: string;
   gender: Gender;
   current_marhalah: number;
-  login_email?: string;
   password: string;
 }
 
 export interface CreateTeacherData {
-  email: string;
+  phone: string;
   password: string;
   first_name: string;
   last_name: string;
@@ -286,11 +286,33 @@ export interface CreateTeacherData {
 export interface UpdateTeacherData {
   first_name?: string;
   last_name?: string;
-  email?: string;
+  phone?: string;
   password?: string;
   change_password?: boolean;
   gender?: Gender;
   managed_marhalah?: number;
+}
+
+export interface StudentSubmissionSummary {
+  id: number;
+  kind: "exercise" | "exam";
+  title: string;
+  score: number;
+  max_score: number;
+  grading_status: GradingStatus;
+  submitted_at: string;
+  href: string;
+}
+
+export interface TeacherOverallResultRow {
+  student_id: string;
+  phone: string;
+  gender: Gender | null;
+  registration_number: string | null;
+  exercise_avg: number | null;
+  exam_score: number | null;
+  exam_max_score: number | null;
+  overall_average: number | null;
 }
 
 export interface TeacherProfile extends User {

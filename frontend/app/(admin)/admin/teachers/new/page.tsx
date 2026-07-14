@@ -36,7 +36,7 @@ export default function AdminCreateTeacherPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
-    email: "",
+    phone: "",
     password: "",
     first_name: "",
     last_name: "",
@@ -45,7 +45,7 @@ export default function AdminCreateTeacherPage() {
   });
 
   const [createdCredentials, setCreatedCredentials] = useState<{
-    login_email: string;
+    login_phone: string;
     password: string;
     name: string;
   } | null>(null);
@@ -53,7 +53,7 @@ export default function AdminCreateTeacherPage() {
   const createMutation = useMutation({
     mutationFn: () =>
       adminApi.createTeacher({
-        email: form.email,
+        phone: form.phone,
         password: form.password,
         first_name: form.first_name,
         last_name: form.last_name,
@@ -64,9 +64,9 @@ export default function AdminCreateTeacherPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });
       const password =
         teacher.temporary_password?.trim() || form.password.trim();
-      if (teacher.login_email && password) {
+      if (teacher.login_phone && password) {
         setCreatedCredentials({
-          login_email: teacher.login_email,
+          login_phone: teacher.login_phone,
           password,
           name: `${teacher.first_name} ${teacher.last_name}`,
         });
@@ -83,7 +83,7 @@ export default function AdminCreateTeacherPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const canSubmit =
-    form.email.trim() &&
+    form.phone.trim() &&
     form.password.length >= 6 &&
     form.first_name.trim() &&
     form.last_name.trim();
@@ -91,10 +91,10 @@ export default function AdminCreateTeacherPage() {
   const credentialsBlock = createdCredentials
     ? [
         `Teacher: ${createdCredentials.name}`,
-        `Login email: ${createdCredentials.login_email}`,
+        `Phone: ${createdCredentials.login_phone}`,
         `Password: ${createdCredentials.password}`,
         "",
-        "Sign in at the main login page (/login) — not the admin sign-in link.",
+        "Sign in at the main login page (/login) with phone and password — not the admin sign-in link.",
       ].join("\n")
     : "";
 
@@ -115,8 +115,8 @@ export default function AdminCreateTeacherPage() {
         <Card className="card-shadow">
           <CardContent className="p-5 space-y-4">
             <p className="text-sm text-muted-foreground">
-              Create a teacher account. Share the exact email and password below
-              so they can sign in at the main login page (not the admin sign-in).
+              Create a teacher account with phone and password. Email is not used
+              for teachers.
             </p>
             <div className="form-grid-2">
               <div className="space-y-2">
@@ -135,13 +135,13 @@ export default function AdminCreateTeacherPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Login email</Label>
+              <Label>Phone Number (login)</Label>
               <Input
-                type="email"
+                type="tel"
                 autoComplete="off"
-                placeholder="teacher@example.com"
-                value={form.email}
-                onChange={(e) => update("email", e.target.value)}
+                placeholder="966501234567"
+                value={form.phone}
+                onChange={(e) => update("phone", e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -208,20 +208,20 @@ export default function AdminCreateTeacherPage() {
               </p>
               <p className="text-sm text-muted-foreground">
                 Share these credentials securely. They must use the regular{" "}
-                <span className="font-medium text-emerald-deep">/login</span> page,
-                not admin sign-in.
+                <span className="font-medium text-emerald-deep">/login</span> page
+                with phone and password.
               </p>
               <div className="space-y-3 rounded-xl bg-emerald-light/30 p-4">
                 <div className="space-y-1.5">
-                  <Label>Login email</Label>
+                  <Label>Phone (login)</Label>
                   <div className="flex gap-2">
-                    <Input readOnly value={createdCredentials.login_email} className="bg-white" />
+                    <Input readOnly value={createdCredentials.login_phone} className="bg-white" />
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      aria-label="Copy login email"
-                      onClick={() => copyText(createdCredentials.login_email, "Login email")}
+                      aria-label="Copy phone"
+                      onClick={() => copyText(createdCredentials.login_phone, "Phone")}
                     >
                       <HugeiconsIcon icon={Copy01Icon} size={18} />
                     </Button>

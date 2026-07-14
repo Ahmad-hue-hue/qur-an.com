@@ -66,6 +66,7 @@ export function AssessmentSubmissionsView({
           submissions={submissions?.map((submission) => ({
             id: submission.id,
             student_name: submission.student_name,
+            student_phone: submission.student_phone,
             score: submission.score,
             max_score: submission.max_score,
             submitted_at: submission.submitted_at,

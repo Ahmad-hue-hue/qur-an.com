@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { teacherApi } from "@/lib/api";
 import { matchesStudentSearch } from "@/lib/student-search";
+import { formatPhoneDisplay } from "@/lib/phone-auth";
 import { AppShell } from "@/components/layout/app-shell";
 import { ClickableListCard } from "@/components/layout/clickable-list-card";
 import { PageHeader } from "@/components/layout/page-header";
@@ -42,11 +43,7 @@ export default function TeacherStudentsPage() {
     <AppShell variant="teacher">
       <PageHeader
         title="Students"
-        subtitle={
-          profile
-            ? `${profile.gender === "female" ? "Female" : "Male"} students in your marḥalah`
-            : undefined
-        }
+        subtitle="All students in your marḥalah (male & female), shown by phone"
       />
 
       <div className="page-content space-y-4">
@@ -58,7 +55,7 @@ export default function TeacherStudentsPage() {
         <SearchInput
           value={search}
           onValueChange={setSearch}
-          placeholder="Search by name, email, phone, or reg. number..."
+          placeholder="Search by phone, name, or reg. number..."
         />
 
         {isLoading && (
@@ -71,34 +68,39 @@ export default function TeacherStudentsPage() {
 
         {!isLoading && (
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-            {filtered.map((student) => (
-              <ClickableListCard
-                key={student.id}
-                href={`/teacher/students/${student.id}`}
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-emerald-light text-emerald-deep text-sm">
-                      {student.first_name?.[0] ?? "?"}
-                      {student.last_name?.[0] ?? ""}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">
-                      {student.first_name} {student.last_name}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {student.registration_number || student.email || "No reg. number"}
-                    </p>
+            {filtered.map((student) => {
+              const phone = formatPhoneDisplay(student.phone);
+              return (
+                <ClickableListCard
+                  key={student.id}
+                  href={`/teacher/students/${student.id}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-emerald-light text-emerald-deep text-sm font-mono">
+                        {phone.slice(-2) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium font-mono">
+                        {phone}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {student.gender === "female" ? "Female" : "Male"}
+                        {student.registration_number
+                          ? ` · ${student.registration_number}`
+                          : ""}
+                      </p>
+                    </div>
+                    <HugeiconsIcon
+                      icon={ArrowRight01Icon}
+                      size={18}
+                      className="shrink-0 text-muted-foreground"
+                    />
                   </div>
-                  <HugeiconsIcon
-                    icon={ArrowRight01Icon}
-                    size={18}
-                    className="shrink-0 text-muted-foreground"
-                  />
-                </div>
-              </ClickableListCard>
-            ))}
+                </ClickableListCard>
+              );
+            })}
           </div>
         )}
 
@@ -106,7 +108,7 @@ export default function TeacherStudentsPage() {
           <p className="py-8 text-center text-sm text-muted-foreground">
             {hasSearch
               ? "No students match your search."
-              : "No students in your marḥalah and gender group yet."}
+              : "No students in your marḥalah yet."}
           </p>
         )}
       </div>

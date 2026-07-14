@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
   try {
     const supabase = await requireAdmin(req);
     const {
-      email,
+      phone,
       password,
       first_name,
       last_name,
@@ -70,9 +70,9 @@ Deno.serve(async (req) => {
       managed_marhalah,
     } = await req.json();
 
-    if (!email?.trim() || !password?.trim() || !first_name?.trim()) {
+    if (!phone?.trim() || !password?.trim() || !first_name?.trim()) {
       return new Response(
-        JSON.stringify({ error: "Email, password, and first name are required" }),
+        JSON.stringify({ error: "Phone, password, and first name are required" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -111,17 +111,26 @@ Deno.serve(async (req) => {
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.replace(/\D/g, "");
+    if (!normalizedPhone) {
+      return new Response(JSON.stringify({ error: "Enter a valid phone number" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const email = `${normalizedPhone}@teachers.tajweed.local`;
     const normalizedPassword = password.trim();
 
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
-        email: normalizedEmail,
+        email,
         password: normalizedPassword,
         email_confirm: true,
         user_metadata: {
           first_name: first_name.trim(),
           last_name: (last_name ?? "").trim(),
+          phone: normalizedPhone,
           role: "teacher",
           gender,
           managed_marhalah: marhalah,
@@ -143,7 +152,8 @@ Deno.serve(async (req) => {
         managed_marhalah: marhalah,
         first_name: first_name.trim(),
         last_name: (last_name ?? "").trim(),
-        email: normalizedEmail,
+        email,
+        phone: normalizedPhone,
       })
       .eq("id", authData.user.id);
 
@@ -174,7 +184,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         profile,
-        login_email: normalizedEmail,
+        login_phone: normalizedPhone,
         temporary_password: normalizedPassword,
       }),
       {

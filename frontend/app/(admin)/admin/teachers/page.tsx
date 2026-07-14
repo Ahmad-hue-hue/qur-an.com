@@ -39,7 +39,7 @@ export default function AdminTeachersPage() {
           <SearchInput
             value={search}
             onValueChange={setSearch}
-            placeholder="Search by name, email, or marḥalah..."
+            placeholder="Search by name, phone, or marḥalah..."
             className="sm:max-w-md"
           />
           <Link href="/admin/teachers/new" className="block w-full shrink-0 sm:w-auto">
@@ -77,7 +77,7 @@ export default function AdminTeachersPage() {
                       {teacher.first_name} {teacher.last_name}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {teacher.email || "No email"} ·{" "}
+                      {teacher.phone || "No phone"} ·{" "}
                       {teacher.gender === "female" ? "Female" : "Male"} · Marḥalah{" "}
                       {teacher.managed_marhalah ?? "—"}
                     </p>

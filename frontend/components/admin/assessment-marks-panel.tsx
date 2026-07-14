@@ -8,7 +8,7 @@ import type { ExamSubmissionAdmin, ExerciseSubmissionAdmin } from "@/lib/types";
 
 type MarkRow = Pick<
   ExerciseSubmissionAdmin | ExamSubmissionAdmin,
-  "id" | "student_name" | "score" | "max_score" | "submitted_at"
+  "id" | "student_name" | "student_phone" | "score" | "max_score" | "submitted_at"
 >;
 
 export function AssessmentMarksPanel({
@@ -52,7 +52,7 @@ export function AssessmentMarksPanel({
         {submissions.length === 1 ? "" : "s"}
       </p>
       <p className="text-[11px] text-muted-foreground">
-        Total marks are set per question by the admin.
+        Students are listed by phone number.
       </p>
       <div className="space-y-1.5">
         {submissions.map((submission) => (
@@ -61,7 +61,9 @@ export function AssessmentMarksPanel({
             className="flex items-center justify-between gap-3 text-sm"
           >
             <div className="min-w-0">
-              <p className="font-medium truncate">{submission.student_name}</p>
+              <p className="font-medium font-mono truncate">
+                {submission.student_phone || submission.student_name || "—"}
+              </p>
               <p className="text-[11px] text-muted-foreground">
                 {format(new Date(submission.submitted_at), "MMM d, yyyy · h:mm a")}
               </p>

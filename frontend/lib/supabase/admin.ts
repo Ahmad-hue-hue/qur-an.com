@@ -330,11 +330,11 @@ export const adminApi = {
 
   createStudent: async (
     data: CreateStudentData
-  ): Promise<User & { login_email?: string; temporary_password?: string }> => {
+  ): Promise<User & { login_phone?: string; temporary_password?: string }> => {
     const phone = normalizePhone(data.phone);
     const result = await invokeEdgeFunction<{
       profile: Record<string, unknown>;
-      login_email?: string;
+      login_phone?: string;
       temporary_password?: string;
     }>("create-student", {
       first_name: data.first_name,
@@ -342,12 +342,11 @@ export const adminApi = {
       phone,
       gender: data.gender,
       current_marhalah: data.current_marhalah,
-      login_email: data.login_email?.trim().toLowerCase(),
       password: data.password,
     });
     return {
       ...mapProfileRow(result.profile),
-      login_email: result.login_email,
+      login_phone: result.login_phone ?? phone,
       temporary_password: result.temporary_password,
     };
   },
@@ -378,13 +377,14 @@ export const adminApi = {
 
   createTeacher: async (
     data: CreateTeacherData
-  ): Promise<User & { login_email?: string; temporary_password?: string }> => {
+  ): Promise<User & { login_phone?: string; temporary_password?: string }> => {
+    const phone = normalizePhone(data.phone);
     const result = await invokeEdgeFunction<{
       profile: Record<string, unknown>;
-      login_email?: string;
+      login_phone?: string;
       temporary_password?: string;
     }>("create-teacher", {
-      email: data.email.trim().toLowerCase(),
+      phone,
       password: data.password.trim(),
       first_name: data.first_name,
       last_name: data.last_name,
@@ -393,7 +393,7 @@ export const adminApi = {
     });
     return {
       ...mapProfileRow(result.profile),
-      login_email: result.login_email,
+      login_phone: result.login_phone ?? phone,
       temporary_password: result.temporary_password,
     };
   },
@@ -401,13 +401,13 @@ export const adminApi = {
   updateTeacher: async (
     id: string,
     data: UpdateTeacherData
-  ): Promise<User & { login_email?: string }> => {
+  ): Promise<User & { login_phone?: string }> => {
     const result = await invokeEdgeFunction<{
       profile: Record<string, unknown>;
-      login_email?: string;
+      login_phone?: string;
     }>("update-teacher", {
       teacher_id: id,
-      email: data.email?.trim().toLowerCase(),
+      phone: data.phone ? normalizePhone(data.phone) : undefined,
       password: data.change_password ? data.password?.trim() : undefined,
       first_name: data.first_name,
       last_name: data.last_name,
@@ -416,7 +416,7 @@ export const adminApi = {
     });
     return {
       ...mapProfileRow(result.profile),
-      login_email: result.login_email,
+      login_phone: result.login_phone,
     };
   },
 
@@ -850,7 +850,7 @@ export const adminApi = {
       .select(
         `
         *,
-        profiles:student_id ( first_name, last_name ),
+        profiles:student_id ( first_name, last_name, phone ),
         exercise_answer_grades (
           id, question_id, answer_text, score, max_score, feedback, graded_at,
           questions:question_id ( text, type, correct_answer )
@@ -867,12 +867,18 @@ export const adminApi = {
     const rows = throwIfError(await query) as Record<string, unknown>[];
 
     return rows.map((row) => {
-      const profile = row.profiles as { first_name: string; last_name: string };
+      const profile = row.profiles as {
+        first_name: string;
+        last_name: string;
+        phone?: string | null;
+      };
       const grades = (row.exercise_answer_grades as Record<string, unknown>[]) ?? [];
+      const phone = (profile?.phone ?? "").replace(/\D/g, "");
       return {
         id: row.id as number,
         student: row.student_id as string,
-        student_name: `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim(),
+        student_name: phone || `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim(),
+        student_phone: phone,
         exercise: row.exercise_id as number,
         answers: row.answers as Record<string, string>,
         score: Number(row.score),
@@ -1127,7 +1133,7 @@ export const adminApi = {
       .select(
         `
         *,
-        profiles:student_id ( first_name, last_name ),
+        profiles:student_id ( first_name, last_name, phone ),
         exam_answer_grades (
           id, question_id, answer_text, score, max_score, feedback, graded_at,
           questions:question_id ( text, type, correct_answer )
@@ -1145,12 +1151,18 @@ export const adminApi = {
     const rows = throwIfError(await query) as Record<string, unknown>[];
 
     return rows.map((row) => {
-      const profile = row.profiles as { first_name: string; last_name: string };
+      const profile = row.profiles as {
+        first_name: string;
+        last_name: string;
+        phone?: string | null;
+      };
       const grades = (row.exam_answer_grades as Record<string, unknown>[]) ?? [];
+      const phone = (profile?.phone ?? "").replace(/\D/g, "");
       return {
         id: row.id as number,
         student: row.student_id as string,
-        student_name: `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim(),
+        student_name: phone || `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim(),
+        student_phone: phone,
         exam: row.exam_id as number,
         answers: row.answers as Record<string, string>,
         score: Number(row.score),

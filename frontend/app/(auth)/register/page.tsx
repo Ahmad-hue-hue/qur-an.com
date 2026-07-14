@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import {
   UserIcon,
   CallIcon,
-  Mail01Icon,
   LockIcon,
 } from "@hugeicons/core-free-icons";
 import { authApi } from "@/lib/api";
@@ -32,13 +31,12 @@ export default function RegisterPage() {
   const { completeLogin } = useAuth();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [gender, setGender] = useState<"male" | "female">("male");
 
   const registerMutation = useMutation({
     mutationFn: () =>
-      authApi.registerStudent({ email, password, name, phone, gender }),
+      authApi.registerStudent({ password, name, phone, gender }),
     onSuccess: (session) => {
       completeLogin("student", session.user.id);
       toast.success("Account created! Welcome to Tajweed Classes.");
@@ -48,7 +46,7 @@ export default function RegisterPage() {
   });
 
   const canSubmit =
-    name.trim() && phone.trim() && email.trim() && password.length >= 6 && gender;
+    name.trim() && phone.trim() && password.length >= 6 && gender;
 
   return (
     <div className="min-h-screen bg-cream lg:grid lg:grid-cols-2">
@@ -67,7 +65,7 @@ export default function RegisterPage() {
               Create account
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Start your student journey
+              Sign up with your phone number (no email)
             </p>
           </div>
 
@@ -91,16 +89,6 @@ export default function RegisterPage() {
                   autoComplete="tel"
                   value={phone}
                   onChange={setPhone}
-                />
-                <IconInput
-                  id="email"
-                  label="Email"
-                  icon={Mail01Icon}
-                  placeholder="you@example.com"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={setEmail}
                 />
                 <IconInput
                   id="password"

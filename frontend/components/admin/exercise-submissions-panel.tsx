@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 type SubmissionRow = Pick<
   ExerciseSubmissionAdmin,
-  "id" | "student_name" | "score" | "max_score" | "submitted_at"
+  "id" | "student_name" | "student_phone" | "score" | "max_score" | "submitted_at"
 >;
 
 export function ExerciseSubmissionsPanel({
@@ -38,7 +38,9 @@ export function ExerciseSubmissionsPanel({
         <Card key={submission.id} className="card-shadow">
           <CardContent className="p-4 flex items-center justify-between gap-3">
             <div>
-              <p className="font-medium">{submission.student_name}</p>
+              <p className="font-medium font-mono">
+                {submission.student_phone || submission.student_name || "—"}
+              </p>
               <p className="text-xs text-muted-foreground">
                 Submitted{" "}
                 {format(new Date(submission.submitted_at), "MMM d, yyyy · h:mm a")}

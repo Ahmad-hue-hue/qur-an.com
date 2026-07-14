@@ -15,6 +15,7 @@ import type {
   Marhalah,
   Question,
   StudentProfile,
+  StudentSubmissionSummary,
   Topic,
 } from "@/lib/types";
 
@@ -80,38 +81,35 @@ async function hasExerciseSubmission(studentId: string, exerciseId: number) {
 
 async function assertExerciseAccessible(
   exercise: Record<string, unknown>,
-  marhalahId: number,
-  studentId?: string
+  studentId: string
 ) {
-  if ((exercise.marhalah_id as number) === marhalahId) return;
+  const exerciseMarhalahId = exercise.marhalah_id as number;
+  if (await isMarhalahUnlocked(studentId, exerciseMarhalahId)) return;
 
-  if (
-    studentId &&
-    (await hasExerciseSubmission(studentId, exercise.id as number))
-  ) {
+  if (await hasExerciseSubmission(studentId, exercise.id as number)) {
     return;
   }
 
   throw new Error(
-    "This exercise belongs to a different Marḥalah than your current stage."
+    "This exercise is locked. Finish earlier stages or wait until an admin unlocks this content."
   );
 }
 
 async function assertExamAccessible(
   exam: Record<string, unknown>,
-  marhalahId: number,
   studentId: string
 ) {
-  if ((exam.marhalah_id as number) !== marhalahId) {
+  const examMarhalahId = exam.marhalah_id as number;
+  if (!(await isMarhalahUnlocked(studentId, examMarhalahId))) {
     throw new Error(
-      "This exam belongs to a different Marḥalah than your current stage."
+      "This exam is locked. Finish earlier stages or wait until an admin unlocks this content."
     );
   }
 
   const completed = throwIfError(
     await getSupabase().rpc("marhalah_topics_completed", {
       p_student_id: studentId,
-      p_marhalah_id: marhalahId,
+      p_marhalah_id: examMarhalahId,
     })
   ) as boolean;
 
@@ -786,6 +784,11 @@ export const studentApi = {
 
     const activeTopic = marhalahTopics.find((t) => !completedIds.has(t.id));
     const mapped = mapTopic(topic, completedIds, activeTopic?.id ?? null);
+    if (mapped.status === "locked") {
+      throw new Error(
+        "This lesson is locked. Complete previous lessons first, or wait until an admin publishes/unlocks it."
+      );
+    }
     return enrichStudentTopic(mapped, user.id);
   },
 
@@ -852,23 +855,21 @@ export const studentApi = {
   },
 
   getExercise: async (id: number): Promise<Exercise> => {
-    const { user, profile } = await getCurrentProfile();
-    const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
+    const { user } = await getCurrentProfile();
     const row = throwIfError(
       await getSupabase().from("exercises").select("*").eq("id", id).single()
     );
-    await assertExerciseAccessible(row, marhalahId, user.id);
+    await assertExerciseAccessible(row, user.id);
     return buildExerciseRow(row, user.id);
   },
 
   getExerciseQuestions: async (id: number): Promise<Question[]> => {
-    const { user, profile } = await getCurrentProfile();
+    const { user } = await getCurrentProfile();
     const supabase = getSupabase();
-    const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
     const exercise = throwIfError(
       await supabase.from("exercises").select("*").eq("id", id).single()
     );
-    await assertExerciseAccessible(exercise, marhalahId, user.id);
+    await assertExerciseAccessible(exercise, user.id);
 
     const rows = throwIfError(
       await supabase
@@ -969,23 +970,21 @@ export const studentApi = {
   },
 
   getExam: async (id: number): Promise<Exam> => {
-    const { user, profile } = await getCurrentProfile();
-    const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
+    const { user } = await getCurrentProfile();
     const row = throwIfError(
       await getSupabase().from("exams").select("*").eq("id", id).single()
     );
-    await assertExamAccessible(row, marhalahId, user.id);
+    await assertExamAccessible(row, user.id);
     return buildExamRow(row, user.id);
   },
 
   getExamQuestions: async (id: number): Promise<Question[]> => {
-    const { user, profile } = await getCurrentProfile();
+    const { user } = await getCurrentProfile();
     const supabase = getSupabase();
-    const marhalahId = await resolveMarhalahIdByNumber(profile.current_marhalah);
     const exam = throwIfError(
       await supabase.from("exams").select("*").eq("id", id).single()
     );
-    await assertExamAccessible(exam, marhalahId, user.id);
+    await assertExamAccessible(exam, user.id);
 
     const rows = throwIfError(
       await supabase
@@ -1089,5 +1088,73 @@ export const studentApi = {
     ).data;
     if (!row) return null;
     return buildExamRow(row, user.id);
+  },
+
+  getMySubmissions: async (): Promise<StudentSubmissionSummary[]> => {
+    const { user } = await getCurrentProfile();
+    const supabase = getSupabase();
+
+    const exerciseRows = throwIfError(
+      await supabase
+        .from("exercise_submissions")
+        .select("id, score, max_score, grading_status, submitted_at, exercise_id, exercises(title)")
+        .eq("student_id", user.id)
+        .not("submitted_at", "is", null)
+        .order("submitted_at", { ascending: false })
+    ) as unknown as {
+      id: number;
+      score: number;
+      max_score: number;
+      grading_status: StudentSubmissionSummary["grading_status"];
+      submitted_at: string;
+      exercise_id: number;
+      exercises: { title: string } | null;
+    }[];
+
+    const examRows = throwIfError(
+      await supabase
+        .from("exam_submissions")
+        .select("id, score, max_score, grading_status, submitted_at, exam_id, exams(title)")
+        .eq("student_id", user.id)
+        .not("submitted_at", "is", null)
+        .order("submitted_at", { ascending: false })
+    ) as unknown as {
+      id: number;
+      score: number;
+      max_score: number;
+      grading_status: StudentSubmissionSummary["grading_status"];
+      submitted_at: string;
+      exam_id: number;
+      exams: { title: string } | null;
+    }[];
+
+    const exerciseItems: StudentSubmissionSummary[] = (exerciseRows ?? []).map(
+      (row) => ({
+        id: row.id,
+        kind: "exercise",
+        title: row.exercises?.title ?? "Exercise",
+        score: Number(row.score),
+        max_score: Number(row.max_score),
+        grading_status: row.grading_status,
+        submitted_at: row.submitted_at,
+        href: `/exercises/${row.exercise_id}/results`,
+      })
+    );
+
+    const examItems: StudentSubmissionSummary[] = (examRows ?? []).map((row) => ({
+      id: row.id,
+      kind: "exam",
+      title: row.exams?.title ?? "Exam",
+      score: Number(row.score),
+      max_score: Number(row.max_score),
+      grading_status: row.grading_status,
+      submitted_at: row.submitted_at,
+      href: `/exams/${row.exam_id}/results`,
+    }));
+
+    return [...exerciseItems, ...examItems].sort(
+      (a, b) =>
+        new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+    );
   },
 };

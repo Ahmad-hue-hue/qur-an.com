@@ -38,19 +38,13 @@ export default function TeacherDashboardPage() {
     queryFn: () => teacherApi.getExams(parseInt(marhalahId)),
   });
 
-  const quickActions = [
-    { label: "Manage exercises", href: "/teacher/exercises", icon: Task01Icon },
-    { label: "Manage exams", href: "/teacher/exams", icon: File01Icon },
-    { label: "View students", href: "/teacher/students", icon: UserGroupIcon },
-  ];
-
   return (
     <AppShell variant="teacher">
       <PageHeader
         title="Teacher Dashboard"
         subtitle={
           profile
-            ? `${profile.first_name} ${profile.last_name} · ${profile.gender === "female" ? "Female" : "Male"} students`
+            ? `${profile.first_name} ${profile.last_name} · Marḥalah ${profile.managed_marhalah}`
             : "Tajweed Classes"
         }
       />
@@ -71,7 +65,7 @@ export default function TeacherDashboardPage() {
               <p className="text-2xl font-bold text-emerald-deep">
                 {students?.length ?? 0}
               </p>
-              <p className="text-xs text-muted-foreground">Your students</p>
+              <p className="text-xs text-muted-foreground">Students (all)</p>
             </CardContent>
           </Card>
           <Card className="card-shadow">
@@ -95,7 +89,12 @@ export default function TeacherDashboardPage() {
         <section>
           <h2 className="section-title">Quick actions</h2>
           <div className="auto-grid-cards">
-            {quickActions.map((action) => (
+            {[
+              { label: "Manage exercises", href: "/teacher/exercises", icon: Task01Icon },
+              { label: "Manage exams", href: "/teacher/exams", icon: File01Icon },
+              { label: "View students", href: "/teacher/students", icon: UserGroupIcon },
+              { label: "Overall results", href: "/teacher/results", icon: UserGroupIcon },
+            ].map((action) => (
               <Link key={action.label} href={action.href}>
                 <Card className="card-shadow hover:shadow-md transition-shadow">
                   <CardContent className="p-4 flex items-center gap-3">

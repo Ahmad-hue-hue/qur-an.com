@@ -42,6 +42,8 @@ export function matchesTeacherSearch(teacher: User, query: string): boolean {
 
   const { first, last, full, email } = personNameFields(teacher);
   const gender = teacher.gender === "female" ? "female" : "male";
+  const phoneDigits = query.replace(/\D/g, "");
+  const phone = (teacher.phone ?? "").replace(/\D/g, "");
 
   return (
     first.includes(term) ||
@@ -49,7 +51,8 @@ export function matchesTeacherSearch(teacher: User, query: string): boolean {
     full.includes(term) ||
     email.includes(term) ||
     gender.includes(term) ||
-    String(teacher.managed_marhalah ?? "").includes(term)
+    String(teacher.managed_marhalah ?? "").includes(term) ||
+    (phoneDigits.length > 0 && phone.includes(phoneDigits))
   );
 }
 

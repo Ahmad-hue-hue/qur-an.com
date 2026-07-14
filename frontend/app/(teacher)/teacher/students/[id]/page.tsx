@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
 import { teacherApi } from "@/lib/api";
+import { formatPhoneDisplay } from "@/lib/phone-auth";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -83,7 +84,7 @@ export default function TeacherStudentDetailPage({
 
       {student && (
         <>
-          <PageHeader title={`${student.first_name} ${student.last_name}`}>
+          <PageHeader title={formatPhoneDisplay(student.phone)}>
             <Link
               href="/teacher/students"
               className="inline-flex items-center gap-1 text-cream/80 text-sm mt-2"
@@ -96,6 +97,14 @@ export default function TeacherStudentDetailPage({
           <div className="page-content max-w-2xl space-y-4">
             <Card className="card-shadow">
               <CardContent className="p-5 space-y-2 text-sm">
+                <p>
+                  <span className="text-muted-foreground">Phone:</span>{" "}
+                  <span className="font-mono">{formatPhoneDisplay(student.phone)}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Gender:</span>{" "}
+                  {student.gender === "female" ? "Female" : "Male"}
+                </p>
                 <p>
                   <span className="text-muted-foreground">Registration:</span>{" "}
                   {student.registration_number || "—"}

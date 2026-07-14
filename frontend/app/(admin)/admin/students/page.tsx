@@ -57,7 +57,7 @@ export default function AdminStudentsPage() {
             <SearchInput
               value={search}
               onValueChange={setSearch}
-              placeholder="Search by name, email, phone, or reg. number..."
+              placeholder="Search by name, phone, or reg. number..."
               className="flex-1"
             />
 
@@ -86,8 +86,8 @@ export default function AdminStudentsPage() {
           </Link>
         </div>
         <p className="text-xs text-muted-foreground">
-          Login email and password are set when you register a student — share
-          them securely with the student.
+          Phone number and password are set when you register a student — share
+          them securely. Email is not used for student login.
         </p>
 
         {isLoading && (

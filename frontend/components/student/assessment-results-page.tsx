@@ -25,6 +25,11 @@ export function AssessmentResultsPage({
       kind === "exercise" ? studentApi.getExercise(id) : studentApi.getExam(id),
   });
 
+  const profileQuery = useQuery({
+    queryKey: ["profile"],
+    queryFn: studentApi.getProfile,
+  });
+
   const resultsQuery = useQuery({
     queryKey: [`${kind}-results`, id],
     queryFn: () =>
@@ -81,6 +86,7 @@ export function AssessmentResultsPage({
           score={results.score}
           maxScore={results.max_score}
           answerGrades={results.answer_grades}
+          phone={profileQuery.data?.phone}
         />
       )}
 

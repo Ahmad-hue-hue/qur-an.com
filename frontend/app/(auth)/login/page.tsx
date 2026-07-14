@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Mail01Icon, LockIcon } from "@hugeicons/core-free-icons";
+import { CallIcon, LockIcon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { authApi } from "@/lib/api";
 import { getDefaultRoute } from "@/lib/auth/token";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,6 +21,7 @@ export default function LoginPage() {
   const nextPath = searchParams.get("next");
   const wantsAdmin = Boolean(nextPath?.startsWith("/admin"));
   const { refreshAuth, logout, isLoggedIn, role, isReady, completeLogin } = useAuth();
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const loggingOut = searchParams.get("logout") === "1";
@@ -35,11 +36,19 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: () =>
-      authApi.login({ email: email.trim().toLowerCase(), password }),
+      wantsAdmin
+        ? authApi.login({ email: email.trim().toLowerCase(), password })
+        : authApi.loginWithPhone({ phone, password }),
     onSuccess: ({ role: loginRole, session }) => {
       if (wantsAdmin && loginRole !== "admin") {
         void authApi.logout().then(() => refreshAuth());
         toast.error("This account is not an admin. Use an admin email and password.");
+        return;
+      }
+
+      if (!wantsAdmin && loginRole === "admin") {
+        void authApi.logout().then(() => refreshAuth());
+        toast.error("Admins must use Admin sign in with email.");
         return;
       }
 
@@ -59,7 +68,7 @@ export default function LoginPage() {
   });
 
   const alreadySignedIn = isReady && isLoggedIn && !loggingOut;
-  const switchingToAdmin = wantsAdmin && alreadySignedIn && role === "student";
+  const switchingToAdmin = wantsAdmin && alreadySignedIn && role !== "admin";
   const showLoginForm = !alreadySignedIn || switchingToAdmin;
   const showSignedInPrompt = alreadySignedIn && !showLoginForm;
 
@@ -70,7 +79,11 @@ export default function LoginPage() {
   const formTitle = wantsAdmin ? "Admin Sign In" : "Sign in";
   const formSubtitle = wantsAdmin
     ? "Admin email and password"
-    : "Use your email and password to continue";
+    : "Use your phone number and password to continue";
+
+  const canSubmit = wantsAdmin
+    ? Boolean(email.trim() && password.trim())
+    : Boolean(phone.trim() && password.trim());
 
   return (
     <>
@@ -126,20 +139,33 @@ export default function LoginPage() {
                   <div className="space-y-4">
                     {switchingToAdmin && (
                       <p className="rounded-xl bg-emerald-light/40 px-3 py-2.5 text-center text-sm text-muted-foreground">
-                        Signed in as a student. Enter admin credentials below.
+                        Signed in as {role}. Enter admin credentials below.
                       </p>
                     )}
 
-                    <IconInput
-                      id="email"
-                      label="Email"
-                      icon={Mail01Icon}
-                      placeholder={wantsAdmin ? "admin@gmail.com" : "you@example.com"}
-                      type="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={setEmail}
-                    />
+                    {wantsAdmin ? (
+                      <IconInput
+                        id="email"
+                        label="Email"
+                        icon={Mail01Icon}
+                        placeholder="admin@gmail.com"
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={setEmail}
+                      />
+                    ) : (
+                      <IconInput
+                        id="phone"
+                        label="Phone Number"
+                        icon={CallIcon}
+                        placeholder="Enter your phone number"
+                        type="tel"
+                        autoComplete="tel"
+                        value={phone}
+                        onChange={setPhone}
+                      />
+                    )}
                     <IconInput
                       id="password"
                       label="Password"
@@ -153,9 +179,7 @@ export default function LoginPage() {
 
                     <Button
                       className="mt-1 h-11 w-full rounded-xl btn-emerald"
-                      disabled={
-                        loginMutation.isPending || !email.trim() || !password.trim()
-                      }
+                      disabled={loginMutation.isPending || !canSubmit}
                       onClick={() => loginMutation.mutate()}
                     >
                       {loginMutation.isPending
@@ -185,7 +209,7 @@ export default function LoginPage() {
                           "h-11 w-full rounded-xl text-muted-foreground hover:text-emerald-deep"
                         )}
                       >
-                        Student sign in
+                        Student / teacher sign in
                       </Link>
                     )}
                   </div>
@@ -194,8 +218,7 @@ export default function LoginPage() {
 
               {!showSignedInPrompt && !wantsAdmin && (
                 <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground lg:text-left">
-                  Admin or teacher? Use your assigned credentials — no sign up
-                  required.{" "}
+                  Teachers use phone and password (no sign up). Admins use email.{" "}
                   <Link
                     href="/login?next=/admin"
                     className="font-medium text-emerald-deep hover:underline"

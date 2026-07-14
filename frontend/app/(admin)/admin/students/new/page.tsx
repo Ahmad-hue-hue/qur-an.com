@@ -30,7 +30,7 @@ const MARHALAH_OPTIONS = [
 ];
 
 type CreatedStudent = {
-  login_email: string;
+  login_phone: string;
   temporary_password: string;
   name: string;
   current_marhalah: number;
@@ -53,7 +53,6 @@ export default function AdminCreateStudentPage() {
     first_name: "",
     last_name: "",
     phone: "",
-    login_email: "",
     password: "",
     gender: "male" as "male" | "female",
     current_marhalah: "1",
@@ -66,14 +65,13 @@ export default function AdminCreateStudentPage() {
       adminApi.createStudent({
         ...form,
         current_marhalah: parseInt(form.current_marhalah, 10) || 1,
-        login_email: form.login_email.trim() || undefined,
         password: form.password,
       }),
     onSuccess: (student) => {
       queryClient.invalidateQueries({ queryKey: ["admin-students"] });
-      if (student.login_email && student.temporary_password) {
+      if (student.login_phone && student.temporary_password) {
         setCreatedStudent({
-          login_email: student.login_email,
+          login_phone: student.login_phone,
           temporary_password: student.temporary_password,
           name: `${student.first_name} ${student.last_name}`.trim(),
           current_marhalah: student.current_marhalah ?? 1,
@@ -104,10 +102,10 @@ export default function AdminCreateStudentPage() {
         createdStudent.registration_number
           ? `Registration #: ${createdStudent.registration_number}`
           : null,
-        `Login email: ${createdStudent.login_email}`,
+        `Phone: ${createdStudent.login_phone}`,
         `Password: ${createdStudent.temporary_password}`,
         "",
-        "Sign in at the login page with the email and password above.",
+        "Sign in at the login page with the phone number and password above.",
       ]
         .filter(Boolean)
         .join("\n")
@@ -130,8 +128,8 @@ export default function AdminCreateStudentPage() {
           <Card className="card-shadow">
             <CardContent className="p-5 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Create a student account, assign their starting Marḥalah, and set
-                the login email and password to share with them.
+                Create a student account with phone number and password. Email is
+                not used for students.
               </p>
               <div className="form-grid-2">
                 <div className="space-y-2">
@@ -150,25 +148,12 @@ export default function AdminCreateStudentPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Phone Number</Label>
+                <Label>Phone Number (login)</Label>
                 <Input
                   type="tel"
                   placeholder="966501234567"
                   value={form.phone}
                   onChange={(e) => update("phone", e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Used for registration records. Login email can be set separately
-                  below.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>Login email</Label>
-                <Input
-                  type="email"
-                  placeholder="student@example.com (optional — auto from phone if empty)"
-                  value={form.login_email}
-                  onChange={(e) => update("login_email", e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -243,15 +228,15 @@ export default function AdminCreateStudentPage() {
 
               <div className="space-y-3 rounded-xl bg-emerald-light/30 p-4">
                 <div className="space-y-1.5">
-                  <Label>Login email</Label>
+                  <Label>Phone (login)</Label>
                   <div className="flex gap-2">
-                    <Input readOnly value={createdStudent.login_email} className="bg-white" />
+                    <Input readOnly value={createdStudent.login_phone} className="bg-white" />
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      aria-label="Copy login email"
-                      onClick={() => copyText(createdStudent.login_email, "Login email")}
+                      aria-label="Copy phone"
+                      onClick={() => copyText(createdStudent.login_phone, "Phone")}
                     >
                       <HugeiconsIcon icon={Copy01Icon} size={18} />
                     </Button>
@@ -283,7 +268,7 @@ export default function AdminCreateStudentPage() {
               <p className="text-xs text-muted-foreground">
                 Share these credentials with the student. They sign in at{" "}
                 <span className="font-medium text-emerald-deep">/login</span> using
-                the email and password above.
+                phone and password.
               </p>
 
               <div className="flex flex-col gap-2 sm:flex-row">
