@@ -271,17 +271,17 @@ export default function AdminCreateStudentPage() {
                 phone and password.
               </p>
 
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 border-emerald-deep text-emerald-deep"
+                  className="h-12 flex-1 text-base border-emerald-deep text-emerald-deep"
                   onClick={() => copyText(credentialsBlock, "Credentials")}
                 >
                   Copy all credentials
                 </Button>
                 <Button
-                  className="flex-1 btn-emerald"
+                  className="h-12 flex-1 text-base btn-emerald"
                   onClick={() => router.push("/admin/students")}
                 >
                   Done
