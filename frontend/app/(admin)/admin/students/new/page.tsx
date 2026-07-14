@@ -128,8 +128,7 @@ export default function AdminCreateStudentPage() {
           <Card className="card-shadow">
             <CardContent className="p-5 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Create a student account with phone number and password. Email is
-                not used for students.
+                Create a student account with phone number and password.
               </p>
               <div className="form-grid-2">
                 <div className="space-y-2">

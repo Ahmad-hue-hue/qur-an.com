@@ -41,18 +41,16 @@ export function AssessmentMarksPanel({
 
   if (!submissions?.length) {
     return (
-      <p className="text-xs text-muted-foreground">No student submissions yet.</p>
+      <p className="text-xs text-muted-foreground pt-1 border-t border-border/50">
+        No submissions yet
+      </p>
     );
   }
 
   return (
-    <div className="space-y-2 pt-1 border-t border-border/60">
-      <p className="text-xs font-medium text-emerald-deep">
-        Student marks · {submissions.length} submission
-        {submissions.length === 1 ? "" : "s"}
-      </p>
-      <p className="text-[11px] text-muted-foreground">
-        Students are listed by phone number.
+    <div className="space-y-2 pt-2 border-t border-border/50">
+      <p className="text-xs text-muted-foreground">
+        {submissions.length} submission{submissions.length === 1 ? "" : "s"}
       </p>
       <div className="space-y-1.5">
         {submissions.map((submission) => (
@@ -61,14 +59,14 @@ export function AssessmentMarksPanel({
             className="flex items-center justify-between gap-3 text-sm"
           >
             <div className="min-w-0">
-              <p className="font-medium font-mono truncate">
+              <p className="font-mono text-sm truncate">
                 {submission.student_phone || submission.student_name || "—"}
               </p>
               <p className="text-[11px] text-muted-foreground">
-                {format(new Date(submission.submitted_at), "MMM d, yyyy · h:mm a")}
+                {format(new Date(submission.submitted_at), "MMM d · h:mm a")}
               </p>
             </div>
-            <p className="shrink-0 font-semibold text-emerald-deep">
+            <p className="shrink-0 font-medium tabular-nums">
               {formatAssessmentMark(submission.score, submission.max_score)}
             </p>
           </div>

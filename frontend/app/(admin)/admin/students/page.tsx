@@ -87,7 +87,7 @@ export default function AdminStudentsPage() {
         </div>
         <p className="text-xs text-muted-foreground">
           Phone number and password are set when you register a student — share
-          them securely. Email is not used for student login.
+          them securely.
         </p>
 
         {isLoading && (
@@ -117,8 +117,8 @@ export default function AdminStudentsPage() {
                       {student.first_name} {student.last_name}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {student.registration_number || "Pending Assignment"} ·{" "}
-                      {student.phone || student.email || "No contact"}
+                      {student.registration_number || "Pending Assignment"}
+                      {student.phone ? ` · ${student.phone}` : ""}
                     </p>
                   </div>
                   {student.is_suspended && (

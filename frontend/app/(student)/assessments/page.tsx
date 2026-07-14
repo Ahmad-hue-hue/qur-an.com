@@ -149,60 +149,55 @@ export default function AssessmentsPage() {
                 topicsComplete &&
                 !exam.has_submitted;
               const canViewResults = exam.has_submitted;
+              const meta = [
+                `${exam.question_count} questions`,
+                `${exam.duration_minutes} min`,
+              ];
+              if (exam.has_submitted && exam.score !== undefined) {
+                meta.push(`${exam.score}/${exam.max_score}`);
+              }
+
               const card = (
                 <Card className="card-shadow">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium">{exam.title}</h3>
-                      <StatusBadge status={exam.status} />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {exam.duration_minutes} min · {exam.question_count}{" "}
-                      questions ·{" "}
-                      {format(new Date(exam.start_date), "MMM d")} –{" "}
-                      {format(new Date(exam.end_date), "MMM d, yyyy")}
-                    </p>
-                    {exam.has_submitted && exam.score !== undefined && (
-                      <p className="text-sm font-medium text-emerald-deep">
-                        Score: {exam.score}/{exam.max_score}
+                  <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-medium truncate">
+                        {exam.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {meta.join(" · ")}
                       </p>
-                    )}
-                    {exam.status === "open" && !topicsComplete && (
-                      <p className="text-xs text-amber-700">
-                        Complete all topics in this Marḥalah to unlock this exam.
-                      </p>
-                    )}
-                    {exam.status === "open" && exam.question_count === 0 && (
-                      <p className="text-xs text-amber-700">
-                        Waiting for your instructor to add exam questions.
-                      </p>
-                    )}
-                    {exam.status === "upcoming" && (
-                      <p className="text-xs text-amber-700">
-                        Opens {format(new Date(exam.start_date), "MMM d, yyyy")}
-                      </p>
-                    )}
-                    <div className="flex gap-2 pt-1">
-                      {canViewResults ? (
-                        <Link
-                          href={`/exams/${exam.id}/results`}
-                          className={buttonVariants({
-                            className: "flex-1 btn-emerald",
-                          })}
-                        >
-                          View results
-                        </Link>
-                      ) : canTake ? (
-                        <Link
-                          href={`/exams/${exam.id}`}
-                          className={buttonVariants({
-                            className: "flex-1 btn-emerald",
-                          })}
-                        >
-                          Start exam
-                        </Link>
+                      {exam.status === "open" && !topicsComplete ? (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Finish all lessons first
+                        </p>
+                      ) : null}
+                      {exam.status === "upcoming" ? (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Opens {format(new Date(exam.start_date), "MMM d")}
+                        </p>
                       ) : null}
                     </div>
+                    {canViewResults ? (
+                      <Link
+                        href={`/exams/${exam.id}/results`}
+                        className={buttonVariants({
+                          variant: "outline",
+                          className: "w-full sm:w-auto shrink-0",
+                        })}
+                      >
+                        Results
+                      </Link>
+                    ) : canTake ? (
+                      <Link
+                        href={`/exams/${exam.id}`}
+                        className={buttonVariants({
+                          className: "btn-emerald w-full sm:w-auto shrink-0",
+                        })}
+                      >
+                        Start
+                      </Link>
+                    ) : null}
                   </CardContent>
                 </Card>
               );
@@ -255,7 +250,7 @@ export default function AssessmentsPage() {
         )}
 
         <p className="text-xs text-muted-foreground text-center mt-6 px-4">
-          You must complete all topics in this Marḥalah to unlock the final exam.
+          Final exam unlocks when all lessons are done.
         </p>
       </div>
 

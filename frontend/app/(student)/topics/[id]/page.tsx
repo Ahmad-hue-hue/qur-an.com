@@ -195,23 +195,25 @@ export default function TopicDetailPage({
         )}
 
         {topic.is_last_lesson && isDone && (
-          <Card className="card-shadow border-emerald-deep/20 bg-emerald-light/20">
-            <CardContent className="p-4 space-y-2">
-              <h3 className="text-sm font-semibold text-emerald-deep">
-                Marḥalah complete
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Return to your lessons list to take the final Marḥalah exam.
-              </p>
+          <Card className="card-shadow">
+            <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <h3 className="text-sm font-medium">Final exam</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  All lessons done
+                </p>
+              </div>
               <Link
                 href={
                   dashboard?.current_marhalah
                     ? `/marhalah/${dashboard.current_marhalah.id}`
                     : "/dashboard"
                 }
-                className={buttonVariants({ variant: "outline", className: "w-full" })}
+                className={buttonVariants({
+                  className: "btn-emerald w-full sm:w-auto",
+                })}
               >
-                Go to Marḥalah exam
+                Continue
               </Link>
             </CardContent>
           </Card>

@@ -35,57 +35,57 @@ export function MarhalahExamPanel({ marhalahNumber }: { marhalahNumber: number }
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-exams", marhalahNumber] });
       setQuestionsOpen(true);
-      toast.success("Marḥalah exam ready");
+      toast.success("Exam ready");
     },
     onError: (err: Error) => toast.error(err.message || "Could not create exam"),
   });
 
   return (
     <>
-      <Card className="card-shadow border-emerald-deep/20 bg-emerald-light/20">
+      <Card className="card-shadow">
         <CardContent className="p-4 space-y-3">
-          <div>
-            <h3 className="text-sm font-semibold text-emerald-deep">
-              Marḥalah {marhalahNumber} Final Exam
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              MCQ and True/False only. Scores are calculated automatically when
-              students submit after completing every lesson.
-            </p>
-          </div>
-
-          {isLoading && (
-            <p className="text-xs text-muted-foreground">Loading exam...</p>
-          )}
-
-          {!isLoading && exam && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                {exam.question_count} question{exam.question_count === 1 ? "" : "s"} ·{" "}
-                {totalMarks} mark{totalMarks === 1 ? "" : "s"} total
-              </span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="text-sm font-medium">Final exam</h3>
+              {isLoading ? (
+                <p className="text-xs text-muted-foreground mt-0.5">Loading…</p>
+              ) : exam ? (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {exam.question_count} question
+                  {exam.question_count === 1 ? "" : "s"}
+                  {examDetail ? ` · ${totalMarks} marks` : ""}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Not set up yet
+                </p>
+              )}
+            </div>
+            {exam ? (
               <Button
                 size="sm"
-                className="btn-emerald"
+                variant="outline"
                 onClick={() => setQuestionsOpen(true)}
               >
-                Manage exam questions
+                Questions
               </Button>
-            </div>
-          )}
+            ) : (
+              !isLoading && (
+                <Button
+                  size="sm"
+                  className="btn-emerald"
+                  disabled={setupMutation.isPending}
+                  onClick={() => setupMutation.mutate()}
+                >
+                  {setupMutation.isPending ? "…" : "Set up"}
+                </Button>
+              )
+            )}
+          </div>
 
-          {exam && <AssessmentMarksPanel kind="exam" assessmentId={exam.id} />}
-
-          {!isLoading && !exam && (
-            <Button
-              size="sm"
-              className="btn-emerald"
-              disabled={setupMutation.isPending}
-              onClick={() => setupMutation.mutate()}
-            >
-              {setupMutation.isPending ? "Creating..." : "Set up Marḥalah exam"}
-            </Button>
-          )}
+          {exam ? (
+            <AssessmentMarksPanel kind="exam" assessmentId={exam.id} />
+          ) : null}
         </CardContent>
       </Card>
 

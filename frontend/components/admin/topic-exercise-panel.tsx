@@ -41,10 +41,12 @@ export function TopicExercisePanel({ topic }: { topic: Topic }) {
 
   if (topic.is_last_lesson) {
     return (
-      <Card className="card-shadow border-dashed">
-        <CardContent className="p-4 text-sm text-muted-foreground">
-          This is the final lesson in the Marḥalah. Students take the Marḥalah exam
-          after completing it — no lesson exercise here.
+      <Card className="card-shadow">
+        <CardContent className="p-4">
+          <h3 className="text-sm font-medium">Final exam</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Set on Content — no lesson quiz for the last lesson.
+          </p>
         </CardContent>
       </Card>
     );

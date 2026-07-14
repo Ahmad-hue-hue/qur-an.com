@@ -178,7 +178,6 @@ export default function AdminStudentDetailPage({
               Student Information
             </h3>
             {[
-              ["Email", student.email],
               ["Phone", student.phone || "—"],
               ["Registration", student.registration_number || "Pending"],
               ["Current Marḥalah", currentMarhalahLabel],
