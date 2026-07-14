@@ -438,6 +438,10 @@ export const adminApi = {
     await invokeEdgeFunction("delete-student", { student_id: id });
   },
 
+  deleteTeacher: async (id: string): Promise<void> => {
+    await invokeEdgeFunction("delete-teacher", { teacher_id: id });
+  },
+
   assignRegistrationNumber: async (id: string): Promise<StudentProfile> => {
     throwIfError(
       await getSupabase().rpc("admin_assign_registration_number", {
