@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/api";
 import type { Gender } from "@/lib/types";
 import { formatPhoneDisplay } from "@/lib/phone-auth";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import {
   Dialog,
   DialogContent,
@@ -36,8 +38,10 @@ export default function AdminTeacherDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
   const [form, setForm] = useState({
     first_name: "",
@@ -77,6 +81,16 @@ export default function AdminTeacherDetailPage({
       toast.success("Teacher updated");
     },
     onError: (err: Error) => toast.error(err.message || "Update failed"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => adminApi.deleteTeacher(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });
+      toast.success("Teacher deleted");
+      router.push("/admin/teachers");
+    },
+    onError: (err: Error) => toast.error(err.message || "Delete failed"),
   });
 
   const openEdit = () => {
@@ -128,13 +142,23 @@ export default function AdminTeacherDetailPage({
               </CardContent>
             </Card>
 
-                <p className="text-xs text-muted-foreground rounded-xl bg-emerald-light/30 px-3 py-2">
-                  Teachers sign in with phone and password at the main login page —
-                  not the admin sign-in link.
-                </p>
-                <Button variant="outline" className="w-full" onClick={openEdit}>
-                  Edit Teacher / Reset Password
-                </Button>
+            <p className="text-xs text-muted-foreground rounded-xl bg-emerald-light/30 px-3 py-2">
+              Teachers sign in with phone and password at the main login page —
+              not the admin sign-in link.
+            </p>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <Button variant="outline" className="w-full" onClick={openEdit}>
+                Edit Teacher / Reset Password
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full text-destructive"
+                onClick={() => setDeleteOpen(true)}
+              >
+                Delete Teacher
+              </Button>
+            </div>
           </div>
 
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -263,6 +287,17 @@ export default function AdminTeacherDetailPage({
               </div>
             </DialogContent>
           </Dialog>
+
+          <ConfirmDialog
+            open={deleteOpen}
+            onOpenChange={setDeleteOpen}
+            title="Delete teacher?"
+            description={`This will permanently remove ${teacher.first_name} ${teacher.last_name} (${formatPhoneDisplay(teacher.phone)}). This cannot be undone.`}
+            confirmLabel="Delete Teacher"
+            destructive
+            loading={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate()}
+          />
         </>
       )}
     </AppShell>
