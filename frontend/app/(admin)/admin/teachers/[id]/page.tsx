@@ -292,8 +292,8 @@ export default function AdminTeacherDetailPage({
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
             title="Delete teacher?"
-            description={`This will permanently remove ${teacher.first_name} ${teacher.last_name} (${formatPhoneDisplay(teacher.phone)}). This cannot be undone.`}
-            confirmLabel="Delete Teacher"
+            description={`${teacher.first_name} ${teacher.last_name} · ${formatPhoneDisplay(teacher.phone)}`}
+            confirmLabel="Delete"
             destructive
             loading={deleteMutation.isPending}
             onConfirm={() => deleteMutation.mutate()}

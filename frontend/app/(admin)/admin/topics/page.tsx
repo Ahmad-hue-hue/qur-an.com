@@ -184,8 +184,8 @@ export default function AdminTopicsPage() {
         open={!!pendingDelete}
         onOpenChange={(open) => !open && setPendingDelete(null)}
         title="Delete lesson?"
-        description={`Are you sure you want to delete "${pendingDelete?.title}"? This cannot be undone.`}
-        confirmLabel="Delete Lesson"
+        description={pendingDelete?.title}
+        confirmLabel="Delete"
         destructive
         loading={deleteMutation.isPending}
         onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}

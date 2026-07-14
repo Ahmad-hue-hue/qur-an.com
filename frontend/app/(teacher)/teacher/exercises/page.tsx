@@ -355,8 +355,8 @@ export default function TeacherExercisesPage() {
         open={!!pendingDelete}
         onOpenChange={(open) => !open && setPendingDelete(null)}
         title="Delete exercise?"
-        description={`Are you sure you want to delete "${pendingDelete?.title}"? This cannot be undone.`}
-        confirmLabel="Delete Exercise"
+        description={pendingDelete?.title}
+        confirmLabel="Delete"
         destructive
         loading={deleteMutation.isPending}
         onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}

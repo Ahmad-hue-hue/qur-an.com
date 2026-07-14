@@ -411,7 +411,6 @@ export default function AdminExerciseDetailPage({
         open={pendingDeleteId !== null}
         onOpenChange={(open) => !open && setPendingDeleteId(null)}
         title="Delete question?"
-        description="This question will be removed from the exercise."
         confirmLabel="Delete"
         destructive
         loading={deleteQuestionMutation.isPending}

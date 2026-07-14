@@ -480,7 +480,6 @@ export function AssessmentQuestionsDialog({
         open={pendingDeleteId !== null}
         onOpenChange={(next) => !next && setPendingDeleteId(null)}
         title="Delete question?"
-        description="This question will be removed from the assessment."
         confirmLabel="Delete"
         destructive
         loading={deleteMutation.isPending}

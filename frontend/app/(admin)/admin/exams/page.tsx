@@ -230,8 +230,8 @@ export default function AdminExamsPage() {
         open={!!pendingDelete}
         onOpenChange={(open) => !open && setPendingDelete(null)}
         title="Delete exam?"
-        description={`Are you sure you want to delete "${pendingDelete?.title}"? This cannot be undone.`}
-        confirmLabel="Delete Exam"
+        description={pendingDelete?.title}
+        confirmLabel="Delete"
         destructive
         loading={deleteMutation.isPending}
         onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}

@@ -335,8 +335,8 @@ export default function AdminStudentDetailPage({
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         title="Delete student?"
-        description={`This will permanently remove ${student.first_name} ${student.last_name} and all related progress. This cannot be undone.`}
-        confirmLabel="Delete Student"
+        description={`${student.first_name} ${student.last_name}`}
+        confirmLabel="Delete"
         destructive
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}

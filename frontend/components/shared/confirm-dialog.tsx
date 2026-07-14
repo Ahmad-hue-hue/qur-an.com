@@ -14,7 +14,7 @@ interface ConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  description: string;
+  description?: string;
   confirmLabel?: string;
   onConfirm: () => void;
   loading?: boolean;
@@ -33,12 +33,14 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={!loading}>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+      <DialogContent showCloseButton={!loading} className="sm:max-w-sm">
+        <DialogHeader className="gap-1">
+          <DialogTitle className="text-base">{title}</DialogTitle>
+          {description ? (
+            <DialogDescription className="text-sm">{description}</DialogDescription>
+          ) : null}
         </DialogHeader>
-        <DialogFooter showCloseButton={false}>
+        <DialogFooter showCloseButton={false} className="gap-2 sm:gap-2">
           <Button
             variant="outline"
             disabled={loading}
@@ -48,15 +50,11 @@ export function ConfirmDialog({
           </Button>
           <Button
             variant={destructive ? "destructive" : "default"}
-            className={
-              destructive
-                ? undefined
-                : "btn-emerald"
-            }
+            className={destructive ? undefined : "btn-emerald"}
             disabled={loading}
             onClick={onConfirm}
           >
-            {loading ? "Please wait..." : confirmLabel}
+            {loading ? "…" : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
