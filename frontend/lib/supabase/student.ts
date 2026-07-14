@@ -193,12 +193,15 @@ async function getMarhalahStatus(
 function mapTopic(
   topic: DbTopic,
   completedIds: Set<number>,
-  activeTopicId: number | null
+  activeTopicId: number | null,
+  options?: { unlockAllIncomplete?: boolean }
 ): Topic {
   const isCompleted = completedIds.has(topic.id);
   let status: Topic["status"] = "locked";
   if (isCompleted) status = "completed";
-  else if (topic.id === activeTopicId) status = "active";
+  else if (options?.unlockAllIncomplete || topic.id === activeTopicId) {
+    status = "active";
+  }
 
   return {
     id: topic.id,
@@ -214,6 +217,14 @@ function mapTopic(
     is_completed: isCompleted,
     status,
   };
+}
+
+/** Previous stages unlock all lessons; current stage stays sequential. */
+function unlockAllLessonsInMarhalah(
+  assignedMarhalahNumber: number,
+  marhalahNumber: number
+): boolean {
+  return marhalahNumber < assignedMarhalahNumber;
 }
 
 async function countAnswerGrades(
@@ -712,11 +723,17 @@ export const studentApi = {
   },
 
   getTopics: async (marhalahId: number): Promise<Topic[]> => {
-    const { user } = await getCurrentProfile();
+    const { user, profile } = await getCurrentProfile();
     const supabase = getSupabase();
 
     const unlocked = await isMarhalahUnlocked(user.id, marhalahId);
     if (!unlocked) throw new Error("Marhalah is locked.");
+
+    const marhalahNumber = await resolveMarhalahNumberById(marhalahId);
+    const unlockAll = unlockAllLessonsInMarhalah(
+      Number(profile.current_marhalah),
+      marhalahNumber
+    );
 
     const topics = throwIfError(
       await supabase
@@ -741,12 +758,14 @@ export const studentApi = {
     const activeTopic = topics.find((t) => !completedIds.has(t.id));
 
     return topics.map((t) =>
-      mapTopic(t, completedIds, activeTopic?.id ?? null)
+      mapTopic(t, completedIds, activeTopic?.id ?? null, {
+        unlockAllIncomplete: unlockAll,
+      })
     );
   },
 
   getTopic: async (topicId: number): Promise<Topic> => {
-    const { user } = await getCurrentProfile();
+    const { user, profile } = await getCurrentProfile();
     const supabase = getSupabase();
     const topic = throwIfError(
       await supabase
@@ -759,6 +778,12 @@ export const studentApi = {
 
     const unlocked = await isMarhalahUnlocked(user.id, topic.marhalah_id);
     if (!unlocked) throw new Error("This Marḥalah is locked.");
+
+    const marhalahNumber = await resolveMarhalahNumberById(topic.marhalah_id);
+    const unlockAll = unlockAllLessonsInMarhalah(
+      Number(profile.current_marhalah),
+      marhalahNumber
+    );
 
     const marhalahTopics = throwIfError(
       await supabase
@@ -783,7 +808,9 @@ export const studentApi = {
     }
 
     const activeTopic = marhalahTopics.find((t) => !completedIds.has(t.id));
-    const mapped = mapTopic(topic, completedIds, activeTopic?.id ?? null);
+    const mapped = mapTopic(topic, completedIds, activeTopic?.id ?? null, {
+      unlockAllIncomplete: unlockAll,
+    });
     if (mapped.status === "locked") {
       throw new Error(
         "This lesson is locked. Complete previous lessons first, or wait until an admin publishes/unlocks it."
