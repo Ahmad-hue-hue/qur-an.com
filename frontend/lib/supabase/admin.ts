@@ -12,6 +12,7 @@ import {
   defaultExerciseDates,
   isLastLessonOrder,
 } from "@/lib/topic-assessment";
+import { normalizeQuestionMarks } from "@/lib/question-marks";
 import { resolveLessonAudioContentType } from "@/lib/lesson-audio";
 import type {
   AdminStats,
@@ -80,7 +81,7 @@ function mapQuestionRow(q: Record<string, unknown>): QuestionAdmin {
     options: (q.options as string[]) ?? [],
     correct_answer: (q.correct_answer as string) || undefined,
     order: q.order as number,
-    max_score: q.max_score as number,
+    max_score: normalizeQuestionMarks(q.max_score),
     exercise: (q.exercise_id as number) ?? undefined,
     exam: (q.exam_id as number) ?? undefined,
   };
@@ -689,7 +690,7 @@ export const adminApi = {
               ? data.correct_answer || "true"
               : (data.correct_answer ?? data.question_options?.[0] ?? ""),
           order: 1,
-          max_score: 1,
+          max_score: normalizeQuestionMarks(data.question_max_score),
         })
       );
     }
@@ -787,7 +788,7 @@ export const adminApi = {
           options: data.options ?? [],
           correct_answer: data.correct_answer ?? "",
           order,
-          max_score: data.max_score ?? 1,
+          max_score: normalizeQuestionMarks(data.max_score),
         })
         .select("*")
         .single()
@@ -808,7 +809,9 @@ export const adminApi = {
     if (data.options != null) payload.options = data.options;
     if (data.correct_answer != null) payload.correct_answer = data.correct_answer;
     if (data.order != null) payload.order = data.order;
-    if (data.max_score != null) payload.max_score = data.max_score;
+    if (data.max_score !== undefined) {
+      payload.max_score = normalizeQuestionMarks(data.max_score);
+    }
 
     const row = throwIfError(
       await getSupabase()
@@ -1065,7 +1068,7 @@ export const adminApi = {
           options: data.options ?? [],
           correct_answer: data.correct_answer ?? "",
           order,
-          max_score: data.max_score ?? 1,
+          max_score: normalizeQuestionMarks(data.max_score),
         })
         .select("*")
         .single()
@@ -1086,7 +1089,9 @@ export const adminApi = {
     if (data.options != null) payload.options = data.options;
     if (data.correct_answer != null) payload.correct_answer = data.correct_answer;
     if (data.order != null) payload.order = data.order;
-    if (data.max_score != null) payload.max_score = data.max_score;
+    if (data.max_score !== undefined) {
+      payload.max_score = normalizeQuestionMarks(data.max_score);
+    }
 
     const row = throwIfError(
       await getSupabase()

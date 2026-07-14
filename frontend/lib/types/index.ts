@@ -318,6 +318,7 @@ export interface CreateExerciseData {
   question_text?: string;
   question_options?: string[];
   correct_answer?: string;
+  question_max_score?: number;
   questions?: CreateQuestionData[];
 }
 

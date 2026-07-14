@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { adminApi } from "@/lib/api";
 import type { CreateQuestionData } from "@/lib/types";
 import { buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
+import { marksInputValue, normalizeQuestionMarks } from "@/lib/question-marks";
 import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -33,13 +34,17 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { QuestionAdmin } from "@/lib/types";
 
-const emptyQuestionForm = (): CreateQuestionData & { option_a: string; option_b: string } => ({
+const emptyQuestionForm = (): CreateQuestionData & {
+  option_a: string;
+  option_b: string;
+  marks: string;
+} => ({
   type: "mcq",
   text: "",
   option_a: "",
   option_b: "",
   correct_answer: "",
-  max_score: 1,
+  marks: "1",
 });
 
 function questionToForm(q: QuestionAdmin) {
@@ -49,12 +54,15 @@ function questionToForm(q: QuestionAdmin) {
     option_a: q.options?.[0] ?? "",
     option_b: q.options?.[1] ?? "",
     correct_answer: q.correct_answer ?? "",
-    max_score: q.max_score ?? 1,
+    marks: marksInputValue(q.max_score),
   };
 }
 
 function formToPayload(form: ReturnType<typeof emptyQuestionForm>): CreateQuestionData {
-  return buildQuestionPayload(form);
+  return buildQuestionPayload({
+    ...form,
+    max_score: normalizeQuestionMarks(form.marks),
+  });
 }
 
 export default function AdminExamDetailPage({
@@ -209,6 +217,28 @@ export default function AdminExamDetailPage({
                   </div>
 
                   <div className="space-y-2">
+                    <Label>Marks for this question</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      inputMode="numeric"
+                      value={questionForm.marks}
+                      onChange={(e) =>
+                        setQuestionForm((p) => ({
+                          ...p,
+                          marks: e.target.value,
+                        }))
+                      }
+                      onBlur={() =>
+                        setQuestionForm((p) => ({
+                          ...p,
+                          marks: marksInputValue(p.marks),
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label>Question text</Label>
                     <Textarea
                       value={questionForm.text}
@@ -294,21 +324,6 @@ export default function AdminExamDetailPage({
                       Fill-the-gap answers are graded manually after students submit.
                     </p>
                   )}
-
-                  <div className="space-y-2">
-                    <Label>Max score</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={questionForm.max_score}
-                      onChange={(e) =>
-                        setQuestionForm((p) => ({
-                          ...p,
-                          max_score: parseInt(e.target.value) || 1,
-                        }))
-                      }
-                    />
-                  </div>
 
                   <div className="flex gap-2">
                     <Button

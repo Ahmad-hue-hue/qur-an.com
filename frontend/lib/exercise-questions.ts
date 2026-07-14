@@ -1,5 +1,7 @@
 import type { CreateQuestionData, QuestionType } from "@/lib/types";
 
+import { normalizeQuestionMarks } from "@/lib/question-marks";
+
 export const EXERCISE_QUESTION_TYPES: {
   value: QuestionType;
   label: string;
@@ -36,7 +38,7 @@ export function buildQuestionPayload(
   const payload: CreateQuestionData = {
     type: form.type,
     text: form.text,
-    max_score: form.max_score ?? 1,
+    max_score: normalizeQuestionMarks(form.max_score),
     arabic_text: form.arabic_text,
   };
 

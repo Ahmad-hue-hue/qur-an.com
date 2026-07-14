@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/api";
 import type { QuestionType } from "@/lib/types";
+import { normalizeQuestionMarks } from "@/lib/question-marks";
 import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -61,6 +62,7 @@ export default function AdminExercisesPage() {
     option_a: "",
     option_b: "",
     correct_answer: "",
+    question_marks: "1",
   });
 
   const { data: exercises, isLoading } = useQuery({
@@ -80,6 +82,7 @@ export default function AdminExercisesPage() {
         question_text: form.question_text,
         question_options: [form.option_a, form.option_b].filter(Boolean),
         correct_answer: form.correct_answer || form.option_a,
+        question_max_score: normalizeQuestionMarks(form.question_marks),
       }),
     onSuccess: (exercise) => {
       queryClient.invalidateQueries({ queryKey: ["admin-exercises"] });
@@ -93,6 +96,7 @@ export default function AdminExercisesPage() {
         option_a: "",
         option_b: "",
         correct_answer: "",
+        question_marks: "1",
       }));
       router.push(`/admin/exercises/${exercise.id}`);
     },
@@ -206,6 +210,18 @@ export default function AdminExercisesPage() {
                     setForm((p) => ({ ...p, question_text: e.target.value }))
                   }
                 />
+                <div className="space-y-2">
+                  <Label>Marks for first question</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    inputMode="numeric"
+                    value={form.question_marks}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, question_marks: e.target.value }))
+                    }
+                  />
+                </div>
                 {form.question_type === "mcq" && (
                   <>
                     <div className="form-grid-2">

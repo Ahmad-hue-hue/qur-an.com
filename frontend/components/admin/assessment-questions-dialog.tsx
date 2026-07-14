@@ -7,6 +7,7 @@ import { adminApi } from "@/lib/api";
 import type { CreateQuestionData, QuestionAdmin } from "@/lib/types";
 import { EXAM_QUESTION_TYPES, EXERCISE_QUESTION_TYPES, buildQuestionPayload, QUESTION_TYPE_LABELS } from "@/lib/exercise-questions";
 import { formatQuestionMark, totalQuestionMarks } from "@/lib/assessment-mark";
+import { marksInputValue, normalizeQuestionMarks } from "@/lib/question-marks";
 import type { QuestionType } from "@/lib/types";
 import { QuestionTypePicker } from "@/components/admin/question-type-picker";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -42,6 +43,7 @@ const emptyQuestionForm = (): CreateQuestionData & {
   option_a: string;
   option_b: string;
   option_c: string;
+  marks: string;
 } => ({
   type: "mcq",
   text: "",
@@ -49,7 +51,7 @@ const emptyQuestionForm = (): CreateQuestionData & {
   option_b: "",
   option_c: "",
   correct_answer: "",
-  max_score: 1,
+  marks: "1",
 });
 
 function questionToForm(q: QuestionAdmin) {
@@ -60,7 +62,7 @@ function questionToForm(q: QuestionAdmin) {
     option_b: q.options?.[1] ?? "",
     option_c: q.options?.[2] ?? "",
     correct_answer: q.correct_answer ?? "",
-    max_score: q.max_score ?? 1,
+    marks: marksInputValue(q.max_score),
   };
 }
 
@@ -90,6 +92,32 @@ function QuestionFormFields({
             }))
           }
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Marks for this question</Label>
+        <Input
+          type="number"
+          min={1}
+          inputMode="numeric"
+          value={questionForm.marks}
+          onChange={(e) =>
+            setQuestionForm((p) => ({
+              ...p,
+              marks: e.target.value,
+            }))
+          }
+          onBlur={() =>
+            setQuestionForm((p) => ({
+              ...p,
+              marks: marksInputValue(p.marks),
+            }))
+          }
+        />
+        <p className="text-xs text-muted-foreground">
+          How many marks a correct answer earns. Example: set 5 for a harder
+          question. Total score is the sum of all question marks.
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -185,25 +213,6 @@ function QuestionFormFields({
           Fill-the-gap answers are graded manually after students submit.
         </p>
       )}
-
-      <div className="space-y-2">
-        <Label>Marks for this question</Label>
-        <Input
-          type="number"
-          min={1}
-          value={questionForm.max_score}
-          onChange={(e) =>
-            setQuestionForm((p) => ({
-              ...p,
-              max_score: Math.max(1, parseInt(e.target.value, 10) || 1),
-            }))
-          }
-        />
-        <p className="text-xs text-muted-foreground">
-          Set how many marks a correct answer earns. Total student score is the
-          sum of marks from all questions.
-        </p>
-      </div>
     </div>
   );
 }
@@ -291,7 +300,16 @@ export function AssessmentQuestionsDialog({
 
   const saveMutation = useMutation({
     mutationFn: () => {
-      const payload = buildQuestionPayload(questionForm);
+      const payload = buildQuestionPayload({
+        type: questionForm.type,
+        text: questionForm.text,
+        arabic_text: questionForm.arabic_text,
+        option_a: questionForm.option_a,
+        option_b: questionForm.option_b,
+        option_c: questionForm.option_c,
+        correct_answer: questionForm.correct_answer,
+        max_score: normalizeQuestionMarks(questionForm.marks),
+      });
       if (mode === "edit" && editingQuestionId) {
         return kind === "exercise"
           ? api.updateExerciseQuestion(assessmentId, editingQuestionId, payload)
