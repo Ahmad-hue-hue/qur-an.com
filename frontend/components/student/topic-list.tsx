@@ -51,11 +51,15 @@ export function TopicList({ topics }: TopicListProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{topic.title}</p>
-                {topic.arabic_title && (
+                {isLocked ? (
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Locked until admin unlocks
+                  </p>
+                ) : topic.arabic_title ? (
                   <p className="font-arabic text-xs text-muted-foreground">
                     {topic.arabic_title}
                   </p>
-                )}
+                ) : null}
               </div>
               {isActive && (
                 <HugeiconsIcon
