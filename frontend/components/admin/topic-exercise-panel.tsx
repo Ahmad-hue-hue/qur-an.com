@@ -78,8 +78,6 @@ export function TopicExercisePanel({ topic }: { topic: Topic }) {
             </div>
           ) : null}
 
-          {exerciseId ? <AssessmentMarksPanel kind="exercise" assessmentId={exerciseId} /> : null}
-
           {!exerciseId ? (
             <Button
               size="sm"
