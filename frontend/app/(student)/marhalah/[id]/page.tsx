@@ -65,7 +65,7 @@ export default function MarhalahTopicsPage({
               <p className="font-medium text-emerald-deep">Marḥalah locked</p>
               <p className="text-sm text-muted-foreground">
                 {(error as Error).message ||
-                  "This Marḥalah is locked until an admin unlocks it, or you complete the previous stage."}
+                  "Lessons in this Marḥalah unlock when an admin unlocks each lesson."}
               </p>
               <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
                 Back to Home

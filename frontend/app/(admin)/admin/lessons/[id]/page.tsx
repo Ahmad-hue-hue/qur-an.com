@@ -91,6 +91,17 @@ export default function EditLessonPage({
     onError: (err: Error) => toast.error(err.message || "Update failed"),
   });
 
+  const unlockMutation = useMutation({
+    mutationFn: (unlocked: boolean) =>
+      adminApi.setTopicUnlocked(topicId, unlocked),
+    onSuccess: (_data, unlocked) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-topics"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-topic", id] });
+      toast.success(unlocked ? "Lesson unlocked for students" : "Lesson locked");
+    },
+    onError: (err: Error) => toast.error(err.message || "Update failed"),
+  });
+
   return (
     <AppShell variant="admin">
       {isLoading && (
@@ -110,6 +121,38 @@ export default function EditLessonPage({
       </PageHeader>
 
       <div className="page-content max-w-3xl">
+        <Card className="card-shadow mb-4">
+          <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-emerald-deep">
+                Student access
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {topic.is_unlocked
+                  ? "This lesson is unlocked — students can open it."
+                  : "This lesson is locked — unlock it when students should read it."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className={
+                topic.is_unlocked
+                  ? "text-muted-foreground"
+                  : "border-emerald-deep text-emerald-deep"
+              }
+              disabled={unlockMutation.isPending}
+              onClick={() => unlockMutation.mutate(!topic.is_unlocked)}
+            >
+              {unlockMutation.isPending
+                ? "Updating..."
+                : topic.is_unlocked
+                  ? "Lock lesson"
+                  : "Unlock lesson"}
+            </Button>
+          </CardContent>
+        </Card>
+
         <div className="space-y-2">
           <Label>Marḥalah</Label>
           <Select value={marhalahId} onValueChange={(v) => setMarhalahIdOverride(v ?? "1")}>

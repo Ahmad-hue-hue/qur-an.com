@@ -474,6 +474,7 @@ export const adminApi = {
         pdf_url: (t.pdf_url as string) ?? undefined,
         is_completed: false,
         status: "active",
+        is_unlocked: Boolean(t.is_published),
       });
     }
     return topics;
@@ -545,7 +546,18 @@ export const adminApi = {
       pdf_url: (row.pdf_url as string) ?? undefined,
       is_completed: false,
       status: "active",
+      is_unlocked: Boolean(row.is_published),
     });
+  },
+
+  setTopicUnlocked: async (id: number, unlocked: boolean): Promise<Topic> => {
+    throwIfError(
+      await getSupabase().rpc("set_topic_unlocked", {
+        p_topic_id: id,
+        p_unlocked: unlocked,
+      })
+    );
+    return adminApi.getTopic(id);
   },
 
   ensureTopicExercise: async (topicId: number): Promise<ExerciseDetail> => {

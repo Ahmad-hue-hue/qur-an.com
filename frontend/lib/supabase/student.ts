@@ -193,15 +193,18 @@ async function getMarhalahStatus(
 function mapTopic(
   topic: DbTopic,
   completedIds: Set<number>,
-  activeTopicId: number | null,
-  options?: { unlockAllIncomplete?: boolean }
+  options?: {
+    /** Previous marḥalah: every lesson open. Current: only admin-unlocked lessons. */
+    unlockAllIncomplete?: boolean;
+  }
 ): Topic {
   const isCompleted = completedIds.has(topic.id);
+  const isUnlocked =
+    Boolean(options?.unlockAllIncomplete) || Boolean(topic.is_published);
+
   let status: Topic["status"] = "locked";
-  if (isCompleted) status = "completed";
-  else if (options?.unlockAllIncomplete || topic.id === activeTopicId) {
-    status = "active";
-  }
+  if (isCompleted && isUnlocked) status = "completed";
+  else if (isUnlocked) status = "active";
 
   return {
     id: topic.id,
@@ -209,17 +212,18 @@ function mapTopic(
     order: topic.order,
     title: topic.title,
     arabic_title: topic.arabic_title || undefined,
-    content: topic.content || undefined,
-    arabic_content: topic.arabic_content,
-    examples: topic.examples || undefined,
-    audio_url: topic.audio_url ?? undefined,
-    pdf_url: topic.pdf_url ?? undefined,
+    content: isUnlocked ? topic.content || undefined : undefined,
+    arabic_content: isUnlocked ? topic.arabic_content : "",
+    examples: isUnlocked ? topic.examples || undefined : undefined,
+    audio_url: isUnlocked ? topic.audio_url ?? undefined : undefined,
+    pdf_url: isUnlocked ? topic.pdf_url ?? undefined : undefined,
     is_completed: isCompleted,
     status,
+    is_unlocked: isUnlocked,
   };
 }
 
-/** Previous stages unlock all lessons; current stage stays sequential. */
+/** Previous stages unlock all lessons; current stage waits for admin lesson unlock. */
 function unlockAllLessonsInMarhalah(
   assignedMarhalahNumber: number,
   marhalahNumber: number
@@ -614,7 +618,7 @@ export const studentApi = {
       topics_completed: progress.completed,
       total_topics: progress.total,
       next_topic: activeTopic
-        ? mapTopic(activeTopic, completedIds, activeTopic.id)
+        ? mapTopic(activeTopic, completedIds)
         : undefined,
       marhalahs,
       exercises,
@@ -726,9 +730,6 @@ export const studentApi = {
     const { user, profile } = await getCurrentProfile();
     const supabase = getSupabase();
 
-    const unlocked = await isMarhalahUnlocked(user.id, marhalahId);
-    if (!unlocked) throw new Error("Marhalah is locked.");
-
     const marhalahNumber = await resolveMarhalahNumberById(marhalahId);
     const unlockAll = unlockAllLessonsInMarhalah(
       Number(profile.current_marhalah),
@@ -736,65 +737,12 @@ export const studentApi = {
     );
 
     const topics = throwIfError(
-      await supabase
-        .from("topics")
-        .select("*")
-        .eq("marhalah_id", marhalahId)
-        .eq("is_published", true)
-        .order("order")
+      await supabase.rpc("student_list_topics", {
+        p_marhalah_id: marhalahId,
+      })
     ) as DbTopic[];
 
-    const completedRows = throwIfError(
-      await supabase
-        .from("topic_completions")
-        .select("topic_id")
-        .eq("student_id", user.id)
-        .in(
-          "topic_id",
-          topics.map((t) => t.id)
-        )
-    ) as { topic_id: number }[];
-    const completedIds = new Set(completedRows.map((r) => r.topic_id));
-    const activeTopic = topics.find((t) => !completedIds.has(t.id));
-
-    return topics.map((t) =>
-      mapTopic(t, completedIds, activeTopic?.id ?? null, {
-        unlockAllIncomplete: unlockAll,
-      })
-    );
-  },
-
-  getTopic: async (topicId: number): Promise<Topic> => {
-    const { user, profile } = await getCurrentProfile();
-    const supabase = getSupabase();
-    const topic = throwIfError(
-      await supabase
-        .from("topics")
-        .select("*")
-        .eq("id", topicId)
-        .eq("is_published", true)
-        .single()
-    ) as DbTopic;
-
-    const unlocked = await isMarhalahUnlocked(user.id, topic.marhalah_id);
-    if (!unlocked) throw new Error("This Marḥalah is locked.");
-
-    const marhalahNumber = await resolveMarhalahNumberById(topic.marhalah_id);
-    const unlockAll = unlockAllLessonsInMarhalah(
-      Number(profile.current_marhalah),
-      marhalahNumber
-    );
-
-    const marhalahTopics = throwIfError(
-      await supabase
-        .from("topics")
-        .select("id")
-        .eq("marhalah_id", topic.marhalah_id)
-        .eq("is_published", true)
-        .order("order")
-    ) as { id: number }[];
-
-    const topicIds = marhalahTopics.map((t) => t.id);
+    const topicIds = (topics ?? []).map((t) => t.id);
     let completedIds = new Set<number>();
     if (topicIds.length > 0) {
       const completedRows = throwIfError(
@@ -807,13 +755,49 @@ export const studentApi = {
       completedIds = new Set(completedRows.map((r) => r.topic_id));
     }
 
-    const activeTopic = marhalahTopics.find((t) => !completedIds.has(t.id));
-    const mapped = mapTopic(topic, completedIds, activeTopic?.id ?? null, {
+    return (topics ?? []).map((t) =>
+      mapTopic(t, completedIds, { unlockAllIncomplete: unlockAll })
+    );
+  },
+
+  getTopic: async (topicId: number): Promise<Topic> => {
+    const { user, profile } = await getCurrentProfile();
+    const supabase = getSupabase();
+    const topic = throwIfError(
+      await supabase.rpc("student_get_topic", { p_topic_id: topicId })
+    ) as DbTopic;
+
+    const marhalahNumber = await resolveMarhalahNumberById(topic.marhalah_id);
+    const unlockAll = unlockAllLessonsInMarhalah(
+      Number(profile.current_marhalah),
+      marhalahNumber
+    );
+
+    const marhalahTopics = throwIfError(
+      await supabase.rpc("student_list_topics", {
+        p_marhalah_id: topic.marhalah_id,
+      })
+    ) as DbTopic[];
+
+    const topicIds = (marhalahTopics ?? []).map((t) => t.id);
+    let completedIds = new Set<number>();
+    if (topicIds.length > 0) {
+      const completedRows = throwIfError(
+        await supabase
+          .from("topic_completions")
+          .select("topic_id")
+          .eq("student_id", user.id)
+          .in("topic_id", topicIds)
+      ) as { topic_id: number }[];
+      completedIds = new Set(completedRows.map((r) => r.topic_id));
+    }
+
+    const mapped = mapTopic(topic, completedIds, {
       unlockAllIncomplete: unlockAll,
     });
     if (mapped.status === "locked") {
       throw new Error(
-        "This lesson is locked. Complete previous lessons first, or wait until an admin publishes/unlocks it."
+        "This lesson is locked until an admin unlocks it."
       );
     }
     return enrichStudentTopic(mapped, user.id);
@@ -824,7 +808,7 @@ export const studentApi = {
     const supabase = getSupabase();
     const topic = await studentApi.getTopic(topicId);
     if (topic.status === "locked") {
-      throw new Error("Complete the previous topics first.");
+      throw new Error("This lesson is locked until an admin unlocks it.");
     }
     if (topic.is_completed) {
       return topic;

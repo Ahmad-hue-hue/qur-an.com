@@ -84,6 +84,8 @@ export interface Topic {
   pdf_url?: string;
   is_completed: boolean;
   status: TopicStatus;
+  /** Admin unlock flag (maps from is_published). */
+  is_unlocked?: boolean;
   is_last_lesson?: boolean;
   exercise_id?: number;
   exercise_question_count?: number;

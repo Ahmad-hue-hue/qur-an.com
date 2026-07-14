@@ -57,6 +57,16 @@ export default function AdminTopicsPage() {
     onError: (err: Error) => toast.error(err.message || "Delete failed"),
   });
 
+  const unlockMutation = useMutation({
+    mutationFn: ({ id, unlocked }: { id: number; unlocked: boolean }) =>
+      adminApi.setTopicUnlocked(id, unlocked),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-topics", marhalahId] });
+      toast.success(vars.unlocked ? "Lesson unlocked" : "Lesson locked");
+    },
+    onError: (err: Error) => toast.error(err.message || "Update failed"),
+  });
+
   return (
     <AppShell variant="admin">
       <PageHeader title="Manage Topics">
@@ -79,6 +89,10 @@ export default function AdminTopicsPage() {
       </PageHeader>
 
       <div className="page-content space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Unlock each lesson for students. Locked lessons stay hidden until you
+          unlock them.
+        </p>
         <SearchInput
           value={search}
           onValueChange={setSearch}
@@ -112,11 +126,30 @@ export default function AdminTopicsPage() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    {topic.audio_url ? "Audio attached" : "No audio"}
+                    {topic.is_unlocked ? "Unlocked" : "Locked"}
+                    {topic.audio_url ? " · Audio attached" : " · No audio"}
                     {topic.pdf_url ? " · PDF attached" : ""}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={
+                      topic.is_unlocked
+                        ? "text-muted-foreground"
+                        : "border-emerald-deep text-emerald-deep"
+                    }
+                    disabled={unlockMutation.isPending}
+                    onClick={() =>
+                      unlockMutation.mutate({
+                        id: topic.id,
+                        unlocked: !topic.is_unlocked,
+                      })
+                    }
+                  >
+                    {topic.is_unlocked ? "Lock" : "Unlock"}
+                  </Button>
                   <Link
                     href={`/admin/lessons/${topic.id}`}
                     className={buttonVariants({ variant: "ghost", size: "icon" })}
