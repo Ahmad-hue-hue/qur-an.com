@@ -56,6 +56,7 @@ export default function AdminCreateStudentPage() {
     password: "",
     gender: "male" as "male" | "female",
     current_marhalah: "1",
+    registration_number: "",
   });
 
   const [createdStudent, setCreatedStudent] = useState<CreatedStudent | null>(null);
@@ -63,9 +64,13 @@ export default function AdminCreateStudentPage() {
   const createMutation = useMutation({
     mutationFn: () =>
       adminApi.createStudent({
-        ...form,
+        first_name: form.first_name,
+        last_name: form.last_name,
+        phone: form.phone,
+        gender: form.gender,
         current_marhalah: parseInt(form.current_marhalah, 10) || 1,
         password: form.password,
+        registration_number: form.registration_number.trim() || undefined,
       }),
     onSuccess: (student) => {
       queryClient.invalidateQueries({ queryKey: ["admin-students"] });
@@ -128,7 +133,8 @@ export default function AdminCreateStudentPage() {
           <Card className="card-shadow">
             <CardContent className="p-5 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Create a student account with phone number and password.
+                Create a student account with phone and password. You can set a
+                registration number now, or leave it blank to auto-assign.
               </p>
               <div className="form-grid-2">
                 <div className="space-y-2">
@@ -198,6 +204,14 @@ export default function AdminCreateStudentPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Registration number (optional)</Label>
+                <Input
+                  placeholder="e.g. 1.6.18A — leave blank to auto-assign"
+                  value={form.registration_number}
+                  onChange={(e) => update("registration_number", e.target.value)}
+                />
               </div>
               <Button
                 className="w-full btn-emerald"

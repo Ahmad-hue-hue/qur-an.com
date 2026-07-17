@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
       gender,
       current_marhalah,
       password,
+      registration_number,
     } = await req.json();
 
     if (!first_name?.trim() || !phone?.trim()) {
@@ -113,6 +114,29 @@ Deno.serve(async (req) => {
       });
     }
 
+    const customReg =
+      typeof registration_number === "string"
+        ? registration_number.trim()
+        : "";
+
+    if (customReg) {
+      const { data: existingReg } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("registration_number", customReg)
+        .maybeSingle();
+
+      if (existingReg) {
+        return new Response(
+          JSON.stringify({ error: "Registration number already in use" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
     const email = `${normalizedPhone}@students.tajweed.local`;
 
     const { data: authData, error: authError } =
@@ -147,6 +171,7 @@ Deno.serve(async (req) => {
         phone: normalizedPhone,
         first_name: first_name.trim(),
         last_name: (last_name ?? "").trim(),
+        ...(customReg ? { registration_number: customReg } : {}),
       })
       .eq("id", studentId);
 
@@ -158,12 +183,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { error: regError } = await supabase.rpc("assign_registration_number", {
-      p_student_id: studentId,
-    });
+    if (!customReg) {
+      const { error: regError } = await supabase.rpc(
+        "assign_registration_number",
+        {
+          p_student_id: studentId,
+        }
+      );
 
-    if (regError) {
-      console.error("assign_registration_number failed:", regError.message);
+      if (regError) {
+        console.error("assign_registration_number failed:", regError.message);
+      }
     }
 
     const { data: profile } = await supabase

@@ -333,6 +333,7 @@ export const adminApi = {
     data: CreateStudentData
   ): Promise<User & { login_phone?: string; temporary_password?: string }> => {
     const phone = normalizePhone(data.phone);
+    const registrationNumber = data.registration_number?.trim() || undefined;
     const result = await invokeEdgeFunction<{
       profile: Record<string, unknown>;
       login_phone?: string;
@@ -344,9 +345,35 @@ export const adminApi = {
       gender: data.gender,
       current_marhalah: data.current_marhalah,
       password: data.password,
+      registration_number: registrationNumber,
     });
+
+    const profile = mapProfileRow(result.profile);
+
+    if (
+      registrationNumber &&
+      profile.registration_number !== registrationNumber
+    ) {
+      const { data: taken } = await getSupabase()
+        .from("profiles")
+        .select("id")
+        .eq("registration_number", registrationNumber)
+        .neq("id", profile.id)
+        .maybeSingle();
+      if (taken) {
+        throw new SupabaseApiError("Registration number already in use", 400);
+      }
+      throwIfError(
+        await getSupabase()
+          .from("profiles")
+          .update({ registration_number: registrationNumber })
+          .eq("id", profile.id)
+      );
+      profile.registration_number = registrationNumber;
+    }
+
     return {
-      ...mapProfileRow(result.profile),
+      ...profile,
       login_phone: result.login_phone ?? phone,
       temporary_password: result.temporary_password,
     };

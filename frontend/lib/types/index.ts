@@ -274,6 +274,8 @@ export interface CreateStudentData {
   gender: Gender;
   current_marhalah: number;
   password: string;
+  /** Optional. If omitted, a number is auto-assigned. */
+  registration_number?: string;
 }
 
 export interface CreateTeacherData {
