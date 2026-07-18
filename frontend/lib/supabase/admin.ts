@@ -115,10 +115,6 @@ async function enrichTopicWithAssessment(topic: Topic): Promise<Topic> {
     siblings.map((row) => row.order)
   );
 
-  if (is_last_lesson) {
-    return { ...topic, is_last_lesson };
-  }
-
   const exercise = (
     await supabase
       .from("exercises")
@@ -590,9 +586,6 @@ export const adminApi = {
 
   ensureTopicExercise: async (topicId: number): Promise<ExerciseDetail> => {
     const topic = await adminApi.getTopic(topicId);
-    if (topic.is_last_lesson) {
-      throw new Error("The final lesson in a Marḥalah uses an exam, not an exercise.");
-    }
     if (topic.exercise_id) {
       return adminApi.getExercise(topic.exercise_id);
     }

@@ -13,7 +13,7 @@ const STEPS = [
   },
   {
     title: "Students submit",
-    body: "After each lesson, students take the exercise quiz. After the last lesson, they take the Marḥalah exam.",
+    body: "After each lesson, students take the exercise quiz. Once all lessons are done, they take the Marḥalah exam.",
   },
   {
     title: "Scores are automatic",

@@ -167,7 +167,7 @@ export default function TopicDetailPage({
           {isDone ? "Completed" : "Mark as Completed"}
         </Button>
 
-        {!topic.is_last_lesson && topic.exercise_id && isDone && (
+        {topic.exercise_id && isDone && (
           <Card className="card-shadow border-gold/30 bg-gold-light/20">
             <CardContent className="p-4 space-y-3">
               <div>

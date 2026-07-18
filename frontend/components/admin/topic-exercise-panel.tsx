@@ -38,19 +38,6 @@ export function TopicExercisePanel({ topic }: { topic: Topic }) {
     onError: (err: Error) => toast.error(err.message || "Could not create exercise"),
   });
 
-  if (topic.is_last_lesson) {
-    return (
-      <Card className="card-shadow">
-        <CardContent className="p-4">
-          <h3 className="text-sm font-medium">Final exam</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Set on Content — no lesson quiz for the last lesson.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <>
       <Card className="card-shadow">

@@ -289,10 +289,6 @@ async function enrichStudentTopic(
     siblings.map((row) => row.order)
   );
 
-  if (is_last_lesson) {
-    return { ...topic, is_last_lesson };
-  }
-
   const exercise = (
     await supabase
       .from("exercises")
