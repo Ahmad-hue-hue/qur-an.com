@@ -409,9 +409,6 @@ export const adminApi = {
       temporary_password?: string;
     }>("create-teacher", {
       phone,
-      // Kept for compatibility with an older deployed function version.
-      // Current functions derive this internal credential from the phone number.
-      email: `${phone}@teachers.tajweed.local`,
       password: data.password.trim(),
       first_name: data.first_name,
       last_name: data.last_name,
