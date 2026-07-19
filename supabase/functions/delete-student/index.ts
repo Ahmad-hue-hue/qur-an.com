@@ -14,7 +14,7 @@ function adminClient() {
   });
 }
 
-async function requireAdmin(req: Request) {
+async function requireStaff(req: Request) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) throw new Error("Missing authorization");
 
@@ -28,12 +28,14 @@ async function requireAdmin(req: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, gender")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") throw new Error("Admin only");
-  return supabase;
+  if (profile?.role !== "admin" && profile?.role !== "teacher") {
+    throw new Error("Staff only");
+  }
+  return { supabase, staff: profile };
 }
 
 Deno.serve(async (req) => {
@@ -42,13 +44,24 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabase = await requireAdmin(req);
+    const { supabase, staff } = await requireStaff(req);
     const { student_id } = await req.json();
     if (!student_id) {
       return new Response(JSON.stringify({ error: "student_id required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    const { data: student, error: studentError } = await supabase
+      .from("profiles")
+      .select("role, gender")
+      .eq("id", student_id)
+      .single();
+    if (studentError || student?.role !== "student") {
+      throw new Error("Student not found");
+    }
+    if (staff.role === "teacher" && student.gender !== staff.gender) {
+      throw new Error("Teachers can only delete students of their own gender");
     }
 
     const { error } = await supabase.auth.admin.deleteUser(student_id);

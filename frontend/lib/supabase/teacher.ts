@@ -6,6 +6,7 @@ import type {
   Gender,
   MarhalahResultsRoster,
   TeacherProfile,
+  UpdateStudentData,
   User,
 } from "@/lib/types";
 
@@ -57,6 +58,24 @@ export const teacherApi = {
     }
     const rows = throwIfError(await query);
     return (rows ?? []).map((row) => mapProfileRow(row));
+  },
+
+  getStudent: adminApi.getStudent,
+
+  createStudent: adminApi.createStudent,
+
+  updateStudent: async (id: string, data: UpdateStudentData) =>
+    adminApi.updateStudent(id, data),
+
+  deleteStudent: adminApi.deleteStudent,
+
+  assignRegistrationNumber: async (id: string) => {
+    throwIfError(
+      await getSupabase().rpc("staff_assign_registration_number", {
+        p_student_id: id,
+      })
+    );
+    return adminApi.getStudent(id);
   },
 
   getMarhalahResultsRoster: async (

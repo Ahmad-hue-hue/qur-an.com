@@ -450,11 +450,11 @@ export const adminApi = {
     id: string,
     data: UpdateStudentData
   ): Promise<StudentProfile> => {
-    const payload: Record<string, unknown> = { ...data };
-    if (data.phone) payload.phone = normalizePhone(data.phone);
-    throwIfError(
-      await getSupabase().from("profiles").update(payload).eq("id", id)
-    );
+    await invokeEdgeFunction("update-student", {
+      student_id: id,
+      ...data,
+      ...(data.phone ? { phone: normalizePhone(data.phone) } : {}),
+    });
     return buildStudentProfile(id);
   },
 

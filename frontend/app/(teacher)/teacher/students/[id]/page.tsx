@@ -94,6 +94,11 @@ export default function TeacherStudentDetailPage({
           </PageHeader>
 
           <div className="page-content max-w-2xl space-y-4">
+            <Link href={`/teacher/students/${id}/manage`}>
+              <Button variant="outline" className="w-full">
+                Manage student
+              </Button>
+            </Link>
             <Card className="card-shadow">
               <CardContent className="p-5 space-y-2 text-sm">
                 <p>

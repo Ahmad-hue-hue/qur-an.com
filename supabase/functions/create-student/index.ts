@@ -22,7 +22,7 @@ class AuthError extends Error {
   }
 }
 
-async function requireAdmin(req: Request) {
+async function requireStaff(req: Request) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     throw new AuthError("Missing authorization");
@@ -40,18 +40,18 @@ async function requireAdmin(req: Request) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, gender")
     .eq("id", user.id)
     .maybeSingle();
 
   if (profileError) {
-    throw new AuthError("Could not verify admin access");
+    throw new AuthError("Could not verify staff access");
   }
-  if (profile?.role !== "admin") {
-    throw new AuthError("Admin access required", 403);
+  if (profile?.role !== "admin" && profile?.role !== "teacher") {
+    throw new AuthError("Staff access required", 403);
   }
 
-  return supabase;
+  return { supabase, profile };
 }
 
 Deno.serve(async (req) => {
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabase = await requireAdmin(req);
+    const { supabase, profile: staff } = await requireStaff(req);
     const {
       first_name,
       last_name,
@@ -93,6 +93,15 @@ Deno.serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    if (staff.role === "teacher" && staff.gender !== gender) {
+      return new Response(
+        JSON.stringify({ error: "Teachers can only create students of their own gender" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     const marhalah = Number(current_marhalah) || 1;

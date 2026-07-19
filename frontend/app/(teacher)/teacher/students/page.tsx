@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { teacherApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { ClickableListCard } from "@/components/layout/clickable-list-card";
@@ -9,6 +10,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { SearchInput } from "@/components/layout/search-input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { TeacherMarhalahSelect } from "@/components/teacher/teacher-marhalah-select";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
@@ -58,6 +60,9 @@ export default function TeacherStudentsPage() {
       />
 
       <div className="page-content space-y-4">
+        <Link href="/teacher/students/new">
+          <Button className="btn-emerald">Add student</Button>
+        </Link>
         <TeacherMarhalahSelect
           value={marhalahId}
           onValueChange={(v) => setMarhalahOverride(v ?? "1")}
