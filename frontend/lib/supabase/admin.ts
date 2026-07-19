@@ -1247,7 +1247,7 @@ export const adminApi = {
     marhalahNumber: number
   ): Promise<MarhalahResultsRoster> => {
     const data = throwIfError(
-      await getSupabase().rpc("get_marhalah_results_roster", {
+      await getSupabase().rpc("get_marhalah_results_roster_with_manual_scores", {
         p_marhalah_number: marhalahNumber,
       })
     ) as MarhalahResultsRoster | null;
@@ -1282,6 +1282,14 @@ export const adminApi = {
         exam_score: row.exam_score == null ? null : Number(row.exam_score),
         exam_max_score:
           row.exam_max_score == null ? null : Number(row.exam_max_score),
+        halaqah_score:
+          row.halaqah_score == null ? null : Number(row.halaqah_score),
+        halaqah_max_score:
+          row.halaqah_max_score == null ? null : Number(row.halaqah_max_score),
+        tadreeb_score:
+          row.tadreeb_score == null ? null : Number(row.tadreeb_score),
+        tadreeb_max_score:
+          row.tadreeb_max_score == null ? null : Number(row.tadreeb_max_score),
         overall_percent:
           row.overall_percent == null ? null : Number(row.overall_percent),
       })),

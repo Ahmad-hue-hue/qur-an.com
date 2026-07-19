@@ -339,6 +339,10 @@ export interface MarhalahResultsRosterRow {
   lesson_scores: MarhalahResultsLessonScore[];
   exam_score: number | null;
   exam_max_score: number | null;
+  halaqah_score: number | null;
+  halaqah_max_score: number | null;
+  tadreeb_score: number | null;
+  tadreeb_max_score: number | null;
   overall_percent: number | null;
 }
 
