@@ -95,7 +95,11 @@ export default function TeacherDashboardPage() {
               { label: "View students", href: "/teacher/students", icon: UserGroupIcon },
               { label: "Overall results", href: "/teacher/results", icon: UserGroupIcon },
             ].map((action) => (
-              <Link key={action.label} href={action.href}>
+              <Link
+                key={action.label}
+                href={action.href}
+                className="block cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-deep focus-visible:ring-offset-2 rounded-xl"
+              >
                 <Card className="card-shadow hover:shadow-md transition-shadow">
                   <CardContent className="p-4 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-emerald-light flex items-center justify-center">
