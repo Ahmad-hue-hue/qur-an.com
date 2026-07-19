@@ -78,8 +78,7 @@ export default function AdminTeachersPage() {
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
                       {teacher.phone || "No phone"} ·{" "}
-                      {teacher.gender === "female" ? "Female" : "Male"} · Marḥalah{" "}
-                      {teacher.managed_marhalah ?? "—"}
+                      {teacher.gender === "female" ? "Female" : "Male"} · All Marḥalahs
                     </p>
                   </div>
                   <HugeiconsIcon

@@ -46,21 +46,27 @@ export const teacherApi = {
 
   getMarhalahs: adminApi.getMarhalahs,
 
-  getStudents: async (): Promise<User[]> => {
-    const rows = throwIfError(
-      await getSupabase()
-        .from("profiles")
-        .select("*")
-        .eq("role", "student")
-        .order("phone")
-    );
+  getStudents: async (marhalah?: number): Promise<User[]> => {
+    let query = getSupabase()
+      .from("profiles")
+      .select("*")
+      .eq("role", "student")
+      .order("phone");
+    if (marhalah != null) {
+      query = query.eq("current_marhalah", marhalah);
+    }
+    const rows = throwIfError(await query);
     return (rows ?? []).map((row) => mapProfileRow(row));
   },
 
-  getMarhalahResultsRoster: (
+  getMarhalahResultsRoster: async (
     marhalahNumber: number
   ): Promise<MarhalahResultsRoster> =>
-    adminApi.getMarhalahResultsRoster(marhalahNumber),
+    throwIfError(
+      await getSupabase().rpc("get_teacher_marhalah_results_roster", {
+        p_marhalah_number: marhalahNumber,
+      })
+    ) as MarhalahResultsRoster,
 
   upsertManualScore: async (data: {
     student_id: string;

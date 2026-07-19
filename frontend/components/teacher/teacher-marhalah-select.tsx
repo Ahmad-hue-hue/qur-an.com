@@ -34,7 +34,7 @@ export function TeacherMarhalahSelect({
       queryClient.invalidateQueries({ queryKey: ["teacher-exercises"] });
       queryClient.invalidateQueries({ queryKey: ["teacher-exams"] });
       queryClient.invalidateQueries({ queryKey: ["teacher-results-roster"] });
-      toast.success("Marḥalah updated");
+      toast.success("Marhalah view updated");
     },
     onError: (err: Error) => toast.error(err.message || "Could not update marhalah"),
   });
@@ -49,7 +49,7 @@ export function TeacherMarhalahSelect({
 
   return (
     <div className="space-y-2">
-      <Label>Managing Marḥalah</Label>
+      <Label>Viewing Marḥalah</Label>
       <Select value={value} onValueChange={(v) => handleChange(v ?? value)}>
         <SelectTrigger className="w-full sm:w-48">
           <SelectValue />
@@ -64,7 +64,7 @@ export function TeacherMarhalahSelect({
       </Select>
       {profile && (
         <p className="text-xs text-muted-foreground">
-          Students in Marḥalah {value} (male and female).
+          Students in Marḥalah {value}. You can switch between all Marḥalahs.
         </p>
       )}
     </div>

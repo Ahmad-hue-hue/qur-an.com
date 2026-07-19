@@ -29,7 +29,7 @@ export default function TeacherStudentsPage() {
 
   const { data: students, isLoading } = useQuery({
     queryKey: ["teacher-students", marhalahId],
-    queryFn: teacherApi.getStudents,
+    queryFn: () => teacherApi.getStudents(parseInt(marhalahId, 10)),
   });
 
   const filtered = useMemo(
@@ -43,7 +43,7 @@ export default function TeacherStudentsPage() {
     <AppShell variant="teacher">
       <PageHeader
         title="Students"
-        subtitle="All students in your marḥalah (male & female), shown by phone"
+        subtitle={`Students in Marḥalah ${marhalahId}, shown by phone`}
       />
 
       <div className="page-content space-y-4">

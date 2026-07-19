@@ -171,7 +171,7 @@ export default function AdminCreateTeacherPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Default Marḥalah</Label>
+                <Label>Default view</Label>
                 <Select
                   value={form.managed_marhalah}
                   onValueChange={(v) => update("managed_marhalah", v ?? "1")}
@@ -187,6 +187,9 @@ export default function AdminCreateTeacherPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Teachers can access all Marḥalahs.
+                </p>
               </div>
             </div>
             <Button
