@@ -24,10 +24,14 @@ export default function TeacherStudentsPage() {
 
   const marhalahId =
     marhalahOverride ?? String(profile?.managed_marhalah ?? 1);
+  const isAllMarhalahs = marhalahId === "all";
 
   const { data: students, isLoading } = useQuery({
     queryKey: ["teacher-students", marhalahId],
-    queryFn: () => teacherApi.getStudents(parseInt(marhalahId, 10)),
+    queryFn: () =>
+      teacherApi.getStudents(
+        isAllMarhalahs ? undefined : parseInt(marhalahId, 10)
+      ),
   });
 
   const filtered = useMemo(
@@ -46,13 +50,18 @@ export default function TeacherStudentsPage() {
     <AppShell variant="teacher">
       <PageHeader
         title="Students"
-        subtitle={`Students in Marḥalah ${marhalahId}, shown by registration number`}
+        subtitle={
+          isAllMarhalahs
+            ? "All students, shown by registration number"
+            : `Students in Marḥalah ${marhalahId}, shown by registration number`
+        }
       />
 
       <div className="page-content space-y-4">
         <TeacherMarhalahSelect
           value={marhalahId}
           onValueChange={(v) => setMarhalahOverride(v ?? "1")}
+          allowAll
         />
 
         <SearchInput
@@ -108,7 +117,9 @@ export default function TeacherStudentsPage() {
           <p className="py-8 text-center text-sm text-muted-foreground">
             {hasSearch
               ? "No students match your search."
-              : "No students in your marḥalah yet."}
+              : isAllMarhalahs
+                ? "No students yet."
+                : "No students in your marḥalah yet."}
           </p>
         )}
       </div>
