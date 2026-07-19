@@ -4,7 +4,10 @@
 
 update auth.users as auth_user
 set
-  phone = '+' || profile.phone,
+  phone = case
+    when profile.phone like '0%' then '+966' || substring(profile.phone from 2)
+    else '+' || profile.phone
+  end,
   phone_confirmed_at = coalesce(auth_user.phone_confirmed_at, now())
 from public.profiles as profile
 where profile.id = auth_user.id

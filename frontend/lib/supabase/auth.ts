@@ -26,6 +26,10 @@ async function resolvePhoneLoginEmail(phone: string): Promise<string> {
   return phoneAuthEmail(digits, "student");
 }
 
+function toE164Phone(digits: string): string {
+  return `+${digits.startsWith("0") ? `966${digits.slice(1)}` : digits}`;
+}
+
 export const authApi = {
   registerStudent: async ({
     password,
@@ -93,7 +97,7 @@ export const authApi = {
 
     const supabase = getSupabase();
     const { data, error } = await supabase.auth.signInWithPassword({
-      phone: `+${digits}`,
+      phone: toE164Phone(digits),
       password,
     });
     if (!error && data.session) {

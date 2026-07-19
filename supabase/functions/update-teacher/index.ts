@@ -14,6 +14,14 @@ function adminClient() {
   });
 }
 
+function toE164Phone(digits: string) {
+  const normalized = digits.startsWith("0")
+    ? `966${digits.slice(1)}`
+    : digits;
+  const phone = `+${normalized}`;
+  return /^\+[1-9]\d{7,14}$/.test(phone) ? phone : null;
+}
+
 class AuthError extends Error {
   status: number;
   constructor(message: string, status = 401) {
@@ -117,6 +125,13 @@ Deno.serve(async (req) => {
     const normalizedPhone = phone?.trim()
       ? phone.replace(/\D/g, "")
       : existing.phone?.replace(/\D/g, "") ?? "";
+    const authPhone = normalizedPhone ? toE164Phone(normalizedPhone) : null;
+    if (normalizedPhone && !authPhone) {
+      return new Response(JSON.stringify({ error: "Enter a valid phone number" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const authPayload: {
       phone?: string;
@@ -125,7 +140,7 @@ Deno.serve(async (req) => {
     } = {};
 
     if (normalizedPhone) {
-      authPayload.phone = `+${normalizedPhone}`;
+      authPayload.phone = authPhone!;
     }
 
     if (password?.trim()) {
