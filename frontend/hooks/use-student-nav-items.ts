@@ -5,16 +5,16 @@ import { studentApi } from "@/lib/api";
 import { getNavItems, type NavItem } from "@/components/layout/nav-config";
 
 export function useStudentNavItems(): NavItem[] {
-  const { data: dashboard } = useQuery({
-    queryKey: ["dashboard"],
-    queryFn: studentApi.getDashboard,
+  const { data: navigation } = useQuery({
+    queryKey: ["student-navigation"],
+    queryFn: studentApi.getNavigationContext,
   });
 
   return getNavItems("student").map((item) => {
-    if (item.label === "Lessons" && dashboard?.current_marhalah) {
+    if (item.label === "Lessons" && navigation) {
       return {
         ...item,
-        href: `/marhalah/${dashboard.current_marhalah.id}`,
+        href: `/marhalah/${navigation.current_marhalah_id}`,
       };
     }
     return item;
