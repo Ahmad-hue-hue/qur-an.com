@@ -1,8 +1,9 @@
-/** Matches Supabase `assign_registration_number` — {marhalah}.{year-digit}.{seq}{letter} */
+/** Matches Supabase `assign_registration_number` — {marhalah}.{year-digit}.{seq}{A|B}. */
 export function nextRegistrationNumber(
   marhalah: number,
   enrolledAt: Date,
-  existingNumbers: string[]
+  existingNumbers: string[],
+  gender: "male" | "female" = "male"
 ): string {
   const cohortDigit = String(enrolledAt.getFullYear()).slice(-1);
   const prefix = `${marhalah}.${cohortDigit}.`;
@@ -14,5 +15,5 @@ export function nextRegistrationNumber(
     if (match) maxSeq = Math.max(maxSeq, Number(match[1]));
   }
 
-  return `${prefix}${maxSeq + 1}A`;
+  return `${prefix}${maxSeq + 1}${gender === "female" ? "B" : "A"}`;
 }
