@@ -132,7 +132,7 @@ export default function AdminTeacherDetailPage({
                 {[
                   ["Phone (login)", formatPhoneDisplay(teacher.phone)],
                   ["Gender", teacher.gender === "female" ? "Female" : "Male"],
-                  ["Managed Marḥalah", teacher.managed_marhalah ?? "—"],
+                  ["Default view", teacher.managed_marhalah ?? "—"],
                 ].map(([label, value]) => (
                   <div key={label} className="flex justify-between text-sm">
                     <span className="text-muted-foreground">{label}</span>
@@ -144,7 +144,7 @@ export default function AdminTeacherDetailPage({
 
             <p className="text-xs text-muted-foreground rounded-xl bg-emerald-light/30 px-3 py-2">
               Teachers sign in with phone and password at the main login page —
-              not the admin sign-in link.
+              not the admin sign-in link. They can access all Marḥalahs.
             </p>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -245,7 +245,7 @@ export default function AdminTeacherDetailPage({
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Managed Marḥalah</Label>
+                    <Label>Default view</Label>
                     <Select
                       value={form.managed_marhalah}
                       onValueChange={(v) =>
@@ -266,6 +266,9 @@ export default function AdminTeacherDetailPage({
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Teachers can switch between all Marḥalahs.
+                    </p>
                   </div>
                 </div>
                 <Button

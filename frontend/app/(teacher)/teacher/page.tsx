@@ -25,7 +25,7 @@ export default function TeacherDashboardPage() {
 
   const { data: students } = useQuery({
     queryKey: ["teacher-students", marhalahId],
-    queryFn: teacherApi.getStudents,
+    queryFn: () => teacherApi.getStudents(parseInt(marhalahId, 10)),
   });
 
   const { data: exercises } = useQuery({

@@ -66,8 +66,11 @@ export async function downloadResultsRosterPdf(options: {
   title: string;
   subtitle?: string;
   filename: string;
-  head: string[];
-  body: string[][];
+  sections: Array<{
+    title: string;
+    head: string[];
+    body: string[][];
+  }>;
 }) {
   const [{ jsPDF }, autoTableModule] = await Promise.all([
     import("jspdf"),
@@ -92,16 +95,25 @@ export async function downloadResultsRosterPdf(options: {
   doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y);
   y += 3;
 
-  autoTable(doc, {
-    startY: y + 3,
-    head: [options.head],
-    body: options.body,
-    styles: { fontSize: 8, cellPadding: 1.5, halign: "center" },
-    headStyles: { fillColor: [15, 81, 50], halign: "center" },
-    columnStyles: {
-      0: { halign: "left", cellWidth: 36 },
-    },
-  });
+  for (const [index, section] of options.sections.entries()) {
+    if (index > 0) y = (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? y;
+    y += index === 0 ? 6 : 12;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text(section.title, 14, y);
+
+    autoTable(doc, {
+      startY: y + 3,
+      head: [section.head],
+      body: section.body,
+      styles: { fontSize: 8, cellPadding: 1.5, halign: "center" },
+      headStyles: { fillColor: [15, 81, 50], halign: "center" },
+      columnStyles: {
+        0: { halign: "left", cellWidth: 36 },
+      },
+    });
+  }
 
   doc.save(options.filename);
 }
