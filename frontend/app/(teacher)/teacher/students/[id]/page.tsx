@@ -34,7 +34,7 @@ export default function TeacherStudentDetailPage({
 
   const { data: students, isLoading } = useQuery({
     queryKey: ["teacher-students"],
-    queryFn: teacherApi.getStudents,
+    queryFn: () => teacherApi.getStudents(),
   });
 
   const student = students?.find((s) => s.id === id);
