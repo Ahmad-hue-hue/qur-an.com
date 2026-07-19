@@ -15,9 +15,11 @@ import { teacherApi } from "@/lib/api";
 export function TeacherMarhalahSelect({
   value,
   onValueChange,
+  allowAll = false,
 }: {
   value: string;
   onValueChange: (value: string) => void;
+  allowAll?: boolean;
 }) {
   const queryClient = useQueryClient();
 
@@ -41,6 +43,8 @@ export function TeacherMarhalahSelect({
 
   const handleChange = (next: string) => {
     onValueChange(next);
+    if (next === "all") return;
+
     const marhalah = parseInt(next) || 1;
     if (profile?.managed_marhalah !== marhalah) {
       mutation.mutate(marhalah);
@@ -55,6 +59,7 @@ export function TeacherMarhalahSelect({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
+          {allowAll && <SelectItem value="all">All Marḥalahs</SelectItem>}
           {[1, 2, 3, 4].map((n) => (
             <SelectItem key={n} value={String(n)}>
               Marḥalah {n}
@@ -64,7 +69,9 @@ export function TeacherMarhalahSelect({
       </Select>
       {profile && (
         <p className="text-xs text-muted-foreground">
-          Students in Marḥalah {value}. You can switch between all Marḥalahs.
+          {value === "all"
+            ? "Students from all Marḥalahs."
+            : `Students in Marḥalah ${value}. You can switch between all Marḥalahs.`}
         </p>
       )}
     </div>
