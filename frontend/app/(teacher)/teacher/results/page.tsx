@@ -30,38 +30,59 @@ export default function TeacherResultsPage() {
 
   const marhalahId =
     marhalahOverride ?? String(profile?.managed_marhalah ?? 1);
-  const marhalahNumber = parseInt(marhalahId) || 1;
+  const isAllMarhalahs = marhalahId === "all";
+  const marhalahNumbers = isAllMarhalahs
+    ? [1, 2, 3, 4]
+    : [parseInt(marhalahId) || 1];
 
-  const { data: roster, isLoading } = useQuery({
-    queryKey: ["teacher-results-roster", marhalahNumber],
-    queryFn: () => teacherApi.getMarhalahResultsRoster(marhalahNumber),
+  const { data: rosters, isLoading } = useQuery({
+    queryKey: ["teacher-results-roster", marhalahId],
+    queryFn: () =>
+      Promise.all(
+        marhalahNumbers.map((number) =>
+          teacherApi.getMarhalahResultsRoster(number)
+        )
+      ),
   });
 
-  const filteredRoster = useMemo((): MarhalahResultsRoster | undefined => {
-    if (!roster) return undefined;
+  const filteredRosters = useMemo((): MarhalahResultsRoster[] => {
+    if (!rosters) return [];
     const term = search.trim().toLowerCase();
-    if (!term) return roster;
-    return {
+    return rosters.map((roster) => ({
       ...roster,
-      rows: roster.rows.filter((row) =>
-        (row.registration_number ?? "").toLowerCase().includes(term)
-      ),
-    };
-  }, [roster, search]);
+      rows: term
+        ? roster.rows.filter((row) =>
+            (row.registration_number ?? "").toLowerCase().includes(term)
+          )
+        : roster.rows,
+    }));
+  }, [rosters, search]);
 
   const handleDownload = async () => {
-    const pdfRoster = await teacherApi.getMarhalahResultsRosterForPdf(
-      marhalahNumber
+    const pdfRosters = await Promise.all(
+      marhalahNumbers.map((number) =>
+        teacherApi.getMarhalahResultsRosterForPdf(number)
+      )
     );
-    if (!pdfRoster.rows.length) {
+    if (!pdfRosters.some((roster) => roster.rows.length > 0)) {
       toast.error("No results to download yet.");
       return;
     }
+
+    const sections = pdfRosters.flatMap((roster) =>
+      rosterToPdfSections(roster).map((section) => ({
+        ...section,
+        title: isAllMarhalahs
+          ? `MARHALAH ${roster.marhalah_number} — ${section.title}`
+          : section.title,
+      }))
+    );
+
     await downloadResultsRosterPdf({
       title: "Marḥalah Results",
-      subtitle: `Marḥalah ${marhalahNumber}`,
-      filename: `results-m${marhalahNumber}.pdf`,
-      sections: rosterToPdfSections(pdfRoster),
+      subtitle: isAllMarhalahs ? "All Marḥalahs" : `Marḥalah ${marhalahId}`,
+      filename: isAllMarhalahs ? "results-all-marhalahs.pdf" : `results-m${marhalahId}.pdf`,
+      sections,
     });
     toast.success("PDF downloaded");
   };
@@ -88,6 +109,7 @@ export default function TeacherResultsPage() {
         <TeacherMarhalahSelect
           value={marhalahId}
           onValueChange={(v) => setMarhalahOverride(v ?? "1")}
+          allowAll
         />
         <SearchInput
           value={search}
@@ -97,9 +119,14 @@ export default function TeacherResultsPage() {
 
         {isLoading && <Skeleton className="h-48 w-full rounded-xl" />}
 
-        {!isLoading && filteredRoster && (
-          <ResultsRosterTable roster={filteredRoster} />
-        )}
+        {!isLoading && filteredRosters.map((roster) => (
+          <section key={roster.marhalah_number} className="space-y-3">
+            {isAllMarhalahs && (
+              <h2 className="section-title">Marḥalah {roster.marhalah_number}</h2>
+            )}
+            <ResultsRosterTable roster={roster} />
+          </section>
+        ))}
       </div>
     </AppShell>
   );

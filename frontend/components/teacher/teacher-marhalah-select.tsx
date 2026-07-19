@@ -70,7 +70,7 @@ export function TeacherMarhalahSelect({
       {profile && (
         <p className="text-xs text-muted-foreground">
           {value === "all"
-            ? "Students from all Marḥalahs."
+            ? "All Marḥalahs selected."
             : `Students in Marḥalah ${value}. You can switch between all Marḥalahs.`}
         </p>
       )}
