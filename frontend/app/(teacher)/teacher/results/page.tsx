@@ -7,7 +7,7 @@ import { teacherApi } from "@/lib/api";
 import { downloadResultsRosterPdf } from "@/lib/results-pdf";
 import {
   ResultsRosterTable,
-  rosterToPdfTable,
+  rosterToPdfSections,
 } from "@/components/shared/results-roster-table";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -50,17 +50,18 @@ export default function TeacherResultsPage() {
   }, [roster, search]);
 
   const handleDownload = async () => {
-    if (!filteredRoster?.rows.length) {
+    const pdfRoster = await teacherApi.getMarhalahResultsRosterForPdf(
+      marhalahNumber
+    );
+    if (!pdfRoster.rows.length) {
       toast.error("No results to download yet.");
       return;
     }
-    const { head, body } = rosterToPdfTable(filteredRoster);
     await downloadResultsRosterPdf({
       title: "Marḥalah Results",
       subtitle: `Marḥalah ${marhalahNumber}`,
       filename: `results-m${marhalahNumber}.pdf`,
-      head,
-      body,
+      sections: rosterToPdfSections(pdfRoster),
     });
     toast.success("PDF downloaded");
   };
@@ -76,7 +77,7 @@ export default function TeacherResultsPage() {
           variant="secondary"
           className="mt-3 gap-2 bg-cream/15 text-cream hover:bg-cream/25"
           onClick={handleDownload}
-          disabled={!filteredRoster?.rows.length}
+          disabled={isLoading}
         >
           <HugeiconsIcon icon={Download01Icon} size={18} />
           Download PDF

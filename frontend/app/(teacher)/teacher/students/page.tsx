@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { teacherApi } from "@/lib/api";
-import { matchesStudentSearch } from "@/lib/student-search";
-import { formatPhoneDisplay } from "@/lib/phone-auth";
 import { AppShell } from "@/components/layout/app-shell";
 import { ClickableListCard } from "@/components/layout/clickable-list-card";
 import { PageHeader } from "@/components/layout/page-header";
@@ -33,7 +31,12 @@ export default function TeacherStudentsPage() {
   });
 
   const filtered = useMemo(
-    () => students?.filter((s) => matchesStudentSearch(s, search)) ?? [],
+    () => {
+      const term = search.trim().toLowerCase();
+      return students?.filter((student) =>
+        !term || student.registration_number?.toLowerCase().includes(term)
+      ) ?? [];
+    },
     [students, search]
   );
 
@@ -43,7 +46,7 @@ export default function TeacherStudentsPage() {
     <AppShell variant="teacher">
       <PageHeader
         title="Students"
-        subtitle={`Students in Marḥalah ${marhalahId}, shown by phone`}
+        subtitle={`Students in Marḥalah ${marhalahId}, shown by registration number`}
       />
 
       <div className="page-content space-y-4">
@@ -55,7 +58,7 @@ export default function TeacherStudentsPage() {
         <SearchInput
           value={search}
           onValueChange={setSearch}
-          placeholder="Search by phone, name, or reg. number..."
+          placeholder="Search registration number..."
         />
 
         {isLoading && (
@@ -69,7 +72,7 @@ export default function TeacherStudentsPage() {
         {!isLoading && (
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {filtered.map((student) => {
-              const phone = formatPhoneDisplay(student.phone);
+              const registrationNumber = student.registration_number || "—";
               return (
                 <ClickableListCard
                   key={student.id}
@@ -78,18 +81,15 @@ export default function TeacherStudentsPage() {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarFallback className="bg-emerald-light text-emerald-deep text-sm font-mono">
-                        {phone.slice(-2) || "?"}
+                        {registrationNumber.slice(-2)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium font-mono">
-                        {phone}
+                        {registrationNumber}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
                         {student.gender === "female" ? "Female" : "Male"}
-                        {student.registration_number
-                          ? ` · ${student.registration_number}`
-                          : ""}
                       </p>
                     </div>
                     <HugeiconsIcon

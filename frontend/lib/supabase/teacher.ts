@@ -68,6 +68,15 @@ export const teacherApi = {
       })
     ) as MarhalahResultsRoster,
 
+  getMarhalahResultsRosterForPdf: async (
+    marhalahNumber: number
+  ): Promise<MarhalahResultsRoster> =>
+    throwIfError(
+      await getSupabase().rpc("get_teacher_marhalah_results_roster_pdf", {
+        p_marhalah_number: marhalahNumber,
+      })
+    ) as MarhalahResultsRoster,
+
   upsertManualScore: async (data: {
     student_id: string;
     marhalah: number;

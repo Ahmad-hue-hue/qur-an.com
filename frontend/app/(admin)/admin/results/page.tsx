@@ -7,7 +7,7 @@ import { adminApi } from "@/lib/api";
 import { downloadResultsRosterPdf } from "@/lib/results-pdf";
 import {
   ResultsRosterTable,
-  rosterToPdfTable,
+  rosterToPdfSections,
 } from "@/components/shared/results-roster-table";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -46,13 +46,11 @@ export default function AdminResultsPage() {
       toast.error("No results to download yet.");
       return;
     }
-    const { head, body } = rosterToPdfTable(filteredRoster);
     await downloadResultsRosterPdf({
       title: "Marḥalah Results",
       subtitle: `Marḥalah ${marhalahNumber}`,
       filename: `admin-results-m${marhalahNumber}.pdf`,
-      head,
-      body,
+      sections: rosterToPdfSections(filteredRoster),
     });
     toast.success("PDF downloaded");
   };

@@ -49,6 +49,12 @@ export function ResultsRosterTable({
   );
 }
 
+export type ResultsRosterPdfSection = {
+  title: string;
+  head: string[];
+  body: string[][];
+};
+
 function ResultsRegister({
   title,
   rows,
@@ -118,17 +124,16 @@ function ResultsRegister({
   );
 }
 
-export function rosterToPdfTable(roster: MarhalahResultsRoster): {
-  head: string[];
-  body: string[][];
-} {
+export function rosterToPdfSections(
+  roster: MarhalahResultsRoster
+): ResultsRosterPdfSection[] {
   const head = [
     "Reg. no.",
     ...roster.columns.map((col) => `Zoezi ${col.order}`),
     "Mtihani",
     "Jumla",
   ];
-  const body = roster.rows.map((row) => {
+  const bodyFor = (rows: MarhalahResultsRoster["rows"]) => rows.map((row) => {
     const scoreByExercise = new Map(
       row.lesson_scores.map((s) => [s.exercise_id, s])
     );
@@ -142,5 +147,16 @@ export function rosterToPdfTable(roster: MarhalahResultsRoster): {
       formatTotal(row),
     ];
   });
-  return { head, body };
+
+  const maleRows = roster.rows.filter(
+    (row) => !row.registration_number?.endsWith("B")
+  );
+  const femaleRows = roster.rows.filter((row) =>
+    row.registration_number?.endsWith("B")
+  );
+
+  return [
+    { title: "WANAUME (A)", head, body: bodyFor(maleRows) },
+    { title: "WANAWAKE (B)", head, body: bodyFor(femaleRows) },
+  ].filter((section) => section.body.length > 0);
 }
