@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { teacherApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
-import { ClickableListCard } from "@/components/layout/clickable-list-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { TeacherMarhalahSelect } from "@/components/teacher/teacher-marhalah-select";
@@ -106,27 +105,33 @@ export default function TeacherDashboardPage() {
               { label: "View students", href: "/teacher/students", icon: UserGroupIcon },
               { label: "Overall results", href: "/teacher/results", icon: UserGroupIcon },
             ].map((action) => (
-              <ClickableListCard
+              <a
                 key={action.label}
                 href={action.href}
-                className="h-full"
+                className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-deep focus-visible:ring-offset-2"
+                onClick={(event) => {
+                  event.preventDefault();
+                  window.location.assign(action.href);
+                }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-light flex items-center justify-center">
+                <Card className="card-shadow h-full cursor-pointer transition-shadow hover:shadow-md active:scale-[0.99]">
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-light flex items-center justify-center">
+                      <HugeiconsIcon
+                        icon={action.icon}
+                        size={20}
+                        className="text-emerald-deep"
+                      />
+                    </div>
+                    <span className="font-medium text-sm flex-1">{action.label}</span>
                     <HugeiconsIcon
-                      icon={action.icon}
-                      size={20}
-                      className="text-emerald-deep"
+                      icon={ArrowRight01Icon}
+                      size={18}
+                      className="text-muted-foreground"
                     />
-                  </div>
-                  <span className="font-medium text-sm flex-1">{action.label}</span>
-                  <HugeiconsIcon
-                    icon={ArrowRight01Icon}
-                    size={18}
-                    className="text-muted-foreground"
-                  />
-                </div>
-              </ClickableListCard>
+                  </CardContent>
+                </Card>
+              </a>
             ))}
           </div>
         </section>
