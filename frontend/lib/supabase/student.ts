@@ -335,7 +335,8 @@ async function enrichStudentTopic(
 
 async function buildExerciseRow(
   exercise: Record<string, unknown>,
-  studentId: string
+  studentId: string,
+  marhalahNumber?: number
 ): Promise<Exercise> {
   const supabase = getSupabase();
   const exerciseId = exercise.id as number;
@@ -369,11 +370,13 @@ async function buildExerciseRow(
     })
   ) as Exercise["status"];
 
-  const marhalahNumber = await resolveMarhalahNumberById(exercise.marhalah_id as number);
+  const marhalah =
+    marhalahNumber ??
+    (await resolveMarhalahNumberById(exercise.marhalah_id as number));
 
   return {
     id: exerciseId,
-    marhalah: marhalahNumber,
+    marhalah,
     title: exercise.title as string,
     description: (exercise.description as string) || undefined,
     start_date: exercise.start_date as string,
@@ -391,7 +394,8 @@ async function buildExerciseRow(
 
 async function buildExamRow(
   exam: Record<string, unknown>,
-  studentId: string
+  studentId: string,
+  marhalahNumber?: number
 ): Promise<Exam> {
   const supabase = getSupabase();
   const examId = exam.id as number;
@@ -425,11 +429,13 @@ async function buildExamRow(
     })
   ) as Exam["status"];
 
-  const marhalahNumber = await resolveMarhalahNumberById(exam.marhalah_id as number);
+  const marhalah =
+    marhalahNumber ??
+    (await resolveMarhalahNumberById(exam.marhalah_id as number));
 
   return {
     id: examId,
-    marhalah: marhalahNumber,
+    marhalah,
     title: exam.title as string,
     description: (exam.description as string) || undefined,
     duration_minutes: Number(exam.duration_minutes),
@@ -503,41 +509,78 @@ async function buildFallbackAnswerGrades(
 }
 
 export const studentApi = {
+  getNavigationContext: async (): Promise<{ current_marhalah_id: number }> => {
+    const { profile } = await getCurrentProfile();
+    const marhalah = throwIfError(
+      await getSupabase()
+        .from("marhalahs")
+        .select("id")
+        .eq("number", profile.current_marhalah)
+        .single()
+    ) as { id: number };
+
+    return { current_marhalah_id: marhalah.id };
+  },
+
   getDashboard: async (): Promise<DashboardData> => {
     const { user, profile } = await getCurrentProfile();
     const supabase = getSupabase();
-    const marhalah = await getMarhalahByNumber(profile.current_marhalah);
-    const progress = await getStudentProgress(user.id, marhalah.id);
-
     const allMarhalahs = throwIfError(
       await supabase.from("marhalahs").select("*").order("number")
     ) as DbMarhalah[];
 
-    const marhalahs: Marhalah[] = [];
-    for (const m of allMarhalahs) {
-      const mProgress = await getStudentProgress(user.id, m.id);
-      const finalScore = await getFinalScore(user.id, m.id);
-      marhalahs.push({
-        id: m.id,
-        number: m.number,
-        title: m.title,
-        description: m.description,
-        unlock_threshold: m.unlock_threshold,
-        status: await getMarhalahStatus(user.id, m, finalScore),
-        topics_count: mProgress.total,
-        topics_completed: mProgress.completed,
-        final_score: finalScore > 0 ? finalScore : undefined,
-      });
+    const marhalahs = await Promise.all(
+      allMarhalahs.map(async (m): Promise<Marhalah> => {
+        const [progress, finalScore, unlocked] = await Promise.all([
+          getStudentProgress(user.id, m.id),
+          getFinalScore(user.id, m.id),
+          isMarhalahUnlocked(user.id, m.id),
+        ]);
+
+        return {
+          id: m.id,
+          number: m.number,
+          title: m.title,
+          description: m.description,
+          unlock_threshold: m.unlock_threshold,
+          status: !unlocked
+            ? "locked"
+            : progress.total > 0 &&
+                progress.completed >= progress.total &&
+                finalScore > 0
+              ? "completed"
+              : "open",
+          topics_count: progress.total,
+          topics_completed: progress.completed,
+          final_score: finalScore > 0 ? finalScore : undefined,
+        };
+      })
+    );
+    const currentMarhalah =
+      marhalahs.find((m) => m.number === profile.current_marhalah) ?? marhalahs[0];
+    if (!currentMarhalah) {
+      throw new Error("No Marḥalahs are configured.");
     }
 
-    const topics = throwIfError(
-      await supabase
+    const [topics, exercisesRaw, examsRaw] = await Promise.all([
+      supabase
         .from("topics")
         .select("*")
-        .eq("marhalah_id", marhalah.id)
+        .eq("marhalah_id", currentMarhalah.id)
         .eq("is_published", true)
-        .order("order")
-    ) as DbTopic[];
+        .order("order"),
+      supabase
+        .from("exercises")
+        .select("*")
+        .eq("marhalah_id", currentMarhalah.id)
+        .order("start_date"),
+      supabase
+        .from("exams")
+        .select("*")
+        .eq("marhalah_id", currentMarhalah.id)
+        .order("start_date"),
+    ]);
+    const currentTopics = throwIfError(topics) as DbTopic[];
 
     const completedRows = throwIfError(
       await supabase
@@ -546,73 +589,67 @@ export const studentApi = {
         .eq("student_id", user.id)
         .in(
           "topic_id",
-          topics.map((t) => t.id)
+          currentTopics.map((t) => t.id)
         )
     ) as { topic_id: number }[];
     const completedIds = new Set(completedRows.map((r) => r.topic_id));
-    const activeTopic = topics.find((t) => !completedIds.has(t.id));
-
-    const exercisesRaw = throwIfError(
-      await supabase
-        .from("exercises")
-        .select("*")
-        .eq("marhalah_id", marhalah.id)
-        .order("start_date")
+    const activeTopic = currentTopics.find((t) => !completedIds.has(t.id));
+    const exercises = await Promise.all(
+      (throwIfError(exercisesRaw) as Record<string, unknown>[]).map((exercise) =>
+        buildExerciseRow(exercise, user.id, currentMarhalah.number)
+      )
     );
-    const exercises: Exercise[] = [];
-    for (const ex of exercisesRaw ?? []) {
-      exercises.push(await buildExerciseRow(ex, user.id));
-    }
-
-    const examsRaw = throwIfError(
-      await supabase
-        .from("exams")
-        .select("*")
-        .eq("marhalah_id", marhalah.id)
-        .order("start_date")
+    const exams = await Promise.all(
+      (throwIfError(examsRaw) as Record<string, unknown>[]).map((exam) =>
+        buildExamRow(exam, user.id, currentMarhalah.number)
+      )
     );
-    const exams: Exam[] = [];
-    for (const exam of examsRaw ?? []) {
-      exams.push(await buildExamRow(exam, user.id));
-    }
 
-    const includeOralAssessments = marhalahHasOralAssessments(marhalah.number);
+    const includeOralAssessments = marhalahHasOralAssessments(currentMarhalah.number);
 
     let halaqahRow: Record<string, unknown> | null = null;
     let tadreebRow: Record<string, unknown> | null = null;
     if (includeOralAssessments) {
-      halaqahRow = (
-        await supabase
+      const [halaqah, tadreeb] = await Promise.all([
+        supabase
           .from("manual_scores")
           .select("*")
           .eq("student_id", user.id)
-          .eq("marhalah_id", marhalah.id)
+          .eq("marhalah_id", currentMarhalah.id)
           .eq("type", "halaqah")
-          .maybeSingle()
-      ).data;
-      tadreebRow = (
-        await supabase
+          .maybeSingle(),
+        supabase
           .from("manual_scores")
           .select("*")
           .eq("student_id", user.id)
-          .eq("marhalah_id", marhalah.id)
+          .eq("marhalah_id", currentMarhalah.id)
           .eq("type", "tadreeb")
-          .maybeSingle()
-      ).data;
+          .maybeSingle(),
+      ]);
+      halaqahRow = halaqah.data;
+      tadreebRow = tadreeb.data;
     }
 
-    const profileData = await studentApi.getProfile();
-
-    const currentMarhalah =
-      marhalahs.find((m) => m.number === profile.current_marhalah) ?? marhalahs[0];
+    const scores = marhalahs
+      .map((marhalah) => marhalah.final_score)
+      .filter((score): score is number => score != null);
+    const overallAverage =
+      scores.length > 0
+        ? Math.round((scores.reduce((total, score) => total + score, 0) / scores.length) * 10) /
+          10
+        : 0;
 
     return {
       greeting: `السلام عليكم ${profile.first_name}`,
       registration_number: profile.registration_number,
       current_marhalah: currentMarhalah,
-      progress_percent: progress.percent,
-      topics_completed: progress.completed,
-      total_topics: progress.total,
+      progress_percent: currentMarhalah.topics_count
+        ? Math.round(
+            (currentMarhalah.topics_completed / currentMarhalah.topics_count) * 100
+          )
+        : 0,
+      topics_completed: currentMarhalah.topics_completed,
+      total_topics: currentMarhalah.topics_count,
       next_topic: activeTopic
         ? mapTopic(activeTopic, completedIds)
         : undefined,
@@ -625,7 +662,7 @@ export const studentApi = {
             type: "halaqah",
             score: Number(halaqahRow.score),
             max_score: Number(halaqahRow.max_score),
-            marhalah: marhalah.id,
+            marhalah: currentMarhalah.id,
             notes:
               typeof halaqahRow.notes === "string"
                 ? halaqahRow.notes
@@ -638,7 +675,7 @@ export const studentApi = {
             type: "tadreeb",
             score: Number(tadreebRow.score),
             max_score: Number(tadreebRow.max_score),
-            marhalah: marhalah.id,
+            marhalah: currentMarhalah.id,
             notes:
               typeof tadreebRow.notes === "string"
                 ? tadreebRow.notes
@@ -660,7 +697,7 @@ export const studentApi = {
               max_score: exams.find((e) => e.score != null)!.max_score!,
             }
           : undefined,
-        overall_average: profileData.overall_average,
+        overall_average: overallAverage,
       },
     };
   },

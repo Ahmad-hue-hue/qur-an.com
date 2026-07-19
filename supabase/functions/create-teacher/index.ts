@@ -119,14 +119,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const email = `${normalizedPhone}@teachers.tajweed.local`;
     const normalizedPassword = password.trim();
 
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
-        email,
+        phone: `+${normalizedPhone}`,
         password: normalizedPassword,
-        email_confirm: true,
+        phone_confirm: true,
         user_metadata: {
           first_name: first_name.trim(),
           last_name: (last_name ?? "").trim(),
@@ -152,7 +151,6 @@ Deno.serve(async (req) => {
         managed_marhalah: marhalah,
         first_name: first_name.trim(),
         last_name: (last_name ?? "").trim(),
-        email,
         phone: normalizedPhone,
       })
       .eq("id", authData.user.id);

@@ -86,6 +86,27 @@ export const authApi = {
     phone: string;
     password: string;
   }) => {
+    const digits = normalizePhone(phone);
+    if (!digits) {
+      throw new SupabaseApiError("Enter a valid phone number.");
+    }
+
+    const supabase = getSupabase();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      phone: `+${digits}`,
+      password,
+    });
+    if (!error && data.session) {
+      const role = await fetchUserRole(supabase, data.user.id, data.user);
+      if (!role) {
+        throw new SupabaseApiError("Could not load your account profile. Try again.");
+      }
+      markBrowserSessionActive();
+      return { session: data.session, role };
+    }
+
+    // Existing student and teacher accounts can continue using the prior
+    // email-backed credential until they are migrated to native phone auth.
     const email = await resolvePhoneLoginEmail(phone);
     return authApi.login({ email, password });
   },

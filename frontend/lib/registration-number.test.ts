@@ -25,4 +25,10 @@ describe("nextRegistrationNumber", () => {
       nextRegistrationNumber(2, new Date("2026-03-01"), ["2.6.3A"])
     ).toBe("2.6.4A");
   });
+
+  test("uses B for female students", () => {
+    expect(
+      nextRegistrationNumber(1, new Date("2026-03-01"), ["1.6.3A"], "female")
+    ).toBe("1.6.4B");
+  });
 });

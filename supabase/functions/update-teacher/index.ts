@@ -119,13 +119,13 @@ Deno.serve(async (req) => {
       : existing.phone?.replace(/\D/g, "") ?? "";
 
     const authPayload: {
-      email?: string;
+      phone?: string;
       password?: string;
       user_metadata?: Record<string, unknown>;
     } = {};
 
     if (normalizedPhone) {
-      authPayload.email = `${normalizedPhone}@teachers.tajweed.local`;
+      authPayload.phone = `+${normalizedPhone}`;
     }
 
     if (password?.trim()) {
@@ -169,7 +169,6 @@ Deno.serve(async (req) => {
     };
     if (normalizedPhone) {
       profileUpdate.phone = normalizedPhone;
-      profileUpdate.email = `${normalizedPhone}@teachers.tajweed.local`;
     }
 
     const { error: profileError } = await supabase
