@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { studentApi } from "@/lib/api";
 import { formatAssessmentMark } from "@/lib/assessment-mark";
 import { formatPhoneDisplay } from "@/lib/phone-auth";
-import { downloadResultsPdf } from "@/lib/results-pdf";
+import { downloadResultsRosterPdf } from "@/lib/results-pdf";
+import { rosterToPdfSections } from "@/components/shared/results-roster-table";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -28,25 +29,23 @@ export default function StudentResultsDashboardPage() {
   });
 
   const phone = formatPhoneDisplay(profile?.phone);
+  const marhalahNumber = profile?.current_marhalah ?? 1;
+  const { data: roster } = useQuery({
+    queryKey: ["student-results-roster", marhalahNumber],
+    queryFn: () => studentApi.getMarhalahResultsRoster(marhalahNumber),
+    enabled: Boolean(profile),
+  });
 
   const handleDownload = async () => {
-    if (!submissions?.length) {
+    if (!roster?.rows.length) {
       toast.error("No results to download yet.");
       return;
     }
-    await downloadResultsPdf({
-      title: "My Assessment Results",
-      subtitle: "Tajweed Classes",
-      phone,
-      filename: `results-${phone || "student"}.pdf`,
-      rows: submissions.map((row) => ({
-        label: row.title,
-        detail: `${row.kind === "exam" ? "Exam" : "Exercise"} · ${format(
-          new Date(row.submitted_at),
-          "MMM d, yyyy"
-        )}`,
-        score: formatAssessmentMark(row.score, row.max_score),
-      })),
+    await downloadResultsRosterPdf({
+      title: "My Results",
+      subtitle: `Marḥalah ${marhalahNumber}`,
+      filename: `results-${profile?.registration_number || "student"}.pdf`,
+      sections: rosterToPdfSections(roster),
     });
     toast.success("PDF downloaded");
   };
@@ -62,7 +61,7 @@ export default function StudentResultsDashboardPage() {
           variant="secondary"
           className="mt-3 gap-2 bg-cream/15 text-cream hover:bg-cream/25"
           onClick={handleDownload}
-          disabled={!submissions?.length}
+          disabled={!roster?.rows.length}
         >
           <HugeiconsIcon icon={Download01Icon} size={18} />
           Download PDF

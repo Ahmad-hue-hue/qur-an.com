@@ -13,6 +13,7 @@ import type {
   Exam,
   ManualScore,
   Marhalah,
+  MarhalahResultsRoster,
   Question,
   StudentProfile,
   StudentSubmissionSummary,
@@ -509,6 +510,15 @@ async function buildFallbackAnswerGrades(
 }
 
 export const studentApi = {
+  getMarhalahResultsRoster: async (
+    marhalahNumber: number
+  ): Promise<MarhalahResultsRoster> =>
+    throwIfError(
+      await getSupabase().rpc("get_student_marhalah_results_roster", {
+        p_marhalah_number: marhalahNumber,
+      })
+    ) as MarhalahResultsRoster,
+
   getNavigationContext: async (): Promise<{ current_marhalah_id: number }> => {
     const { profile } = await getCurrentProfile();
     const marhalah = throwIfError(
