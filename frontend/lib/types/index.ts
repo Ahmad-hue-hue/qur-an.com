@@ -358,6 +358,7 @@ export interface UpdateStudentData {
   first_name?: string;
   last_name?: string;
   phone?: string;
+  gender?: Gender;
   is_suspended?: boolean;
   current_marhalah?: number;
   registration_number?: string | null;

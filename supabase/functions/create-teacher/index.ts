@@ -14,6 +14,14 @@ function adminClient() {
   });
 }
 
+function toE164Phone(digits: string) {
+  const normalized = digits.startsWith("0")
+    ? `966${digits.slice(1)}`
+    : digits;
+  const phone = `+${normalized}`;
+  return /^\+[1-9]\d{7,14}$/.test(phone) ? phone : null;
+}
+
 class AuthError extends Error {
   status: number;
   constructor(message: string, status = 401) {
@@ -118,12 +126,19 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const authPhone = toE164Phone(normalizedPhone);
+    if (!authPhone) {
+      return new Response(JSON.stringify({ error: "Enter a valid phone number" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const normalizedPassword = password.trim();
 
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
-        phone: `+${normalizedPhone}`,
+        phone: authPhone,
         password: normalizedPassword,
         phone_confirm: true,
         user_metadata: {

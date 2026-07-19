@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/api";
+import type { Gender } from "@/lib/types";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,6 +46,7 @@ export default function AdminStudentDetailPage({
     first_name: "",
     last_name: "",
     phone: "",
+    gender: "male" as Gender,
     registration_number: "",
     current_marhalah: "1",
   });
@@ -70,6 +72,7 @@ export default function AdminStudentDetailPage({
         first_name: form.first_name,
         last_name: form.last_name,
         phone: form.phone,
+        gender: form.gender,
         registration_number: form.registration_number.trim() || null,
         current_marhalah: parseInt(form.current_marhalah) || 1,
       }),
@@ -134,6 +137,7 @@ export default function AdminStudentDetailPage({
       first_name: student.first_name,
       last_name: student.last_name,
       phone: student.phone || "",
+      gender: student.gender ?? "male",
       registration_number: student.registration_number || "",
       current_marhalah: String(student.current_marhalah ?? 1),
     });
@@ -258,6 +262,26 @@ export default function AdminStudentDetailPage({
                   setForm((prev) => ({ ...prev, phone: e.target.value }))
                 }
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Gender</Label>
+              <Select
+                value={form.gender}
+                onValueChange={(value) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    gender: (value ?? "male") as Gender,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Current Marḥalah</Label>

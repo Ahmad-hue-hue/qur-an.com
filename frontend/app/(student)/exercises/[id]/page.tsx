@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
 import { studentApi } from "@/lib/api";
@@ -33,6 +33,7 @@ export default function ExercisePage({
   const { id } = use(params);
   const exerciseId = parseInt(id);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
 
@@ -62,6 +63,18 @@ export default function ExercisePage({
   const submitMutation = useMutation({
     mutationFn: () => studentApi.submitExercise(exerciseId, answers),
     onSuccess: (result) => {
+      queryClient.setQueryData(["exercise", exerciseId], (current: typeof exercise) =>
+        current
+          ? {
+              ...current,
+              has_submitted: true,
+              score: result.score,
+              max_score: result.max_score,
+              grading_status: result.grading_status as typeof current.grading_status,
+            }
+          : current
+      );
+      queryClient.invalidateQueries({ queryKey: ["exercise-results", exerciseId] });
       toast.success(`Submitted! Score: ${result.score}/${result.max_score}`);
       router.push(`/exercises/${exerciseId}/results`);
     },
