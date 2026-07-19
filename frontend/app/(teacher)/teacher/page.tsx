@@ -109,10 +109,6 @@ export default function TeacherDashboardPage() {
                 key={action.label}
                 href={action.href}
                 className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-deep focus-visible:ring-offset-2"
-                onClick={(event) => {
-                  event.preventDefault();
-                  window.location.assign(action.href);
-                }}
               >
                 <Card className="card-shadow h-full cursor-pointer transition-shadow hover:shadow-md active:scale-[0.99]">
                   <CardContent className="flex items-center gap-3 p-4">
