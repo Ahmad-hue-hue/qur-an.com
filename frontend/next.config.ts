@@ -30,12 +30,22 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/teacher/exercises",
-        destination: "/teacher",
+        destination: "/teacher/students",
+        permanent: false,
+      },
+      {
+        source: "/teacher/exercises/:path*",
+        destination: "/teacher/students",
         permanent: false,
       },
       {
         source: "/teacher/exams",
-        destination: "/teacher",
+        destination: "/teacher/students",
+        permanent: false,
+      },
+      {
+        source: "/teacher/exams/:path*",
+        destination: "/teacher/students",
         permanent: false,
       },
     ];

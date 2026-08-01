@@ -26,7 +26,7 @@ function toLocalInputValue(date: Date) {
 
 export default function TeacherExamsPage() {
   const queryClient = useQueryClient();
-  const [marhalahId, setMarhalahId] = useState("1");
+  const [marhalahOverride, setMarhalahOverride] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{
     id: number;
@@ -46,6 +46,13 @@ export default function TeacherExamsPage() {
     start_date: toLocalInputValue(now),
     end_date: toLocalInputValue(weekLater),
   });
+
+  const { data: profile } = useQuery({
+    queryKey: ["teacher-profile"],
+    queryFn: teacherApi.getProfile,
+  });
+  const marhalahId =
+    marhalahOverride ?? String(profile?.managed_marhalah ?? 1);
 
   const { data: exams, isLoading } = useQuery({
     queryKey: ["teacher-exams", marhalahId],
@@ -87,7 +94,7 @@ export default function TeacherExamsPage() {
         <div className="mt-3">
           <TeacherMarhalahSelect
             value={marhalahId}
-            onValueChange={(v) => setMarhalahId(v ?? "1")}
+            onValueChange={(v) => setMarhalahOverride(v ?? "1")}
           />
         </div>
         <Link

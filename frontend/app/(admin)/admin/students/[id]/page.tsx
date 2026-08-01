@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { ManualMarksPanel } from "@/components/shared/manual-marks-panel";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 
@@ -225,6 +226,13 @@ export default function AdminStudentDetailPage({
             Delete Student
           </Button>
         </div>
+
+        <ManualMarksPanel
+          studentId={studentId}
+          marhalah={student.current_marhalah}
+          api={adminApi}
+          queryKeyPrefix="admin-manual-scores"
+        />
       </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>

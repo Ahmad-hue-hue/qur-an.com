@@ -14,6 +14,13 @@ function adminClient() {
   });
 }
 
+function jsonError(message: string, status = 400) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 async function requireAdmin(req: Request) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) throw new Error("Missing authorization");
@@ -43,12 +50,10 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = await requireAdmin(req);
-    const { teacher_id } = await req.json();
+    const body = await req.json().catch(() => null);
+    const teacher_id = body?.teacher_id as string | undefined;
     if (!teacher_id) {
-      return new Response(JSON.stringify({ error: "teacher_id required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonError("teacher_id required");
     }
 
     const { data: existing, error: fetchError } = await supabase
@@ -58,37 +63,45 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (fetchError) {
-      return new Response(JSON.stringify({ error: fetchError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonError(fetchError.message);
     }
 
     if (!existing || existing.role !== "teacher") {
-      return new Response(JSON.stringify({ error: "Teacher not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonError("Teacher not found", 404);
     }
 
-    const { error } = await supabase.auth.admin.deleteUser(teacher_id);
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { error: profileDeleteError } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", teacher_id)
+      .eq("role", "teacher");
+
+    if (profileDeleteError) {
+      return jsonError(profileDeleteError.message);
+    }
+
+    const { error: authDeleteError } =
+      await supabase.auth.admin.deleteUser(teacher_id);
+
+    if (authDeleteError) {
+      // Profile already removed; auth user may already be gone after cascade.
+      const message = authDeleteError.message || "Could not delete auth user";
+      if (!/user not found|not found/i.test(message)) {
+        return jsonError(message);
+      }
     }
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "Failed" }),
-      {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    const message = err instanceof Error ? err.message : "Failed";
+    const status =
+      message === "Unauthorized" ||
+      message === "Missing authorization" ||
+      message === "Admin only"
+        ? 401
+        : 400;
+    return jsonError(message, status);
   }
 });
