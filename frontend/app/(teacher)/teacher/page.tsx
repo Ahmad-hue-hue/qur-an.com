@@ -10,9 +10,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TeacherMarhalahSelect } from "@/components/teacher/teacher-marhalah-select";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Task01Icon,
-  File01Icon,
+  Add01Icon,
   UserGroupIcon,
+  Analytics01Icon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -34,16 +34,6 @@ export default function TeacherDashboardPage() {
   const { data: students } = useQuery({
     queryKey: ["teacher-students", marhalahId],
     queryFn: () => teacherApi.getStudents(selectedMarhalah),
-  });
-
-  const { data: exercises } = useQuery({
-    queryKey: ["teacher-exercises", marhalahId],
-    queryFn: () => teacherApi.getExercises(selectedMarhalah),
-  });
-
-  const { data: exams } = useQuery({
-    queryKey: ["teacher-exams", marhalahId],
-    queryFn: () => teacherApi.getExams(selectedMarhalah),
   });
 
   return (
@@ -76,23 +66,9 @@ export default function TeacherDashboardPage() {
               <p className="text-2xl font-bold text-emerald-deep">
                 {students?.length ?? 0}
               </p>
-              <p className="text-xs text-muted-foreground">Students (all)</p>
-            </CardContent>
-          </Card>
-          <Card className="card-shadow">
-            <CardContent className="p-4">
-              <p className="text-2xl font-bold text-emerald-deep">
-                {exercises?.length ?? 0}
+              <p className="text-xs text-muted-foreground">
+                {isAllMarhalahs ? "Students (all)" : `Students · Marḥalah ${marhalahId}`}
               </p>
-              <p className="text-xs text-muted-foreground">Exercises</p>
-            </CardContent>
-          </Card>
-          <Card className="card-shadow">
-            <CardContent className="p-4">
-              <p className="text-2xl font-bold text-emerald-deep">
-                {exams?.length ?? 0}
-              </p>
-              <p className="text-xs text-muted-foreground">Exams</p>
             </CardContent>
           </Card>
         </div>
@@ -101,10 +77,21 @@ export default function TeacherDashboardPage() {
           <h2 className="section-title">Quick actions</h2>
           <div className="auto-grid-cards">
             {[
-              { label: "Manage exercises", href: "/teacher/exercises", icon: Task01Icon },
-              { label: "Manage exams", href: "/teacher/exams", icon: File01Icon },
-              { label: "View students", href: "/teacher/students", icon: UserGroupIcon },
-              { label: "Overall results", href: "/teacher/results", icon: UserGroupIcon },
+              {
+                label: "Add student",
+                href: "/teacher/students/new",
+                icon: Add01Icon,
+              },
+              {
+                label: "Manage students",
+                href: "/teacher/students",
+                icon: UserGroupIcon,
+              },
+              {
+                label: "Overall results",
+                href: "/teacher/results",
+                icon: Analytics01Icon,
+              },
             ].map((action) => (
               <Link
                 key={action.label}
@@ -120,7 +107,9 @@ export default function TeacherDashboardPage() {
                         className="text-emerald-deep"
                       />
                     </div>
-                    <span className="font-medium text-sm flex-1">{action.label}</span>
+                    <span className="font-medium text-sm flex-1">
+                      {action.label}
+                    </span>
                     <HugeiconsIcon
                       icon={ArrowRight01Icon}
                       size={18}

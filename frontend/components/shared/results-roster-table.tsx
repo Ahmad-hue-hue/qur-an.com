@@ -7,8 +7,18 @@ function formatMark(score: number | null, maxScore: number | null): string {
 }
 
 function formatTotal(
-  row: MarhalahResultsRoster["rows"][number]
+  row: MarhalahResultsRoster["rows"][number],
+  columns: MarhalahResultsRoster["columns"]
 ): string {
+  const scoreByExercise = new Map(
+    row.lesson_scores.map((score) => [score.exercise_id, score])
+  );
+  const missingExercise = columns.some((col) => {
+    const score = scoreByExercise.get(col.exercise_id);
+    return score?.score == null;
+  });
+  if (missingExercise) return "Incomplete";
+
   const lessonTotal = row.lesson_scores.reduce(
     (total, score) => total + (score.score ?? 0),
     0
@@ -155,7 +165,7 @@ function ResultsRegister({
                   </td>
                 )}
                 <td className="px-3 py-2.5 text-center font-semibold tabular-nums">
-                  {formatTotal(row)}
+                  {formatTotal(row, columns)}
                 </td>
               </tr>
             );
@@ -183,26 +193,27 @@ export function rosterToPdfSections(
   ];
   const hasHalaqah = roster.rows.some((row) => row.halaqah_score != null);
   const hasTadreeb = roster.rows.some((row) => row.tadreeb_score != null);
-  const bodyFor = (rows: MarhalahResultsRoster["rows"]) => rows.map((row) => {
-    const scoreByExercise = new Map(
-      row.lesson_scores.map((s) => [s.exercise_id, s])
-    );
-    return [
-      formatRosterReg(row.registration_number),
-      ...roster.columns.map((col) => {
-        const score = scoreByExercise.get(col.exercise_id);
-        return formatMark(score?.score ?? null, score?.max_score ?? null);
-      }),
-      formatMark(row.exam_score, row.exam_max_score),
-      ...(hasHalaqah
-        ? [formatMark(row.halaqah_score, row.halaqah_max_score)]
-        : []),
-      ...(hasTadreeb
-        ? [formatMark(row.tadreeb_score, row.tadreeb_max_score)]
-        : []),
-      formatTotal(row),
-    ];
-  });
+  const bodyFor = (rows: MarhalahResultsRoster["rows"]) =>
+    rows.map((row) => {
+      const scoreByExercise = new Map(
+        row.lesson_scores.map((s) => [s.exercise_id, s])
+      );
+      return [
+        formatRosterReg(row.registration_number),
+        ...roster.columns.map((col) => {
+          const score = scoreByExercise.get(col.exercise_id);
+          return formatMark(score?.score ?? null, score?.max_score ?? null);
+        }),
+        formatMark(row.exam_score, row.exam_max_score),
+        ...(hasHalaqah
+          ? [formatMark(row.halaqah_score, row.halaqah_max_score)]
+          : []),
+        ...(hasTadreeb
+          ? [formatMark(row.tadreeb_score, row.tadreeb_max_score)]
+          : []),
+        formatTotal(row, roster.columns),
+      ];
+    });
 
   const maleRows = roster.rows.filter(
     (row) => !row.registration_number?.endsWith("B")

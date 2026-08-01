@@ -466,6 +466,49 @@ export const adminApi = {
     await invokeEdgeFunction("delete-teacher", { teacher_id: id });
   },
 
+  upsertManualScore: async (data: {
+    student_id: string;
+    marhalah: number;
+    type: "halaqah" | "tadreeb";
+    score: number;
+    max_score?: number;
+    notes?: string;
+  }) => {
+    const marhalahId = await resolveMarhalahIdByNumber(data.marhalah);
+    throwIfError(
+      await getSupabase()
+        .from("manual_scores")
+        .upsert(
+          {
+            student_id: data.student_id,
+            marhalah_id: marhalahId,
+            type: data.type,
+            score: data.score,
+            max_score: data.max_score ?? 20,
+            notes: data.notes ?? "",
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "student_id,marhalah_id,type" }
+        )
+    );
+  },
+
+  getManualScores: async (studentId: string, marhalah: number) => {
+    const marhalahId = await resolveMarhalahIdByNumber(marhalah);
+    const rows = throwIfError(
+      await getSupabase()
+        .from("manual_scores")
+        .select("*")
+        .eq("student_id", studentId)
+        .eq("marhalah_id", marhalahId)
+    );
+    return (rows ?? []) as Array<{
+      type: string;
+      score: number;
+      max_score: number;
+    }>;
+  },
+
   assignRegistrationNumber: async (id: string): Promise<StudentProfile> => {
     throwIfError(
       await getSupabase().rpc("admin_assign_registration_number", {
