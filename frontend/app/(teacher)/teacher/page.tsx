@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { teacherApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -105,7 +106,7 @@ export default function TeacherDashboardPage() {
               { label: "View students", href: "/teacher/students", icon: UserGroupIcon },
               { label: "Overall results", href: "/teacher/results", icon: UserGroupIcon },
             ].map((action) => (
-              <a
+              <Link
                 key={action.label}
                 href={action.href}
                 className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-deep focus-visible:ring-offset-2"
@@ -127,7 +128,7 @@ export default function TeacherDashboardPage() {
                     />
                   </CardContent>
                 </Card>
-              </a>
+              </Link>
             ))}
           </div>
         </section>

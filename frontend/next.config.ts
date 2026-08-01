@@ -28,16 +28,6 @@ const nextConfig: NextConfig = {
         destination: "/admin/topics",
         permanent: false,
       },
-      {
-        source: "/teacher/exercises",
-        destination: "/teacher",
-        permanent: false,
-      },
-      {
-        source: "/teacher/exams",
-        destination: "/teacher",
-        permanent: false,
-      },
     ];
   },
 };
