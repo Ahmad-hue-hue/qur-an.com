@@ -8,6 +8,11 @@ import { toast } from "sonner";
 import { CallIcon, LockIcon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { authApi } from "@/lib/api";
 import { getDefaultRoute } from "@/lib/auth/token";
+import {
+  validateEmail,
+  validateLoginPassword,
+  validatePhone,
+} from "@/lib/auth/login-validation";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { LoginLogo } from "@/components/auth/login-logo";
@@ -24,6 +29,11 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{
+    identifier?: string;
+    password?: string;
+  }>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const loggingOut = searchParams.get("logout") === "1";
 
   useEffect(() => {
@@ -42,13 +52,13 @@ export default function LoginPage() {
     onSuccess: ({ role: loginRole, session }) => {
       if (wantsAdmin && loginRole !== "admin") {
         void authApi.logout().then(() => refreshAuth());
-        toast.error("This account is not an admin. Use an admin email and password.");
+        setGeneralError("This account is not an admin. Use an admin email and password.");
         return;
       }
 
       if (!wantsAdmin && loginRole === "admin") {
         void authApi.logout().then(() => refreshAuth());
-        toast.error("Admins must use Admin sign in with email.");
+        setGeneralError("Admins must use Admin sign in with email.");
         return;
       }
 
@@ -64,8 +74,20 @@ export default function LoginPage() {
             : "Welcome back!"
       );
     },
-    onError: (err: Error) => toast.error(err.message || "Invalid credentials"),
+    onError: (err: Error) => setGeneralError(err.message || "Invalid credentials"),
   });
+
+  const handleSubmit = () => {
+    setGeneralError(null);
+    const identifierError = wantsAdmin ? validateEmail(email) : validatePhone(phone);
+    const passwordError = validateLoginPassword(password);
+    if (identifierError || passwordError) {
+      setFieldErrors({ identifier: identifierError, password: passwordError });
+      return;
+    }
+    setFieldErrors({});
+    loginMutation.mutate();
+  };
 
   const alreadySignedIn = isReady && isLoggedIn && !loggingOut;
   const switchingToAdmin = wantsAdmin && alreadySignedIn && role !== "admin";
@@ -143,6 +165,15 @@ export default function LoginPage() {
                       </p>
                     )}
 
+                    {generalError && (
+                      <p
+                        role="alert"
+                        className="rounded-xl border border-destructive/50 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+                      >
+                        {generalError}
+                      </p>
+                    )}
+
                     {wantsAdmin ? (
                       <IconInput
                         id="email"
@@ -152,7 +183,13 @@ export default function LoginPage() {
                         type="email"
                         autoComplete="email"
                         value={email}
-                        onChange={setEmail}
+                        onChange={(v) => {
+                          setEmail(v);
+                          if (fieldErrors.identifier) {
+                            setFieldErrors((prev) => ({ ...prev, identifier: validateEmail(v) }));
+                          }
+                        }}
+                        error={fieldErrors.identifier}
                       />
                     ) : (
                       <IconInput
@@ -163,7 +200,13 @@ export default function LoginPage() {
                         type="tel"
                         autoComplete="tel"
                         value={phone}
-                        onChange={setPhone}
+                        onChange={(v) => {
+                          setPhone(v);
+                          if (fieldErrors.identifier) {
+                            setFieldErrors((prev) => ({ ...prev, identifier: validatePhone(v) }));
+                          }
+                        }}
+                        error={fieldErrors.identifier}
                       />
                     )}
                     <IconInput
@@ -174,13 +217,19 @@ export default function LoginPage() {
                       type="password"
                       autoComplete="current-password"
                       value={password}
-                      onChange={setPassword}
+                      onChange={(v) => {
+                        setPassword(v);
+                        if (fieldErrors.password) {
+                          setFieldErrors((prev) => ({ ...prev, password: validateLoginPassword(v) }));
+                        }
+                      }}
+                      error={fieldErrors.password}
                     />
 
                     <Button
                       className="mt-1 h-11 w-full rounded-xl btn-emerald"
                       disabled={loginMutation.isPending || !canSubmit}
-                      onClick={() => loginMutation.mutate()}
+                      onClick={handleSubmit}
                     >
                       {loginMutation.isPending
                         ? "Signing in..."

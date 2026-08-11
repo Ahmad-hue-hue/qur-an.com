@@ -18,6 +18,7 @@ interface IconInputProps {
   onChange: (value: string) => void;
   autoComplete?: string;
   className?: string;
+  error?: string;
 }
 
 export function IconInput({
@@ -30,10 +31,12 @@ export function IconInput({
   onChange,
   autoComplete,
   className,
+  error,
 }: IconInputProps) {
   const isPassword = type === "password";
   const [showPassword, setShowPassword] = useState(false);
   const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+  const errorId = error ? `${id}-error` : undefined;
 
   return (
     <div className={cn("space-y-1.5", className)}>
@@ -53,10 +56,13 @@ export function IconInput({
           autoComplete={autoComplete}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          aria-invalid={Boolean(error)}
+          aria-describedby={errorId}
           className={cn(
             "h-11 rounded-xl border-border/60 bg-cream/30 pl-10 shadow-none transition-colors",
             "placeholder:text-muted-foreground/50 focus-visible:border-emerald-deep/30 focus-visible:ring-emerald-deep/15",
-            isPassword && "pr-11"
+            isPassword && "pr-11",
+            error && "border-destructive/60 focus-visible:border-destructive/60 focus-visible:ring-destructive/15"
           )}
         />
         {isPassword && (
@@ -70,6 +76,11 @@ export function IconInput({
           </button>
         )}
       </div>
+      {error && (
+        <p id={errorId} className="text-xs text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
