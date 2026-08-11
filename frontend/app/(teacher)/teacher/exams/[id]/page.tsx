@@ -159,7 +159,8 @@ export default function AdminExamDetailPage({
                   <p className="text-sm">{exam.description}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  {exam.questions?.length ?? 0} questions · Marḥalah {exam.marhalah}
+                  {exam.questions?.length ?? 0} questions · Marḥalah {exam.marhalah} ·{" "}
+                  {exam.is_locked ? "Locked (admin only)" : "Unlocked"}
                 </p>
               </CardContent>
             </Card>

@@ -30,6 +30,8 @@ export default function TeacherManageStudentPage({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
+  const [password, setPassword] = useState("");
   const [form, setForm] = useState<{
     first_name: string;
     last_name: string;
@@ -64,11 +66,15 @@ export default function TeacherManageStudentPage({
         first_name: activeForm?.first_name,
         last_name: activeForm?.last_name,
         phone: activeForm?.phone,
+        change_password: changePassword,
+        password: changePassword ? password : undefined,
         registration_number: activeForm?.registration_number.trim() || null,
         current_marhalah: parseInt(activeForm?.current_marhalah ?? "1", 10) || 1,
       }),
     onSuccess: () => {
       invalidate();
+      setChangePassword(false);
+      setPassword("");
       toast.success("Student updated");
     },
     onError: (error: Error) => toast.error(error.message || "Update failed"),
@@ -138,6 +144,32 @@ export default function TeacherManageStudentPage({
                 </div>
                 <div className="space-y-2"><Label>Phone number</Label><Input value={activeForm.phone} onChange={(event) => setForm((current) => ({ ...(current ?? activeForm), phone: event.target.value }))} /></div>
                 <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={changePassword}
+                      onChange={(event) => {
+                        setChangePassword(event.target.checked);
+                        if (!event.target.checked) setPassword("");
+                      }}
+                      className="rounded border-border"
+                    />
+                    Change login password
+                  </label>
+                  {changePassword && (
+                    <div className="space-y-2">
+                      <Label>New password</Label>
+                      <Input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="At least 6 characters"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
                   <Label>Marḥalah</Label>
                   <Select value={activeForm.current_marhalah} onValueChange={(value) => setForm((current) => ({ ...(current ?? activeForm), current_marhalah: value ?? "1" }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -151,7 +183,14 @@ export default function TeacherManageStudentPage({
                     {assignMutation.isPending ? "Generating…" : "Auto-generate number"}
                   </Button>
                 </div>
-                <Button className="w-full btn-emerald" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+                <Button
+                  className="w-full btn-emerald"
+                  onClick={() => updateMutation.mutate()}
+                  disabled={
+                    updateMutation.isPending ||
+                    (changePassword && password.trim().length < 6)
+                  }
+                >
                   {updateMutation.isPending ? "Saving…" : "Save changes"}
                 </Button>
               </CardContent>

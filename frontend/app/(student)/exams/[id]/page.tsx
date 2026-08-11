@@ -130,6 +130,23 @@ export default function ExamPage({
         </div>
       )}
 
+      {!isLoading && !loadError && exam && exam.status === "locked" && (
+        <div className="flex items-center justify-center min-h-[60vh] p-4">
+          <Card className="card-shadow w-full max-w-lg">
+            <CardContent className="p-8 text-center space-y-3">
+              <StatusBadge status="locked" />
+              <p className="text-xl font-semibold text-emerald-deep">{exam.title}</p>
+              <p className="text-sm text-muted-foreground">
+                This exam is locked. Your admin will open it on exam day.
+              </p>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
+                Back to assessments
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {!isLoading && !loadError && exam && exam.status === "upcoming" && (
         <div className="flex items-center justify-center min-h-[60vh] p-4">
           <Card className="card-shadow w-full max-w-lg">

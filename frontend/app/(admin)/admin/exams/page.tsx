@@ -176,7 +176,8 @@ export default function AdminExamsPage() {
                   <p className="text-xs text-muted-foreground mt-1">
                     {format(new Date(exam.start_date), "MMM d")} –{" "}
                     {format(new Date(exam.end_date), "MMM d")} · {exam.duration_minutes}{" "}
-                    min · {exam.question_count} questions · {exam.status}
+                    min · {exam.question_count} questions ·{" "}
+                    {exam.is_locked ? "Locked" : "Unlocked"}
                     {(exam.submission_count ?? 0) > 0 &&
                       ` · ${exam.submission_count} submission${exam.submission_count === 1 ? "" : "s"}`}
                   </p>

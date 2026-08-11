@@ -2,12 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { formatAssessmentMark, totalQuestionMarks } from "@/lib/assessment-mark";
 
 describe("formatAssessmentMark", () => {
-  test("shows fraction and percentage", () => {
-    expect(formatAssessmentMark(3, 5)).toBe("3/5 (60%)");
+  test("shows raw fraction", () => {
+    expect(formatAssessmentMark(3, 5)).toBe("3/5");
   });
 
   test("handles perfect score", () => {
-    expect(formatAssessmentMark(4, 4)).toBe("4/4 (100%)");
+    expect(formatAssessmentMark(4, 4)).toBe("4/4");
   });
 
   test("handles no questions", () => {

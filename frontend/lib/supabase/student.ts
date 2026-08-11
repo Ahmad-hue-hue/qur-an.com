@@ -4,7 +4,6 @@ import {
   resolveMarhalahNumberById,
 } from "@/lib/supabase/marhalah";
 import { mapProfileRow, SupabaseApiError, throwIfError } from "@/lib/supabase/utils";
-import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
 import { isLastLessonOrder } from "@/lib/topic-assessment";
 import type {
   AssessmentSubmissionResults,
@@ -422,13 +421,18 @@ async function buildExamRow(
     questionCount ?? 0
   );
 
-  const status = throwIfError(
+  let status = throwIfError(
     await supabase.rpc("get_assessment_status", {
       p_start: exam.start_date,
       p_end: exam.end_date,
       p_has_submitted: has_submitted,
     })
   ) as Exam["status"];
+
+  const is_locked = Boolean(exam.is_locked);
+  if (status === "open" && is_locked) {
+    status = "locked";
+  }
 
   const marhalah =
     marhalahNumber ??
@@ -443,6 +447,7 @@ async function buildExamRow(
     start_date: exam.start_date as string,
     end_date: exam.end_date as string,
     status,
+    is_locked,
     question_count: questionCount ?? 0,
     score: has_submitted && submission ? Number(submission.score) : undefined,
     max_score: has_submitted && submission ? Number(submission.max_score) : undefined,
@@ -562,7 +567,6 @@ export const studentApi = {
               : "open",
           topics_count: progress.total,
           topics_completed: progress.completed,
-          final_score: finalScore > 0 ? finalScore : undefined,
         };
       })
     );
@@ -615,39 +619,26 @@ export const studentApi = {
       )
     );
 
-    const includeOralAssessments = marhalahHasOralAssessments(currentMarhalah.number);
-
     let halaqahRow: Record<string, unknown> | null = null;
     let tadreebRow: Record<string, unknown> | null = null;
-    if (includeOralAssessments) {
-      const [halaqah, tadreeb] = await Promise.all([
-        supabase
-          .from("manual_scores")
-          .select("*")
-          .eq("student_id", user.id)
-          .eq("marhalah_id", currentMarhalah.id)
-          .eq("type", "halaqah")
-          .maybeSingle(),
-        supabase
-          .from("manual_scores")
-          .select("*")
-          .eq("student_id", user.id)
-          .eq("marhalah_id", currentMarhalah.id)
-          .eq("type", "tadreeb")
-          .maybeSingle(),
-      ]);
-      halaqahRow = halaqah.data;
-      tadreebRow = tadreeb.data;
-    }
-
-    const scores = marhalahs
-      .map((marhalah) => marhalah.final_score)
-      .filter((score): score is number => score != null);
-    const overallAverage =
-      scores.length > 0
-        ? Math.round((scores.reduce((total, score) => total + score, 0) / scores.length) * 10) /
-          10
-        : 0;
+    const [halaqah, tadreeb] = await Promise.all([
+      supabase
+        .from("manual_scores")
+        .select("*")
+        .eq("student_id", user.id)
+        .eq("marhalah_id", currentMarhalah.id)
+        .eq("type", "halaqah")
+        .maybeSingle(),
+      supabase
+        .from("manual_scores")
+        .select("*")
+        .eq("student_id", user.id)
+        .eq("marhalah_id", currentMarhalah.id)
+        .eq("type", "tadreeb")
+        .maybeSingle(),
+    ]);
+    halaqahRow = halaqah.data;
+    tadreebRow = tadreeb.data;
 
     return {
       greeting: `السلام عليكم ${profile.first_name}`,
@@ -707,7 +698,6 @@ export const studentApi = {
               max_score: exams.find((e) => e.score != null)!.max_score!,
             }
           : undefined,
-        overall_average: overallAverage,
       },
     };
   },
@@ -717,16 +707,6 @@ export const studentApi = {
     const marhalah = await getMarhalahByNumber(profile.current_marhalah);
     const progress = await getStudentProgress(user.id, marhalah.id);
 
-    const allMarhalahs = throwIfError(
-      await getSupabase().from("marhalahs").select("id")
-    ) as { id: number }[];
-
-    const averages: number[] = [];
-    for (const m of allMarhalahs) {
-      const score = await getFinalScore(user.id, m.id);
-      if (score > 0) averages.push(score);
-    }
-
     return {
       ...mapProfileRow({ ...profile, email: profile.email ?? user.email ?? "" }),
       current_marhalah: profile.current_marhalah,
@@ -734,11 +714,6 @@ export const studentApi = {
       progress_percent: progress.percent,
       topics_completed: progress.completed,
       total_topics: progress.total,
-      overall_average:
-        averages.length > 0
-          ? Math.round((averages.reduce((a, b) => a + b, 0) / averages.length) * 10) /
-            10
-          : 0,
       has_attempted_exercise: profile.has_attempted_exercise,
     };
   },
@@ -763,7 +738,6 @@ export const studentApi = {
         status: await getMarhalahStatus(user.id, m, finalScore),
         topics_count: progress.total,
         topics_completed: progress.completed,
-        final_score: finalScore > 0 ? finalScore : undefined,
       });
     }
     return result;

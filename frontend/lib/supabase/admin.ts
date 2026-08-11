@@ -178,21 +178,6 @@ async function buildStudentProfile(studentId: string): Promise<StudentProfile> {
   const total = topics.length;
   const completed = completions.length;
 
-  const marhalahs = throwIfError(
-    await supabase.from("marhalahs").select("id")
-  ) as { id: number }[];
-
-  const averages: number[] = [];
-  for (const m of marhalahs) {
-    const score = throwIfError(
-      await supabase.rpc("calculate_final_score", {
-        p_student_id: studentId,
-        p_marhalah_id: m.id,
-      })
-    );
-    if (Number(score) > 0) averages.push(Number(score));
-  }
-
   return {
     ...mapProfileRow(profile),
     current_marhalah: profile.current_marhalah,
@@ -200,11 +185,6 @@ async function buildStudentProfile(studentId: string): Promise<StudentProfile> {
     progress_percent: total ? Math.round((completed / total) * 100) : 0,
     topics_completed: completed,
     total_topics: total,
-    overall_average:
-      averages.length > 0
-        ? Math.round((averages.reduce((a, b) => a + b, 0) / averages.length) * 10) /
-          10
-        : 0,
     has_attempted_exercise: profile.has_attempted_exercise,
   };
 }
@@ -1035,6 +1015,7 @@ export const adminApi = {
         start_date: e.start_date as string,
         end_date: e.end_date as string,
         status: "open",
+        is_locked: Boolean(e.is_locked),
         question_count: count ?? 0,
         has_submitted: false,
         submission_count: submissionCount ?? 0,
@@ -1069,9 +1050,21 @@ export const adminApi = {
       start_date: row.start_date as string,
       end_date: row.end_date as string,
       status: "open",
+      is_locked: Boolean(row.is_locked),
       question_count: 0,
       has_submitted: false,
     };
+  },
+
+  setExamLock: async (id: number, locked: boolean): Promise<Exam> => {
+    throwIfError(
+      await getSupabase().rpc("admin_set_exam_lock", {
+        p_exam_id: id,
+        p_locked: locked,
+      })
+    );
+    const rows = await adminApi.getExams();
+    return rows.find((e) => e.id === id)!;
   },
 
   updateExam: async (
@@ -1118,6 +1111,7 @@ export const adminApi = {
       start_date: exam.start_date as string,
       end_date: exam.end_date as string,
       status: "open",
+      is_locked: Boolean(exam.is_locked),
       question_count: questions.length,
       has_submitted: false,
       questions: questions.map(mapQuestionRow),

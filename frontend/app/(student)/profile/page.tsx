@@ -9,7 +9,6 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { marhalahHasOralAssessments } from "@/lib/marhalah-scores";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 
 export default function ProfilePage() {
@@ -22,8 +21,6 @@ export default function ProfilePage() {
     queryKey: ["dashboard"],
     queryFn: studentApi.getDashboard,
   });
-
-  const showOralAssessments = marhalahHasOralAssessments(profile?.current_marhalah ?? 1);
 
   const academicItems = profile
     ? [
@@ -50,26 +47,17 @@ export default function ProfilePage() {
             ? `${dashboard.recent_results.exam.score}/${dashboard.recent_results.exam.max_score}`
             : "—",
         },
-        ...(showOralAssessments
-          ? [
-              {
-                label: "Halaqah",
-                value: dashboard?.halaqah
-                  ? `${dashboard.halaqah.score}/${dashboard.halaqah.max_score}`
-                  : "—",
-              },
-              {
-                label: "Tadreeb",
-                value: dashboard?.tadreeb
-                  ? `${dashboard.tadreeb.score}/${dashboard.tadreeb.max_score}`
-                  : "—",
-              },
-            ]
-          : []),
         {
-          label: "Overall Average",
-          value: `${profile.overall_average}%`,
-          highlight: true,
+          label: "Halaqah",
+          value: dashboard?.halaqah
+            ? `${dashboard.halaqah.score}/${dashboard.halaqah.max_score}`
+            : "—",
+        },
+        {
+          label: "Tadreeb",
+          value: dashboard?.tadreeb
+            ? `${dashboard.tadreeb.score}/${dashboard.tadreeb.max_score}`
+            : "—",
         },
       ]
     : [];
@@ -166,15 +154,7 @@ export default function ProfilePage() {
                       className="flex justify-between text-sm py-1"
                     >
                       <span className="text-muted-foreground">{item.label}</span>
-                      <span
-                        className={
-                          item.highlight
-                            ? "font-bold text-gold text-base"
-                            : "font-medium"
-                        }
-                      >
-                        {item.value}
-                      </span>
+                      <span className="font-medium">{item.value}</span>
                     </div>
                   ))}
                 </div>

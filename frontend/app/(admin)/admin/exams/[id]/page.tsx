@@ -89,6 +89,17 @@ export default function AdminExamDetailPage({
     enabled: Boolean(exam),
   });
 
+  const lockMutation = useMutation({
+    mutationFn: (locked: boolean) => adminApi.setExamLock(examId, locked),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["admin-exam", examId], (prev: typeof exam) =>
+        prev ? { ...prev, is_locked: updated.is_locked } : prev
+      );
+      toast.success(updated.is_locked ? "Exam locked" : "Exam unlocked");
+    },
+    onError: (err: Error) => toast.error(err.message || "Failed to update lock"),
+  });
+
   const resetQuestionForm = () => {
     setShowQuestionForm(false);
     setEditingQuestionId(null);
@@ -161,6 +172,33 @@ export default function AdminExamDetailPage({
                 <p className="text-xs text-muted-foreground">
                   {exam.questions?.length ?? 0} questions · Marḥalah {exam.marhalah}
                 </p>
+              </CardContent>
+            </Card>
+
+            <Card className="card-shadow">
+              <CardContent className="p-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-medium text-emerald-deep">
+                    {exam.is_locked ? "Locked" : "Unlocked"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {exam.is_locked
+                      ? "Students can't enter this exam until you open it."
+                      : "Students can enter this exam if the exam window is open."}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  className={exam.is_locked ? "btn-emerald shrink-0" : "text-destructive shrink-0"}
+                  disabled={lockMutation.isPending}
+                  onClick={() => lockMutation.mutate(!exam.is_locked)}
+                >
+                  {lockMutation.isPending
+                    ? "Saving..."
+                    : exam.is_locked
+                      ? "Unlock exam"
+                      : "Lock exam"}
+                </Button>
               </CardContent>
             </Card>
 

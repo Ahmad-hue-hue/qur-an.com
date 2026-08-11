@@ -12,6 +12,7 @@ const assessmentStyles: Record<AssessmentStatus, string> = {
   upcoming: "bg-gold-light text-gold",
   expired: "bg-muted text-muted-foreground",
   completed: "bg-emerald-light text-emerald-deep",
+  locked: "bg-muted text-muted-foreground",
 };
 
 interface StatusBadgeProps {

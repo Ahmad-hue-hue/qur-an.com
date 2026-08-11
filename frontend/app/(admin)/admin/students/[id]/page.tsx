@@ -43,10 +43,12 @@ export default function AdminStudentDetailPage({
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
     phone: "",
+    password: "",
     gender: "male" as Gender,
     registration_number: "",
     current_marhalah: "1",
@@ -73,6 +75,8 @@ export default function AdminStudentDetailPage({
         first_name: form.first_name,
         last_name: form.last_name,
         phone: form.phone,
+        change_password: changePassword,
+        password: changePassword ? form.password : undefined,
         gender: form.gender,
         registration_number: form.registration_number.trim() || null,
         current_marhalah: parseInt(form.current_marhalah) || 1,
@@ -80,6 +84,8 @@ export default function AdminStudentDetailPage({
     onSuccess: () => {
       invalidate();
       setEditOpen(false);
+      setChangePassword(false);
+      setForm((prev) => ({ ...prev, password: "" }));
       toast.success("Student updated");
     },
     onError: (err: Error) => toast.error(err.message || "Update failed"),
@@ -138,10 +144,12 @@ export default function AdminStudentDetailPage({
       first_name: student.first_name,
       last_name: student.last_name,
       phone: student.phone || "",
+      password: "",
       gender: student.gender ?? "male",
       registration_number: student.registration_number || "",
       current_marhalah: String(student.current_marhalah ?? 1),
     });
+    setChangePassword(false);
     setEditOpen(true);
   };
 
@@ -188,7 +196,6 @@ export default function AdminStudentDetailPage({
               ["Current Marḥalah", currentMarhalahLabel],
               ["Progress", `${student.progress_percent}%`],
               ["Topics", `${student.topics_completed}/${student.total_topics}`],
-              ["Overall Average", `${student.overall_average}%`],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{label}</span>
@@ -272,6 +279,36 @@ export default function AdminStudentDetailPage({
               />
             </div>
             <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={changePassword}
+                  onChange={(e) => {
+                    setChangePassword(e.target.checked);
+                    if (!e.target.checked) {
+                      setForm((prev) => ({ ...prev, password: "" }));
+                    }
+                  }}
+                  className="rounded border-border"
+                />
+                Change login password
+              </label>
+              {changePassword && (
+                <div className="space-y-2">
+                  <Label>New password</Label>
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="At least 6 characters"
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, password: e.target.value }))
+                    }
+                  />
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
               <Label>Gender</Label>
               <Select
                 value={form.gender}
@@ -352,7 +389,11 @@ export default function AdminStudentDetailPage({
                 updateMutation.isPending ||
                 !form.first_name.trim() ||
                 !form.last_name.trim() ||
-                !form.phone.trim()
+                !form.phone.trim() ||
+                (changePassword &&
+                  form.password.trim().length > 0 &&
+                  form.password.trim().length < 6) ||
+                (changePassword && !form.password.trim())
               }
               onClick={() => updateMutation.mutate()}
             >

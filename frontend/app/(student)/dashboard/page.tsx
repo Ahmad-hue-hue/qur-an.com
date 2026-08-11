@@ -80,12 +80,23 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   ))}
-                  <div className="flex justify-between text-sm pt-2 border-t">
-                    <span className="font-medium">Overall Average</span>
-                    <span className="font-bold text-gold">
-                      {data.recent_results.overall_average}%
-                    </span>
-                  </div>
+                  {data.recent_results.exam && (
+                    <div className="flex justify-between text-sm pt-2 border-t">
+                      <span className="text-muted-foreground">
+                        {data.recent_results.exam.title}
+                      </span>
+                      <span className="font-medium">
+                        {data.recent_results.exam.score}/
+                        {data.recent_results.exam.max_score}
+                      </span>
+                    </div>
+                  )}
+                  {!data.recent_results.exercises.length &&
+                    !data.recent_results.exam && (
+                      <p className="text-sm text-muted-foreground text-center py-2">
+                        No results yet.
+                      </p>
+                    )}
                 </CardContent>
               </Card>
             </section>

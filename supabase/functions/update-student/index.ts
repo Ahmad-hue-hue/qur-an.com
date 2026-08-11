@@ -89,6 +89,18 @@ Deno.serve(async (req) => {
       if (authError) throw new AuthError(authError.message, 400);
     }
 
+    if (typeof changes.password === "string" && changes.password.trim()) {
+      const password = changes.password.trim();
+      if (password.length < 6) {
+        throw new AuthError("Password must be at least 6 characters", 400);
+      }
+      const { error: passwordError } = await supabase.auth.admin.updateUserById(
+        student_id,
+        { password }
+      );
+      if (passwordError) throw new AuthError(passwordError.message, 400);
+    }
+
     if (typeof update.registration_number === "string" && update.registration_number) {
       const { data: duplicate } = await supabase
         .from("profiles")

@@ -4,8 +4,7 @@ export function totalQuestionMarks(questions: { max_score?: number }[]): number 
 
 export function formatAssessmentMark(score: number, maxScore: number): string {
   if (maxScore <= 0) return "No questions";
-  const pct = Math.round((score / maxScore) * 100);
-  return `${score}/${maxScore} (${pct}%)`;
+  return `${score}/${maxScore}`;
 }
 
 export function formatQuestionMark(maxScore?: number): string {

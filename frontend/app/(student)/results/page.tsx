@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -8,19 +9,36 @@ import { studentApi } from "@/lib/api";
 import { formatAssessmentMark } from "@/lib/assessment-mark";
 import { formatPhoneDisplay } from "@/lib/phone-auth";
 import { downloadResultsRosterPdf } from "@/lib/results-pdf";
-import { rosterToPdfSections } from "@/components/shared/results-roster-table";
+import {
+  ResultsRosterTable,
+  rosterToPdfSections,
+} from "@/components/shared/results-roster-table";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Download01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export default function StudentResultsDashboardPage() {
+  const [selectedMarhalah, setSelectedMarhalah] = useState<number | null>(null);
+
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: studentApi.getProfile,
+  });
+
+  const { data: marhalahs } = useQuery({
+    queryKey: ["marhalahs"],
+    queryFn: studentApi.getMarhalahs,
   });
 
   const { data: submissions, isLoading } = useQuery({
@@ -29,7 +47,9 @@ export default function StudentResultsDashboardPage() {
   });
 
   const phone = formatPhoneDisplay(profile?.phone);
-  const marhalahNumber = profile?.current_marhalah ?? 1;
+  const reachedMarhalahs = (marhalahs ?? []).filter((m) => m.status !== "locked");
+  const marhalahNumber =
+    selectedMarhalah ?? profile?.current_marhalah ?? 1;
   const { data: roster } = useQuery({
     queryKey: ["student-results-roster", marhalahNumber],
     queryFn: () => studentApi.getMarhalahResultsRoster(marhalahNumber),
@@ -69,6 +89,38 @@ export default function StudentResultsDashboardPage() {
       </PageHeader>
 
       <div className="page-content space-y-3">
+        <Card className="card-shadow">
+          <CardContent className="p-4 space-y-3">
+            <p className="text-sm font-medium text-emerald-deep">
+              Marḥalah results
+            </p>
+            {reachedMarhalahs.length > 1 && (
+              <Select
+                value={String(marhalahNumber)}
+                onValueChange={(v) => setSelectedMarhalah(parseInt(v ?? "1") || 1)}
+              >
+                <SelectTrigger className="w-full sm:w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {reachedMarhalahs.map((m) => (
+                    <SelectItem key={m.number} value={String(m.number)}>
+                      {m.title || `Marḥalah ${m.number}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {roster && roster.rows.length > 0 ? (
+              <ResultsRosterTable roster={roster} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No results recorded for this Marḥalah yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
         {isLoading &&
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-20 w-full rounded-xl" />

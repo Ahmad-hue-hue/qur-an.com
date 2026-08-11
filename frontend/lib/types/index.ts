@@ -6,7 +6,12 @@ export type MarhalahStatus = "open" | "locked" | "completed";
 
 export type TopicStatus = "completed" | "active" | "locked";
 
-export type AssessmentStatus = "open" | "upcoming" | "expired" | "completed";
+export type AssessmentStatus =
+  | "open"
+  | "upcoming"
+  | "expired"
+  | "completed"
+  | "locked";
 
 export type QuestionType =
   | "mcq"
@@ -38,7 +43,6 @@ export interface StudentProfile extends User {
   progress_percent: number;
   topics_completed: number;
   total_topics: number;
-  overall_average: number;
   has_attempted_exercise: boolean;
 }
 
@@ -51,7 +55,6 @@ export interface Marhalah {
   status: MarhalahStatus;
   topics_count: number;
   topics_completed: number;
-  final_score?: number;
 }
 
 export interface MarhalahAdmin {
@@ -118,6 +121,7 @@ export interface Exam {
   start_date: string;
   end_date: string;
   status: AssessmentStatus;
+  is_locked: boolean;
   question_count: number;
   score?: number;
   max_score?: number;
@@ -227,7 +231,6 @@ export interface DashboardData {
   recent_results: {
     exercises: { title: string; score: number; max_score: number }[];
     exam?: { title: string; score: number; max_score: number };
-    overall_average: number;
   };
 }
 
@@ -362,6 +365,8 @@ export interface UpdateStudentData {
   first_name?: string;
   last_name?: string;
   phone?: string;
+  password?: string;
+  change_password?: boolean;
   gender?: Gender;
   is_suspended?: boolean;
   current_marhalah?: number;
