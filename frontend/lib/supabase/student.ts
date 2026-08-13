@@ -12,6 +12,7 @@ import type {
   Exam,
   ManualScore,
   Marhalah,
+  MarhalahAttemptHistoryRow,
   MarhalahResultsRoster,
   Question,
   StudentProfile,
@@ -523,6 +524,46 @@ export const studentApi = {
         p_marhalah_number: marhalahNumber,
       })
     ) as MarhalahResultsRoster,
+
+  getAttemptHistory: async (): Promise<MarhalahAttemptHistoryRow[]> => {
+    const { user } = await getCurrentProfile();
+    const rows = throwIfError(
+      await getSupabase()
+        .from("marhalah_attempt_history")
+        .select("id, marhalah_id, attempt_number, exercise_pct, exam_pct, halaqah_pct, tadreeb_pct, final_score, passed, concluded_at, marhalahs(number)")
+        .eq("student_id", user.id)
+        .order("concluded_at", { ascending: false })
+    ) as Array<{
+      id: string;
+      marhalah_id: number;
+      attempt_number: number;
+      exercise_pct: number | null;
+      exam_pct: number | null;
+      halaqah_pct: number | null;
+      tadreeb_pct: number | null;
+      final_score: number | null;
+      passed: boolean;
+      concluded_at: string;
+      marhalahs: { number: number } | { number: number }[] | null;
+    }>;
+
+    return rows.map((row) => {
+      const marhalah = Array.isArray(row.marhalahs) ? row.marhalahs[0] : row.marhalahs;
+      return {
+        id: row.id,
+        marhalah_id: row.marhalah_id,
+        marhalah_number: marhalah?.number ?? 0,
+        attempt_number: row.attempt_number,
+        exercise_pct: row.exercise_pct,
+        exam_pct: row.exam_pct,
+        halaqah_pct: row.halaqah_pct,
+        tadreeb_pct: row.tadreeb_pct,
+        final_score: row.final_score,
+        passed: row.passed,
+        concluded_at: row.concluded_at,
+      };
+    });
+  },
 
   getNavigationContext: async (): Promise<{ current_marhalah_id: number }> => {
     const { profile } = await getCurrentProfile();

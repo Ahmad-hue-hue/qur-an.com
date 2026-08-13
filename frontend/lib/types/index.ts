@@ -356,6 +356,20 @@ export interface MarhalahResultsRoster {
   rows: MarhalahResultsRosterRow[];
 }
 
+export interface MarhalahAttemptHistoryRow {
+  id: string;
+  marhalah_id: number;
+  marhalah_number: number;
+  attempt_number: number;
+  exercise_pct: number | null;
+  exam_pct: number | null;
+  halaqah_pct: number | null;
+  tadreeb_pct: number | null;
+  final_score: number | null;
+  passed: boolean;
+  concluded_at: string;
+}
+
 export interface TeacherProfile extends User {
   managed_marhalah: number;
   gender: Gender;

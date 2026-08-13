@@ -46,6 +46,11 @@ export default function StudentResultsDashboardPage() {
     queryFn: studentApi.getMySubmissions,
   });
 
+  const { data: attemptHistory } = useQuery({
+    queryKey: ["my-attempt-history"],
+    queryFn: studentApi.getAttemptHistory,
+  });
+
   const phone = formatPhoneDisplay(profile?.phone);
   const reachedMarhalahs = (marhalahs ?? []).filter((m) => m.status !== "locked");
   const marhalahNumber =
@@ -120,6 +125,39 @@ export default function StudentResultsDashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        {attemptHistory && attemptHistory.length > 0 && (
+          <Card className="card-shadow">
+            <CardContent className="p-4 space-y-3">
+              <p className="text-sm font-medium text-emerald-deep">
+                Previous attempts
+              </p>
+              {attemptHistory.map((attempt) => (
+                <div
+                  key={attempt.id}
+                  className="flex items-center justify-between rounded-lg border p-3 text-sm"
+                >
+                  <div>
+                    <p className="font-medium">
+                      Marḥalah {attempt.marhalah_number} · Attempt {attempt.attempt_number}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(attempt.concluded_at), "MMM d, yyyy · h:mm a")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-emerald-deep">
+                      {attempt.final_score ?? 0}%
+                    </p>
+                    <p className={attempt.passed ? "text-xs text-emerald-deep" : "text-xs text-red-600"}>
+                      {attempt.passed ? "Passed" : "Not passed · restarted"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {isLoading &&
           Array.from({ length: 4 }).map((_, i) => (

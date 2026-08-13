@@ -1,10 +1,19 @@
 import { formatPhoneDisplay } from "@/lib/phone-auth";
+import { fontFor, registerPdfFonts } from "@/lib/pdf-fonts";
 
 export type ResultsPdfRow = {
   label: string;
   detail?: string;
   score: string;
 };
+
+function setTextFont(
+  doc: import("jspdf").jsPDF,
+  text: string,
+  weight: "normal" | "bold"
+) {
+  doc.setFont(fontFor(text), weight);
+}
 
 export async function downloadResultsPdf(options: {
   title: string;
@@ -20,26 +29,30 @@ export async function downloadResultsPdf(options: {
   const autoTable = autoTableModule.default;
 
   const doc = new jsPDF();
+  await registerPdfFonts(doc);
   const phone = formatPhoneDisplay(options.phone);
   let y = 16;
 
-  doc.setFont("helvetica", "bold");
+  setTextFont(doc, options.title, "bold");
   doc.setFontSize(16);
   doc.text(options.title, 14, y);
   y += 8;
 
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   if (options.subtitle) {
+    setTextFont(doc, options.subtitle, "normal");
     doc.text(options.subtitle, 14, y);
     y += 6;
   }
   if (phone !== "—") {
+    setTextFont(doc, phone, "normal");
     doc.text(`Phone: ${phone}`, 14, y);
     y += 6;
   }
 
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y);
+  const generatedLine = `Generated: ${new Date().toLocaleString()}`;
+  setTextFont(doc, generatedLine, "normal");
+  doc.text(generatedLine, 14, y);
   y += 4;
 
   autoTable(doc, {
@@ -50,12 +63,18 @@ export async function downloadResultsPdf(options: {
       (row.detail ?? "").slice(0, 80),
       row.score,
     ]),
-    styles: { fontSize: 9, cellPadding: 2 },
-    headStyles: { fillColor: [15, 81, 50] },
+    styles: { fontSize: 9, cellPadding: 2, font: "NotoSans" },
+    headStyles: { fillColor: [15, 81, 50], font: "NotoSans" },
     columnStyles: {
       0: { cellWidth: 80 },
       1: { cellWidth: 70 },
       2: { cellWidth: 30 },
+    },
+    didParseCell: (data) => {
+      const text = Array.isArray(data.cell.text)
+        ? data.cell.text.join(" ")
+        : String(data.cell.text ?? "");
+      data.cell.styles.font = fontFor(text);
     },
   });
 
@@ -79,27 +98,30 @@ export async function downloadResultsRosterPdf(options: {
   const autoTable = autoTableModule.default;
 
   const doc = new jsPDF({ orientation: "landscape" });
+  await registerPdfFonts(doc);
   let y = 14;
 
-  doc.setFont("helvetica", "bold");
+  setTextFont(doc, options.title, "bold");
   doc.setFontSize(14);
   doc.text(options.title, 14, y);
   y += 7;
 
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   if (options.subtitle) {
+    setTextFont(doc, options.subtitle, "normal");
     doc.text(options.subtitle, 14, y);
     y += 5;
   }
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y);
+  const generatedLine = `Generated: ${new Date().toLocaleString()}`;
+  setTextFont(doc, generatedLine, "normal");
+  doc.text(generatedLine, 14, y);
   y += 3;
 
   for (const [index, section] of options.sections.entries()) {
     if (index > 0) y = (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? y;
     y += index === 0 ? 6 : 12;
 
-    doc.setFont("helvetica", "bold");
+    setTextFont(doc, section.title, "bold");
     doc.setFontSize(10);
     doc.text(section.title, 14, y);
 
@@ -107,10 +129,16 @@ export async function downloadResultsRosterPdf(options: {
       startY: y + 3,
       head: [section.head],
       body: section.body,
-      styles: { fontSize: 8, cellPadding: 1.5, halign: "center" },
-      headStyles: { fillColor: [15, 81, 50], halign: "center" },
+      styles: { fontSize: 8, cellPadding: 1.5, halign: "center", font: "NotoSans" },
+      headStyles: { fillColor: [15, 81, 50], halign: "center", font: "NotoSans" },
       columnStyles: {
         0: { halign: "left", cellWidth: 36 },
+      },
+      didParseCell: (data) => {
+        const text = Array.isArray(data.cell.text)
+          ? data.cell.text.join(" ")
+          : String(data.cell.text ?? "");
+        data.cell.styles.font = fontFor(text);
       },
     });
   }

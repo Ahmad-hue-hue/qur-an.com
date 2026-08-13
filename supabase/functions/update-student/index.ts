@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
 
     const { data: student, error: studentError } = await supabase
       .from("profiles")
-      .select("id, role, gender")
+      .select("id, role, gender, current_marhalah")
       .eq("id", student_id)
       .single();
     if (studentError || student?.role !== "student") {
@@ -62,6 +62,26 @@ Deno.serve(async (req) => {
       (student.gender !== staff.gender || (changes.gender && changes.gender !== staff.gender))
     ) {
       throw new AuthError("Teachers can only manage students of their own gender", 403);
+    }
+
+    if (
+      typeof changes.current_marhalah === "number" &&
+      changes.current_marhalah > student.current_marhalah
+    ) {
+      if (changes.current_marhalah > student.current_marhalah + 1) {
+        throw new AuthError("Cannot skip more than one stage at a time", 400);
+      }
+      const { data: eligible, error: eligibilityError } = await supabase.rpc(
+        "can_promote_student",
+        { p_student_id: student_id }
+      );
+      if (eligibilityError) throw new AuthError(eligibilityError.message, 400);
+      if (!eligible) {
+        throw new AuthError(
+          "Student hasn't completed all requirements or the required pass mark yet",
+          400
+        );
+      }
     }
 
     const update: Record<string, unknown> = {};
