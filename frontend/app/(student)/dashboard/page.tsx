@@ -91,8 +91,26 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   )}
+                  {data.halaqah && (
+                    <div className="flex justify-between text-sm pt-2 border-t">
+                      <span className="text-muted-foreground">Ḥalaqah</span>
+                      <span className="font-medium">
+                        {data.halaqah.score}/{data.halaqah.max_score}
+                      </span>
+                    </div>
+                  )}
+                  {data.tadreeb && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Tadreeb</span>
+                      <span className="font-medium">
+                        {data.tadreeb.score}/{data.tadreeb.max_score}
+                      </span>
+                    </div>
+                  )}
                   {!data.recent_results.exercises.length &&
-                    !data.recent_results.exam && (
+                    !data.recent_results.exam &&
+                    !data.halaqah &&
+                    !data.tadreeb && (
                       <p className="text-sm text-muted-foreground text-center py-2">
                         No results yet.
                       </p>
