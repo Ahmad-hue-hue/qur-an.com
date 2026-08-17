@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
@@ -12,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 
 export default function AssessmentsPage() {
+  const queryClient = useQueryClient();
+
   const { data: exercises, isLoading: loadingExercises } = useQuery({
     queryKey: ["exercises"],
     queryFn: studentApi.getExercises,
@@ -26,6 +29,20 @@ export default function AssessmentsPage() {
     queryKey: ["dashboard"],
     queryFn: studentApi.getDashboard,
   });
+
+  // Seed the per-item caches the take/exam pages read from, so navigating
+  // there from this list doesn't start with an empty loading skeleton.
+  useEffect(() => {
+    exercises?.forEach((ex) => {
+      queryClient.setQueryData(["exercise", ex.id], ex);
+    });
+  }, [exercises, queryClient]);
+
+  useEffect(() => {
+    exams?.forEach((exam) => {
+      queryClient.setQueryData(["exam", exam.id], exam);
+    });
+  }, [exams, queryClient]);
 
   const marhalahNumber = dashboard?.current_marhalah.number ?? 1;
   const marhalahTitle =

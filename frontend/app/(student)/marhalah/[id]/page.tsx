@@ -1,7 +1,7 @@
 "use client";
 
-import { use } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { use, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { studentApi } from "@/lib/api";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -20,6 +20,7 @@ export default function MarhalahTopicsPage({
 }) {
   const { id } = use(params);
   const marhalahId = parseInt(id);
+  const queryClient = useQueryClient();
 
   const { data: marhalahs } = useQuery({
     queryKey: ["marhalahs"],
@@ -41,6 +42,12 @@ export default function MarhalahTopicsPage({
     queryFn: () => studentApi.getMarhalahExam(marhalahId),
     enabled: allLessonsComplete,
   });
+
+  useEffect(() => {
+    if (exam) {
+      queryClient.setQueryData(["exam", exam.id], exam);
+    }
+  }, [exam, queryClient]);
 
   return (
     <AppShell>

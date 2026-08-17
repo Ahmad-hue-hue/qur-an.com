@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useRef, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Link from "next/link";
 import { studentApi } from "@/lib/api";
@@ -35,6 +35,7 @@ export default function ExamPage({
   const { id } = use(params);
   const examId = parseInt(id);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const autoSubmitted = useRef(false);
@@ -71,8 +72,9 @@ export default function ExamPage({
 
   const submitMutation = useMutation({
     mutationFn: () => studentApi.submitExam(examId, answers),
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       toast.success(`Exam submitted! Score: ${result.score}/${result.max_score}`);
+      await queryClient.invalidateQueries({ queryKey: ["exam", examId] });
       router.push(`/exams/${examId}/results`);
     },
     onError: (err: Error) => toast.error(err.message || "Submission failed"),
