@@ -369,6 +369,7 @@ export interface MarhalahAttemptHistoryRow {
   tadreeb_pct: number | null;
   final_score: number | null;
   passed: boolean;
+  exercises_complete: boolean | null;
   concluded_at: string;
 }
 

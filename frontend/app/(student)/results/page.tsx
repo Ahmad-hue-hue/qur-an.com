@@ -26,7 +26,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Download01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import {
+  Download01Icon,
+  ArrowRight01Icon,
+  Alert02Icon,
+} from "@hugeicons/core-free-icons";
+import type { Marhalah, MarhalahAttemptHistoryRow } from "@/lib/types";
+
+function attemptFailureReasons(
+  attempt: MarhalahAttemptHistoryRow,
+  nextMarhalah?: Marhalah
+): string[] {
+  const reasons: string[] = [];
+  if (!attempt.exercise_pct) reasons.push("Exercises not completed");
+  if (!attempt.halaqah_pct) reasons.push("Ḥalaqah marks not entered");
+  if (!attempt.tadreeb_pct) reasons.push("Tadreeb marks not entered");
+  if (reasons.length === 0 && attempt.exercises_complete === false) {
+    reasons.push("Some exercises were not completed");
+  }
+  if (reasons.length === 0) {
+    const threshold = nextMarhalah?.unlock_threshold;
+    reasons.push(
+      threshold != null
+        ? `Final score ${attempt.final_score ?? 0}% was below the ${threshold}% required to advance`
+        : "Final score was below the required pass mark"
+    );
+  }
+  return reasons;
+}
 
 export default function StudentResultsDashboardPage() {
   const [selectedMarhalah, setSelectedMarhalah] = useState<number | null>(null);
@@ -60,6 +87,13 @@ export default function StudentResultsDashboardPage() {
     queryFn: () => studentApi.getMarhalahResultsRoster(marhalahNumber),
     enabled: Boolean(profile),
   });
+
+  const marhalahAttempts = (attemptHistory ?? []).filter(
+    (a) => a.marhalah_number === marhalahNumber
+  );
+  const nextMarhalah = (marhalahs ?? []).find(
+    (m) => m.number === marhalahNumber + 1
+  );
 
   const submissionsByMarhalah = Object.entries(
     (submissions ?? []).reduce<Record<number, typeof submissions>>(
@@ -135,41 +169,40 @@ export default function StudentResultsDashboardPage() {
                 No results recorded for this Marḥalah yet.
               </p>
             )}
-          </CardContent>
-        </Card>
 
-        {attemptHistory && attemptHistory.length > 0 && (
-          <Card className="card-shadow">
-            <CardContent className="p-4 space-y-3">
-              <p className="text-sm font-medium text-emerald-deep">
-                Previous attempts
-              </p>
-              {attemptHistory.map((attempt) => (
-                <div
-                  key={attempt.id}
-                  className="flex items-center justify-between rounded-lg border p-3 text-sm"
-                >
-                  <div>
-                    <p className="font-medium">
-                      Marḥalah {attempt.marhalah_number} · Attempt {attempt.attempt_number}
-                    </p>
+            {marhalahAttempts.length > 0 && (
+              <div className="space-y-2 pt-2 border-t">
+                <p className="text-sm font-medium text-red-700 flex items-center gap-1.5">
+                  <HugeiconsIcon icon={Alert02Icon} size={16} />
+                  Failed attempts · Marḥalah {marhalahNumber}
+                </p>
+                {marhalahAttempts.map((attempt) => (
+                  <div
+                    key={attempt.id}
+                    className="rounded-lg border border-red-200 bg-red-50/60 p-3 text-sm space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-red-900">
+                        Attempt {attempt.attempt_number}
+                      </p>
+                      <p className="font-semibold text-red-900">
+                        {attempt.final_score ?? 0}%
+                      </p>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(attempt.concluded_at), "MMM d, yyyy · h:mm a")}
                     </p>
+                    <ul className="text-xs text-red-800 list-disc list-inside space-y-0.5">
+                      {attemptFailureReasons(attempt, nextMarhalah).map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-emerald-deep">
-                      {attempt.final_score ?? 0}%
-                    </p>
-                    <p className={attempt.passed ? "text-xs text-emerald-deep" : "text-xs text-red-600"}>
-                      {attempt.passed ? "Passed" : "Not passed · restarted"}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {isLoading &&
           Array.from({ length: 4 }).map((_, i) => (

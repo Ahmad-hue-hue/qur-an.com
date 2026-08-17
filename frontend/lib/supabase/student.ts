@@ -530,7 +530,7 @@ export const studentApi = {
     const rows = throwIfError(
       await getSupabase()
         .from("marhalah_attempt_history")
-        .select("id, marhalah_id, attempt_number, exercise_pct, exam_pct, halaqah_pct, tadreeb_pct, final_score, passed, concluded_at, marhalahs(number)")
+        .select("id, marhalah_id, attempt_number, exercise_pct, exam_pct, halaqah_pct, tadreeb_pct, final_score, passed, exercises_complete, concluded_at, marhalahs(number)")
         .eq("student_id", user.id)
         .order("concluded_at", { ascending: false })
     ) as Array<{
@@ -543,6 +543,7 @@ export const studentApi = {
       tadreeb_pct: number | null;
       final_score: number | null;
       passed: boolean;
+      exercises_complete: boolean | null;
       concluded_at: string;
       marhalahs: { number: number } | { number: number }[] | null;
     }>;
@@ -560,6 +561,7 @@ export const studentApi = {
         tadreeb_pct: row.tadreeb_pct,
         final_score: row.final_score,
         passed: row.passed,
+        exercises_complete: row.exercises_complete,
         concluded_at: row.concluded_at,
       };
     });
