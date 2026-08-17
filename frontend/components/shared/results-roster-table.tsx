@@ -6,18 +6,8 @@ function formatMark(score: number | null, maxScore: number | null): string {
   return String(score);
 }
 
-function formatTotal(
-  row: MarhalahResultsRoster["rows"][number],
-  columns: MarhalahResultsRoster["columns"]
-): string {
-  const scoreByExercise = new Map(
-    row.lesson_scores.map((score) => [score.exercise_id, score])
-  );
-  const missingExercise = columns.some((col) => {
-    const score = scoreByExercise.get(col.exercise_id);
-    return score?.score == null;
-  });
-  if (missingExercise) return "Incomplete";
+function formatTotal(row: MarhalahResultsRoster["rows"][number]): string {
+  if (!row.exercises_complete) return "Incomplete";
 
   const lessonTotal = row.lesson_scores.reduce(
     (total, score) => total + (score.score ?? 0),
@@ -165,7 +155,7 @@ function ResultsRegister({
                   </td>
                 )}
                 <td className="px-3 py-2.5 text-center font-semibold tabular-nums">
-                  {formatTotal(row, columns)}
+                  {formatTotal(row)}
                 </td>
               </tr>
             );
@@ -211,7 +201,7 @@ export function rosterToPdfSections(
         ...(hasTadreeb
           ? [formatMark(row.tadreeb_score, row.tadreeb_max_score)]
           : []),
-        formatTotal(row, roster.columns),
+        formatTotal(row),
       ];
     });
 

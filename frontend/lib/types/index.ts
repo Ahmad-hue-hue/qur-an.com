@@ -339,6 +339,7 @@ export interface MarhalahResultsLessonScore {
 export interface MarhalahResultsRosterRow {
   student_id: string;
   registration_number: string | null;
+  exercises_complete: boolean;
   lesson_scores: MarhalahResultsLessonScore[];
   exam_score: number | null;
   exam_max_score: number | null;
