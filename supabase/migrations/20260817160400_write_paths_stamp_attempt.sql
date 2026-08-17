@@ -491,18 +491,32 @@ begin
     raise exception 'Student not found';
   end if;
 
+  -- Archive a stale current row only if it belongs to an OLDER attempt
+  -- (shouldn't normally happen - reset_marhalah_progress archives on every
+  -- attempt transition - but guards against it regardless). Editing the
+  -- mark again within the SAME attempt must update in place, not insert a
+  -- second row for that attempt (which would violate the unique
+  -- constraint on (student_id, marhalah_id, type, attempt_number)).
   update public.manual_scores
   set is_current = false
   where student_id = p_student_id
     and marhalah_id = p_marhalah_id
     and type = p_type
-    and is_current = true;
+    and is_current = true
+    and attempt_number <> v_attempt_number;
 
   insert into public.manual_scores (
-    student_id, marhalah_id, type, score, max_score, notes, attempt_number
+    student_id, marhalah_id, type, score, max_score, notes, attempt_number, is_current
   ) values (
-    p_student_id, p_marhalah_id, p_type, p_score, p_max_score, coalesce(p_notes, ''), v_attempt_number
+    p_student_id, p_marhalah_id, p_type, p_score, p_max_score, coalesce(p_notes, ''), v_attempt_number, true
   )
+  on conflict (student_id, marhalah_id, type, attempt_number)
+  do update set
+    score = excluded.score,
+    max_score = excluded.max_score,
+    notes = excluded.notes,
+    updated_at = now(),
+    is_current = true
   returning * into v_result;
 
   return v_result;
