@@ -1166,7 +1166,9 @@ export const studentApi = {
     const exerciseRows = throwIfError(
       await supabase
         .from("exercise_submissions")
-        .select("id, score, max_score, grading_status, submitted_at, exercise_id, exercises(title)")
+        .select(
+          "id, score, max_score, grading_status, submitted_at, exercise_id, exercises(title, marhalahs(number))"
+        )
         .eq("student_id", user.id)
         .not("submitted_at", "is", null)
         .order("submitted_at", { ascending: false })
@@ -1177,13 +1179,15 @@ export const studentApi = {
       grading_status: StudentSubmissionSummary["grading_status"];
       submitted_at: string;
       exercise_id: number;
-      exercises: { title: string } | null;
+      exercises: { title: string; marhalahs: { number: number } | null } | null;
     }[];
 
     const examRows = throwIfError(
       await supabase
         .from("exam_submissions")
-        .select("id, score, max_score, grading_status, submitted_at, exam_id, exams(title)")
+        .select(
+          "id, score, max_score, grading_status, submitted_at, exam_id, exams(title, marhalahs(number))"
+        )
         .eq("student_id", user.id)
         .not("submitted_at", "is", null)
         .order("submitted_at", { ascending: false })
@@ -1194,7 +1198,7 @@ export const studentApi = {
       grading_status: StudentSubmissionSummary["grading_status"];
       submitted_at: string;
       exam_id: number;
-      exams: { title: string } | null;
+      exams: { title: string; marhalahs: { number: number } | null } | null;
     }[];
 
     const exerciseItems: StudentSubmissionSummary[] = (exerciseRows ?? []).map(
@@ -1207,6 +1211,7 @@ export const studentApi = {
         grading_status: row.grading_status,
         submitted_at: row.submitted_at,
         href: `/exercises/${row.exercise_id}/results`,
+        marhalah_number: row.exercises?.marhalahs?.number ?? 0,
       })
     );
 
@@ -1219,6 +1224,7 @@ export const studentApi = {
       grading_status: row.grading_status,
       submitted_at: row.submitted_at,
       href: `/exams/${row.exam_id}/results`,
+      marhalah_number: row.exams?.marhalahs?.number ?? 0,
     }));
 
     return [...exerciseItems, ...examItems].sort(

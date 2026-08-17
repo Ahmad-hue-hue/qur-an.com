@@ -309,6 +309,7 @@ export interface StudentSubmissionSummary {
   grading_status: GradingStatus;
   submitted_at: string;
   href: string;
+  marhalah_number: number;
 }
 
 export interface TeacherOverallResultRow {

@@ -61,6 +61,18 @@ export default function StudentResultsDashboardPage() {
     enabled: Boolean(profile),
   });
 
+  const submissionsByMarhalah = Object.entries(
+    (submissions ?? []).reduce<Record<number, typeof submissions>>(
+      (groups, row) => {
+        (groups[row.marhalah_number] ??= []).push(row);
+        return groups;
+      },
+      {}
+    )
+  )
+    .map(([number, rows]) => [Number(number), rows ?? []] as const)
+    .sort((a, b) => b[0] - a[0]);
+
   const handleDownload = async () => {
     if (!roster?.rows.length) {
       toast.error("No results to download yet.");
@@ -173,28 +185,35 @@ export default function StudentResultsDashboardPage() {
         )}
 
         {!isLoading &&
-          submissions?.map((row) => (
-            <Link key={`${row.kind}-${row.id}`} href={row.href}>
-              <Card className="card-shadow hover:shadow-md transition-shadow mb-3">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{row.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {row.kind === "exam" ? "Exam" : "Exercise"} ·{" "}
-                      {format(new Date(row.submitted_at), "MMM d, yyyy · h:mm a")}
-                    </p>
-                  </div>
-                  <p className="shrink-0 font-semibold text-emerald-deep">
-                    {formatAssessmentMark(row.score, row.max_score)}
-                  </p>
-                  <HugeiconsIcon
-                    icon={ArrowRight01Icon}
-                    size={18}
-                    className="shrink-0 text-muted-foreground"
-                  />
-                </CardContent>
-              </Card>
-            </Link>
+          submissionsByMarhalah.map(([number, rows]) => (
+            <div key={number} className="space-y-3">
+              <p className="text-sm font-medium text-emerald-deep px-1">
+                Marḥalah {number}
+              </p>
+              {rows.map((row) => (
+                <Link key={`${row.kind}-${row.id}`} href={row.href}>
+                  <Card className="card-shadow hover:shadow-md transition-shadow mb-3">
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{row.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {row.kind === "exam" ? "Exam" : "Exercise"} ·{" "}
+                          {format(new Date(row.submitted_at), "MMM d, yyyy · h:mm a")}
+                        </p>
+                      </div>
+                      <p className="shrink-0 font-semibold text-emerald-deep">
+                        {formatAssessmentMark(row.score, row.max_score)}
+                      </p>
+                      <HugeiconsIcon
+                        icon={ArrowRight01Icon}
+                        size={18}
+                        className="shrink-0 text-muted-foreground"
+                      />
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           ))}
       </div>
     </AppShell>
