@@ -169,6 +169,7 @@ async function buildStudentProfile(studentId: string): Promise<StudentProfile> {
       .from("topic_completions")
       .select("topic_id")
       .eq("student_id", studentId)
+      .eq("is_current", true)
       .in(
         "topic_id",
         topics.map((t) => t.id)
@@ -456,20 +457,14 @@ export const adminApi = {
   }) => {
     const marhalahId = await resolveMarhalahIdByNumber(data.marhalah);
     throwIfError(
-      await getSupabase()
-        .from("manual_scores")
-        .upsert(
-          {
-            student_id: data.student_id,
-            marhalah_id: marhalahId,
-            type: data.type,
-            score: data.score,
-            max_score: data.max_score ?? 20,
-            notes: data.notes ?? "",
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "student_id,marhalah_id,type" }
-        )
+      await getSupabase().rpc("upsert_manual_score", {
+        p_student_id: data.student_id,
+        p_marhalah_id: marhalahId,
+        p_type: data.type,
+        p_score: data.score,
+        p_max_score: data.max_score ?? 20,
+        p_notes: data.notes ?? "",
+      })
     );
   },
 
@@ -481,6 +476,7 @@ export const adminApi = {
         .select("*")
         .eq("student_id", studentId)
         .eq("marhalah_id", marhalahId)
+        .eq("is_current", true)
     );
     return (rows ?? []) as Array<{
       type: string;
@@ -700,6 +696,7 @@ export const adminApi = {
           .from("exercise_submissions")
           .select("id", { count: "exact", head: true })
           .eq("exercise_id", exerciseId)
+          .eq("is_current", true)
       ).count;
 
       exercises.push({
@@ -918,6 +915,7 @@ export const adminApi = {
       `
       )
       .eq("exercise_id", exerciseId)
+      .eq("is_current", true)
       .order("submitted_at", { ascending: false });
 
     if (pendingOnly) {
@@ -1003,6 +1001,7 @@ export const adminApi = {
           .from("exam_submissions")
           .select("id", { count: "exact", head: true })
           .eq("exam_id", examId)
+          .eq("is_current", true)
           .not("submitted_at", "is", null)
       ).count;
       const marhalahNumber = await resolveMarhalahNumberById(e.marhalah_id as number);
@@ -1215,6 +1214,7 @@ export const adminApi = {
       `
       )
       .eq("exam_id", examId)
+      .eq("is_current", true)
       .not("submitted_at", "is", null)
       .order("submitted_at", { ascending: false });
 

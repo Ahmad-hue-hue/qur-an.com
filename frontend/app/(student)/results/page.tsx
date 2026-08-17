@@ -31,29 +31,7 @@ import {
   ArrowRight01Icon,
   Alert02Icon,
 } from "@hugeicons/core-free-icons";
-import type { Marhalah, MarhalahAttemptHistoryRow } from "@/lib/types";
-
-function attemptFailureReasons(
-  attempt: MarhalahAttemptHistoryRow,
-  nextMarhalah?: Marhalah
-): string[] {
-  const reasons: string[] = [];
-  if (!attempt.exercise_pct) reasons.push("Exercises not completed");
-  if (!attempt.halaqah_pct) reasons.push("Ḥalaqah marks not entered");
-  if (!attempt.tadreeb_pct) reasons.push("Tadreeb marks not entered");
-  if (reasons.length === 0 && attempt.exercises_complete === false) {
-    reasons.push("Some exercises were not completed");
-  }
-  if (reasons.length === 0) {
-    const threshold = nextMarhalah?.unlock_threshold;
-    reasons.push(
-      threshold != null
-        ? `Final score ${attempt.final_score ?? 0}% was below the ${threshold}% required to advance`
-        : "Final score was below the required pass mark"
-    );
-  }
-  return reasons;
-}
+import { attemptFailureReasons } from "@/lib/attempt-reason";
 
 export default function StudentResultsDashboardPage() {
   const [selectedMarhalah, setSelectedMarhalah] = useState<number | null>(null);
@@ -193,10 +171,16 @@ export default function StudentResultsDashboardPage() {
                       {format(new Date(attempt.concluded_at), "MMM d, yyyy · h:mm a")}
                     </p>
                     <ul className="text-xs text-red-800 list-disc list-inside space-y-0.5">
-                      {attemptFailureReasons(attempt, nextMarhalah).map((reason) => (
+                      {attemptFailureReasons(attempt, nextMarhalah?.unlock_threshold).map((reason) => (
                         <li key={reason}>{reason}</li>
                       ))}
                     </ul>
+                    <Link
+                      href={`/results/attempt/${attempt.marhalah_number}/${attempt.attempt_number}`}
+                      className="inline-block text-xs font-medium text-red-900 underline underline-offset-2 hover:text-red-700"
+                    >
+                      Review this attempt
+                    </Link>
                   </div>
                 ))}
               </div>

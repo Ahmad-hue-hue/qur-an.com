@@ -358,6 +358,26 @@ export interface MarhalahResultsRoster {
   rows: MarhalahResultsRosterRow[];
 }
 
+export interface AttemptReviewAssessment {
+  id: number;
+  title: string;
+  score: number | null;
+  max_score: number | null;
+  submitted_at: string | null;
+  answer_grades: ExerciseAnswerGrade[];
+}
+
+export interface AttemptReview {
+  marhalah_number: number;
+  attempt_number: number;
+  exercises: AttemptReviewAssessment[];
+  exam: AttemptReviewAssessment | null;
+  halaqah: { score: number; max_score: number } | null;
+  tadreeb: { score: number; max_score: number } | null;
+  topics_total: number;
+  topics_completed: number;
+}
+
 export interface MarhalahAttemptHistoryRow {
   id: string;
   marhalah_id: number;

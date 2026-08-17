@@ -106,20 +106,14 @@ export const teacherApi = {
   }) => {
     const marhalahId = await resolveMarhalahIdByNumber(data.marhalah);
     throwIfError(
-      await getSupabase()
-        .from("manual_scores")
-        .upsert(
-          {
-            student_id: data.student_id,
-            marhalah_id: marhalahId,
-            type: data.type,
-            score: data.score,
-            max_score: data.max_score ?? 20,
-            notes: data.notes ?? "",
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "student_id,marhalah_id,type" }
-        )
+      await getSupabase().rpc("upsert_manual_score", {
+        p_student_id: data.student_id,
+        p_marhalah_id: marhalahId,
+        p_type: data.type,
+        p_score: data.score,
+        p_max_score: data.max_score ?? 20,
+        p_notes: data.notes ?? "",
+      })
     );
   },
 
@@ -131,6 +125,7 @@ export const teacherApi = {
         .select("*")
         .eq("student_id", studentId)
         .eq("marhalah_id", marhalahId)
+        .eq("is_current", true)
     );
     return rows ?? [];
   },

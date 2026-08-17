@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { FormattedText } from "@/components/shared/formatted-text";
 import { useCountdown } from "@/lib/hooks/use-countdown";
+import { attemptFailureReasons } from "@/lib/attempt-reason";
 
 export default function ExamPage({
   params,
@@ -73,7 +74,20 @@ export default function ExamPage({
   const submitMutation = useMutation({
     mutationFn: () => studentApi.submitExam(examId, answers),
     onSuccess: async (result) => {
-      toast.success(`Exam submitted! Score: ${result.score}/${result.max_score}`);
+      if (result.outcome === "passed") {
+        toast.success(
+          `Exam submitted! You passed this Marḥalah with a final score of ${result.final_score ?? result.score}%.`,
+          { duration: 8000 }
+        );
+      } else if (result.outcome === "reset") {
+        const reasons = attemptFailureReasons(result);
+        toast.error(
+          `You did not pass this Marḥalah (final score ${result.final_score ?? 0}%). ${reasons.join("; ")}. Your progress for this Marḥalah has been reset — you'll redo it.`,
+          { duration: 12000 }
+        );
+      } else {
+        toast.success(`Exam submitted! Score: ${result.score}/${result.max_score}`);
+      }
       await queryClient.invalidateQueries({ queryKey: ["exam", examId] });
       router.push(`/exams/${examId}/results`);
     },

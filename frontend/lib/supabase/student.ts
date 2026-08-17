@@ -7,8 +7,10 @@ import { mapProfileRow, SupabaseApiError, throwIfError } from "@/lib/supabase/ut
 import { isLastLessonOrder } from "@/lib/topic-assessment";
 import type {
   AssessmentSubmissionResults,
+  AttemptReview,
   DashboardData,
   Exercise,
+  ExerciseAnswerGrade,
   Exam,
   ManualScore,
   Marhalah,
@@ -19,6 +21,36 @@ import type {
   StudentSubmissionSummary,
   Topic,
 } from "@/lib/types";
+
+type RawAttemptReviewQuestion = {
+  id: number;
+  text: string;
+  arabic_text: string | null;
+  type: string;
+  options: string[] | null;
+  correct_answer: string | null;
+  order: number;
+  answer_text: string | null;
+  score: number | null;
+  max_score: number;
+  feedback: string | null;
+};
+
+function mapAttemptReviewQuestion(q: RawAttemptReviewQuestion): ExerciseAnswerGrade {
+  return {
+    id: q.id,
+    question_id: q.id,
+    question_text: q.text,
+    question_type: q.type as ExerciseAnswerGrade["question_type"],
+    answer_text: q.answer_text ?? "",
+    correct_answer: q.correct_answer ?? undefined,
+    question_options: q.options ?? undefined,
+    question_order: q.order,
+    score: q.score,
+    max_score: q.max_score,
+    feedback: q.feedback ?? undefined,
+  };
+}
 
 type DbMarhalah = {
   id: number;
@@ -74,6 +106,7 @@ async function hasExerciseSubmission(studentId: string, exerciseId: number) {
       .select("id")
       .eq("student_id", studentId)
       .eq("exercise_id", exerciseId)
+      .eq("is_current", true)
       .not("submitted_at", "is", null)
       .maybeSingle()
   );
@@ -140,6 +173,7 @@ async function getStudentProgress(studentId: string, marhalahId: number) {
       .from("topic_completions")
       .select("topic_id")
       .eq("student_id", studentId)
+      .eq("is_current", true)
       .in("topic_id", topicIds)
   ) as { topic_id: number }[];
 
@@ -316,6 +350,7 @@ async function enrichStudentTopic(
       .select("id")
       .eq("student_id", studentId)
       .eq("exercise_id", exercise.id)
+      .eq("is_current", true)
       .maybeSingle()
   ).data;
 
@@ -348,6 +383,7 @@ async function buildExerciseRow(
       .select("*")
       .eq("student_id", studentId)
       .eq("exercise_id", exerciseId)
+      .eq("is_current", true)
       .maybeSingle()
   );
 
@@ -407,6 +443,7 @@ async function buildExamRow(
       .select("*")
       .eq("student_id", studentId)
       .eq("exam_id", examId)
+      .eq("is_current", true)
       .maybeSingle()
   );
 
@@ -567,6 +604,68 @@ export const studentApi = {
     });
   },
 
+  getAttemptReview: async (
+    marhalahNumber: number,
+    attemptNumber: number
+  ): Promise<AttemptReview> => {
+    const raw = throwIfError(
+      await getSupabase().rpc("get_student_attempt_review", {
+        p_marhalah_number: marhalahNumber,
+        p_attempt_number: attemptNumber,
+      })
+    ) as {
+      marhalah_number: number;
+      attempt_number: number;
+      exercises: Array<{
+        id: number;
+        title: string;
+        score: number | null;
+        max_score: number | null;
+        submitted_at: string | null;
+        questions: RawAttemptReviewQuestion[];
+      }>;
+      exam: {
+        id: number;
+        title: string;
+        score: number | null;
+        max_score: number | null;
+        submitted_at: string | null;
+        questions: RawAttemptReviewQuestion[];
+      } | null;
+      halaqah: { score: number; max_score: number } | null;
+      tadreeb: { score: number; max_score: number } | null;
+      topics_total: number;
+      topics_completed: number;
+    };
+
+    return {
+      marhalah_number: raw.marhalah_number,
+      attempt_number: raw.attempt_number,
+      exercises: raw.exercises.map((e) => ({
+        id: e.id,
+        title: e.title,
+        score: e.score,
+        max_score: e.max_score,
+        submitted_at: e.submitted_at,
+        answer_grades: e.questions.map(mapAttemptReviewQuestion),
+      })),
+      exam: raw.exam
+        ? {
+            id: raw.exam.id,
+            title: raw.exam.title,
+            score: raw.exam.score,
+            max_score: raw.exam.max_score,
+            submitted_at: raw.exam.submitted_at,
+            answer_grades: raw.exam.questions.map(mapAttemptReviewQuestion),
+          }
+        : null,
+      halaqah: raw.halaqah,
+      tadreeb: raw.tadreeb,
+      topics_total: raw.topics_total,
+      topics_completed: raw.topics_completed,
+    };
+  },
+
   getNavigationContext: async (): Promise<{ current_marhalah_id: number }> => {
     const { profile } = await getCurrentProfile();
     const marhalah = throwIfError(
@@ -644,6 +743,7 @@ export const studentApi = {
         .from("topic_completions")
         .select("topic_id")
         .eq("student_id", user.id)
+        .eq("is_current", true)
         .in(
           "topic_id",
           currentTopics.map((t) => t.id)
@@ -671,6 +771,7 @@ export const studentApi = {
         .eq("student_id", user.id)
         .eq("marhalah_id", currentMarhalah.id)
         .eq("type", "halaqah")
+        .eq("is_current", true)
         .maybeSingle(),
       supabase
         .from("manual_scores")
@@ -678,6 +779,7 @@ export const studentApi = {
         .eq("student_id", user.id)
         .eq("marhalah_id", currentMarhalah.id)
         .eq("type", "tadreeb")
+        .eq("is_current", true)
         .maybeSingle(),
     ]);
     halaqahRow = halaqah.data;
@@ -810,6 +912,7 @@ export const studentApi = {
           .from("topic_completions")
           .select("topic_id")
           .eq("student_id", user.id)
+          .eq("is_current", true)
           .in("topic_id", topicIds)
       ) as { topic_id: number }[];
       completedIds = new Set(completedRows.map((r) => r.topic_id));
@@ -847,6 +950,7 @@ export const studentApi = {
           .from("topic_completions")
           .select("topic_id")
           .eq("student_id", user.id)
+          .eq("is_current", true)
           .in("topic_id", topicIds)
       ) as { topic_id: number }[];
       completedIds = new Set(completedRows.map((r) => r.topic_id));
@@ -864,7 +968,6 @@ export const studentApi = {
   },
 
   completeTopic: async (topicId: number): Promise<Topic> => {
-    const { user } = await getCurrentProfile();
     const supabase = getSupabase();
     const topic = await studentApi.getTopic(topicId);
     if (topic.status === "locked") {
@@ -874,13 +977,7 @@ export const studentApi = {
       return topic;
     }
 
-    const { error } = await supabase.from("topic_completions").insert({
-      student_id: user.id,
-      topic_id: topicId,
-    });
-    if (error && error.code !== "23505") {
-      throw new SupabaseApiError(error.message);
-    }
+    throwIfError(await supabase.rpc("mark_topic_complete", { p_topic_id: topicId }));
     return studentApi.getTopic(topicId);
   },
 
@@ -907,6 +1004,7 @@ export const studentApi = {
         .from("exercise_submissions")
         .select("exercise_id, exercises(*)")
         .eq("student_id", user.id)
+        .eq("is_current", true)
         .not("submitted_at", "is", null)
     ) as unknown as {
       exercise_id: number;
@@ -997,6 +1095,7 @@ export const studentApi = {
         )
         .eq("student_id", user.id)
         .eq("exercise_id", id)
+        .eq("is_current", true)
         .single()
     ) as Record<string, unknown>;
 
@@ -1102,11 +1201,27 @@ export const studentApi = {
         p_exam_id: id,
         p_answers: payload,
       })
-    ) as { score: number; max_score: number; grading_status: string };
+    ) as {
+      score: number;
+      max_score: number;
+      grading_status: string;
+      outcome: "passed" | "reset" | "pending";
+      final_score: number | null;
+      exercise_pct: number | null;
+      halaqah_pct: number | null;
+      tadreeb_pct: number | null;
+      exercises_complete: boolean | null;
+    };
     return {
       score: Number(result.score),
       max_score: Number(result.max_score),
       grading_status: result.grading_status,
+      outcome: result.outcome,
+      final_score: result.final_score,
+      exercise_pct: result.exercise_pct,
+      halaqah_pct: result.halaqah_pct,
+      tadreeb_pct: result.tadreeb_pct,
+      exercises_complete: result.exercises_complete,
     };
   },
 
@@ -1127,6 +1242,7 @@ export const studentApi = {
         )
         .eq("student_id", user.id)
         .eq("exam_id", id)
+        .eq("is_current", true)
         .not("submitted_at", "is", null)
         .single()
     ) as Record<string, unknown>;
@@ -1172,6 +1288,7 @@ export const studentApi = {
           "id, score, max_score, grading_status, submitted_at, exercise_id, exercises(title, marhalahs(number))"
         )
         .eq("student_id", user.id)
+        .eq("is_current", true)
         .not("submitted_at", "is", null)
         .order("submitted_at", { ascending: false })
     ) as unknown as {
@@ -1191,6 +1308,7 @@ export const studentApi = {
           "id, score, max_score, grading_status, submitted_at, exam_id, exams(title, marhalahs(number))"
         )
         .eq("student_id", user.id)
+        .eq("is_current", true)
         .not("submitted_at", "is", null)
         .order("submitted_at", { ascending: false })
     ) as unknown as {
