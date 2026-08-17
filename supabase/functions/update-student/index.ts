@@ -82,6 +82,20 @@ Deno.serve(async (req) => {
           400
         );
       }
+
+      const { data: nextMarhalah, error: nextMarhalahError } = await supabase
+        .from("marhalahs")
+        .select("id")
+        .eq("number", changes.current_marhalah)
+        .single();
+      if (nextMarhalahError || !nextMarhalah) {
+        throw new AuthError("Target Marḥalah not found", 400);
+      }
+      const { error: resetError } = await supabase.rpc("reset_marhalah_progress", {
+        p_student_id: student_id,
+        p_marhalah_id: nextMarhalah.id,
+      });
+      if (resetError) throw new AuthError(resetError.message, 400);
     }
 
     const update: Record<string, unknown> = {};
