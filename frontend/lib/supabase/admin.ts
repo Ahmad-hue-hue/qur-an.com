@@ -1310,6 +1310,7 @@ export const adminApi = {
       rows: (data.rows ?? []).map((row) => ({
         student_id: String(row.student_id),
         registration_number: row.registration_number ?? null,
+        exercises_complete: Boolean(row.exercises_complete),
         lesson_scores: (row.lesson_scores ?? []).map((score) => ({
           exercise_id: Number(score.exercise_id),
           topic_id: Number(score.topic_id),

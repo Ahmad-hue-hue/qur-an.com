@@ -15,6 +15,42 @@ function setTextFont(
   doc.setFont(fontFor(text), weight);
 }
 
+// App palette (matches frontend/app/globals.css: --emerald-deep, --gold, --cream).
+const EMERALD_DEEP: [number, number, number] = [6, 78, 59];
+const GOLD: [number, number, number] = [212, 168, 83];
+const CREAM: [number, number, number] = [253, 248, 240];
+
+/**
+ * Draws the branded header band (emerald fill, gold accent rule, Arabic +
+ * English masthead) across the top of the current page and returns the y
+ * position content should start at below it.
+ */
+function drawBrandedHeader(doc: import("jspdf").jsPDF): number {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const bandHeight = 20;
+
+  doc.setFillColor(...EMERALD_DEEP);
+  doc.rect(0, 0, pageWidth, bandHeight, "F");
+  doc.setFillColor(...GOLD);
+  doc.rect(0, bandHeight, pageWidth, 1.2, "F");
+
+  const centerX = pageWidth / 2;
+
+  doc.setTextColor(...CREAM);
+  doc.setFont(fontFor("Tajweed Academy"), "bold");
+  doc.setFontSize(14);
+  doc.text("Tajweed Academy", centerX, 9, { align: "center" });
+
+  const arabicMasthead = "أكاديمية التجويد";
+  doc.setTextColor(...GOLD);
+  doc.setFont(fontFor(arabicMasthead), "bold");
+  doc.setFontSize(11);
+  doc.text(arabicMasthead, centerX, 16, { align: "center" });
+
+  doc.setTextColor(0, 0, 0);
+  return bandHeight + 10;
+}
+
 export async function downloadResultsPdf(options: {
   title: string;
   subtitle?: string;
@@ -31,7 +67,7 @@ export async function downloadResultsPdf(options: {
   const doc = new jsPDF();
   await registerPdfFonts(doc);
   const phone = formatPhoneDisplay(options.phone);
-  let y = 16;
+  let y = drawBrandedHeader(doc);
 
   setTextFont(doc, options.title, "bold");
   doc.setFontSize(16);
@@ -99,7 +135,7 @@ export async function downloadResultsRosterPdf(options: {
 
   const doc = new jsPDF({ orientation: "landscape" });
   await registerPdfFonts(doc);
-  let y = 14;
+  let y = drawBrandedHeader(doc);
 
   setTextFont(doc, options.title, "bold");
   doc.setFontSize(14);
