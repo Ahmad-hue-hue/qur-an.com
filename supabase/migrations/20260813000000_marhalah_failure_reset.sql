@@ -11,9 +11,9 @@
 -- Attempt tracking
 -- ---------------------------------------------------------------------------
 alter table public.profiles
-  add column marhalah_attempt smallint not null default 1;
+  add column if not exists marhalah_attempt smallint not null default 1;
 
-create table public.marhalah_attempt_history (
+create table if not exists public.marhalah_attempt_history (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles (id) on delete cascade,
   marhalah_id bigint not null references public.marhalahs (id) on delete cascade,
@@ -27,10 +27,13 @@ create table public.marhalah_attempt_history (
   concluded_at timestamptz not null default now()
 );
 
-create index marhalah_attempt_history_student_idx
+create index if not exists marhalah_attempt_history_student_idx
   on public.marhalah_attempt_history (student_id, marhalah_id);
 
 alter table public.marhalah_attempt_history enable row level security;
+
+drop policy if exists "marhalah_attempt_history_select_own_staff_or_teacher"
+on public.marhalah_attempt_history;
 
 create policy "marhalah_attempt_history_select_own_staff_or_teacher"
 on public.marhalah_attempt_history for select to authenticated
