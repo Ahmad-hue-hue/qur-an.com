@@ -52,13 +52,13 @@ export default function LoginPage() {
     onSuccess: ({ role: loginRole, session }) => {
       if (wantsAdmin && loginRole !== "admin") {
         void authApi.logout().then(() => refreshAuth());
-        setGeneralError("This account is not an admin. Use an admin email and password.");
+        setGeneralError("This account isn't an admin.");
         return;
       }
 
       if (!wantsAdmin && loginRole === "admin") {
         void authApi.logout().then(() => refreshAuth());
-        setGeneralError("Admins must use Admin sign in with email.");
+        setGeneralError("Admins sign in with email, not phone.");
         return;
       }
 

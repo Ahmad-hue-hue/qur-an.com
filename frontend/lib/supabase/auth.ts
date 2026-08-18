@@ -125,7 +125,7 @@ export const authApi = {
     if (error) {
       const message =
         error.message === "Invalid login credentials"
-          ? "Invalid phone/email or password. Students and teachers sign in with phone; admins use Admin sign in."
+          ? "Incorrect phone/email or password."
           : error.message;
       throw new SupabaseApiError(message);
     }
